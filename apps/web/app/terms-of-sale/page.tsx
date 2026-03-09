@@ -12,10 +12,10 @@ export default function TermsOfSalePage() {
       <h3>1. Introduction</h3>
       <p>1.1 Parties and definitions:</p>
       <ol>
-        <li>“Client” is any person wishing to make a transaction on Coincart.</li>
-        <li>“Supplier” means one of Coincart suppliers (as of February 19th 2025, ACER Predator).</li>
-        <li>“Merchant” is Coincart, the platform processing the sales.</li>
-        <li>“Transporter” is the company that ships the Orders (DHL in Europe).</li>
+        <li>"Client" is any person wishing to make a transaction on Coincart.</li>
+        <li>"Supplier" means one of Coincart suppliers (as of February 19th 2025, ACER Predator).</li>
+        <li>"Merchant" is Coincart, the platform processing the sales.</li>
+        <li>"Transporter" is the company that ships the Orders (DHL in Europe).</li>
       </ol>
       <p>
         1.2 Purpose of this agreement: The purpose of this agreement is to define the terms and responsibilities of
@@ -114,4 +114,3 @@ export default function TermsOfSalePage() {
     </div>
   );
 }
-

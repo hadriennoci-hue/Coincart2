@@ -57,6 +57,13 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   return (
     <div className="card">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      {product.imageUrl ? (
+        <img
+          src={product.imageUrl}
+          alt={product.name}
+          style={{ width: "100%", maxWidth: 760, aspectRatio: "16/10", objectFit: "cover", borderRadius: 14, border: "1px solid var(--line)", marginBottom: 12 }}
+        />
+      ) : null}
       <p className="small">SKU: {product.sku}</p>
       <h2>{product.name}</h2>
       <p>{product.description || "No description"}</p>

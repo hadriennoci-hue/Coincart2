@@ -63,6 +63,13 @@ export default async function Home({
     <div>
       {hero ? (
         <div className="card" style={{ marginBottom: 16 }}>
+          {hero.imageUrl ? (
+            <img
+              src={hero.imageUrl}
+              alt={hero.name}
+              style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", borderRadius: 12, border: "1px solid var(--line)", marginBottom: 10 }}
+            />
+          ) : null}
           <p className="small" style={{ marginBottom: 6 }}>
             Featured Product
           </p>
@@ -223,6 +230,13 @@ export default async function Home({
         <div className="grid">
           {sales.map((item) => (
             <Link key={`sale-${item.id}`} className="card" href={`/product/${item.slug}?currency=${currency}`}>
+              {item.imageUrl ? (
+                <img
+                  src={item.imageUrl}
+                  alt={item.name}
+                  style={{ width: "100%", aspectRatio: "16/10", objectFit: "cover", borderRadius: 10, border: "1px solid var(--line)" }}
+                />
+              ) : null}
               <p className="small">{item.sku}</p>
               <h4 style={{ marginTop: 4 }}>{item.name}</h4>
               <p>
@@ -240,6 +254,13 @@ export default async function Home({
         <div className="grid">
           {topSelling.map((item) => (
             <Link key={`top-${item.id}`} className="card" href={`/product/${item.slug}?currency=${currency}`}>
+              {item.imageUrl ? (
+                <img
+                  src={item.imageUrl}
+                  alt={item.name}
+                  style={{ width: "100%", aspectRatio: "16/10", objectFit: "cover", borderRadius: 10, border: "1px solid var(--line)" }}
+                />
+              ) : null}
               <p className="small">{item.sku}</p>
               <h4 style={{ marginTop: 4 }}>{item.name}</h4>
               <p className="small">Stock signal: {item.stockQty}</p>
@@ -251,6 +272,13 @@ export default async function Home({
       <div className="grid">
         {filtered.map((item) => (
           <Link key={item.id} className="card" href={`/product/${item.slug}?currency=${currency}`}>
+            {item.imageUrl ? (
+              <img
+                src={item.imageUrl}
+                alt={item.name}
+                style={{ width: "100%", aspectRatio: "16/10", objectFit: "cover", borderRadius: 10, border: "1px solid var(--line)" }}
+              />
+            ) : null}
             <p className="small">{item.sku}</p>
             <h3>{item.name}</h3>
             <p className="small">In stock: {item.stockQty}</p>
@@ -262,6 +290,18 @@ export default async function Home({
           </Link>
         ))}
       </div>
+
+      {filtered.length === 0 ? (
+        <div className="card" style={{ marginTop: 16 }}>
+          <h3 style={{ marginTop: 0 }}>No products found</h3>
+          <p className="small" style={{ marginBottom: 12 }}>
+            Try broader filters or reset the catalog search to see all available products.
+          </p>
+          <Link className="button secondary" href={`/?currency=${currency}`}>
+            Reset catalog filters
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }

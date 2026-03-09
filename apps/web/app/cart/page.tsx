@@ -53,6 +53,13 @@ export default function CartPage() {
         const qty = lines.find((l) => l.sku === item.sku)?.quantity || 0;
         return (
           <div key={item.id} style={{ borderTop: "1px solid var(--line)", padding: "10px 0" }}>
+            {item.imageUrl ? (
+              <img
+                src={item.imageUrl}
+                alt={item.name}
+                style={{ width: 120, height: 80, objectFit: "cover", borderRadius: 10, border: "1px solid var(--line)", marginBottom: 8 }}
+              />
+            ) : null}
             <b>{item.name}</b>
             <p className="small">{item.sku}</p>
             <p>

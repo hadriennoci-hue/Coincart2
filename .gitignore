@@ -5,6 +5,7 @@ apps/web/.next/
 *.log
 *.tmp
 apps/api/.env
+apps/api/.env.dev
 apps/web/.env.local
 local/
 tools/
