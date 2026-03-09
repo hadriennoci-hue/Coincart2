@@ -6,4 +6,4 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 CORS_ORIGIN = "https://coincart-web.pages.dev"
 CONTACT_TO_EMAIL = "coincartstore@proton.me"
-CONTACT_FROM_EMAIL = "Coincart Contact <onboarding@resend.dev>"
+CONTACT_FROM_EMAIL = "coincartstore@proton.me"
