@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { AddToCartButton } from "../../../components/AddToCartButton";
 import { fetchProductBySlug, type Currency } from "../../../lib/api";
 
+export const runtime = "edge";
+
 export default async function ProductPage({
   params,
   searchParams,

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { fetchProducts, type Currency } from "../lib/api";
 
+export const runtime = "edge";
+
 export default async function Home({
   searchParams,
 }: {

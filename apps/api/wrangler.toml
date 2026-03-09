@@ -1,0 +1,8 @@
+name = "coincart-api"
+main = "src/worker.ts"
+compatibility_date = "2026-03-09"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+CORS_ORIGIN = "*"
+

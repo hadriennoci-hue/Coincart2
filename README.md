@@ -53,3 +53,7 @@ Prerequisites:
 - Web listens on `http://localhost:3000` and `http://<your-lan-ip>:3000`
 
 If you want to open from another device on your network, use your PC local IP (for example `192.168.1.24:3000`).
+
+## Cloudflare deploy
+
+See [CLOUDFLARE_DEPLOY.md](./CLOUDFLARE_DEPLOY.md) for Git-based auto-deploy of API and web.
