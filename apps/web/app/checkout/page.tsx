@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createCheckoutSession, type Currency } from "../../lib/api";
 import { clearCart, getCart } from "../../lib/cart";
 
@@ -181,6 +182,16 @@ export default function CheckoutPage() {
       </p>
       <p className="small" style={{ marginTop: -6 }}>
         Shipping method: DHL Standard. Estimated delivery: 5 business days. Shipping cost: {shippingCost.toFixed(2)} {currency}.
+      </p>
+      <p className="small" style={{ marginTop: -6 }}>
+        Shipping is currently available only within the EU. See{" "}
+        <Link href="/shipping-policy" style={{ textDecoration: "underline" }}>
+          shipping policy
+        </Link>
+        .
+      </p>
+      <p className="small" style={{ marginTop: -6 }}>
+        Taxes and duties are handled according to destination-country and supplier rules.
       </p>
       <label style={{ display: "flex", gap: 8, marginBottom: 14 }}>
         <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} />

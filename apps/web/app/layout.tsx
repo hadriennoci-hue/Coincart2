@@ -43,12 +43,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link className="button secondary" href="/terms-of-sale">
                 Terms of Sale
               </Link>
+              <Link className="button secondary" href="/shipping-policy">
+                Shipping Policy
+              </Link>
               <Link className="button secondary" href="/contact-us">
                 Contact
               </Link>
             </div>
             <p className="small" style={{ margin: 0 }}>
               Pay safely with BTCPay Server. You will be redirected to our payment processor to complete your purchase.
+            </p>
+            <p className="small" style={{ margin: 0 }}>
+              Your shipping information is used to process order delivery.
             </p>
             <p className="small" style={{ marginBottom: 0 }}>© Coincart</p>
           </footer>
@@ -57,4 +63,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-
