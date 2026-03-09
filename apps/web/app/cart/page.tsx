@@ -11,7 +11,6 @@ export default function CartPage() {
   const [lines, setLines] = useState<Array<{ sku: string; quantity: number }>>([]);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
-  const [shippingMethod, setShippingMethod] = useState<"standard" | "priority">("standard");
 
   useEffect(() => {
     const initial = getCart();
@@ -39,7 +38,7 @@ export default function CartPage() {
     return 0;
   }, [appliedCoupon, total]);
 
-  const shippingCost = useMemo(() => (shippingMethod === "standard" ? 9.9 : 19.9), [shippingMethod]);
+  const shippingCost = useMemo(() => (currency === "EUR" ? 10 : 11), [currency]);
   const grandTotal = useMemo(() => Math.max(0, total - couponDiscount) + shippingCost, [couponDiscount, shippingCost, total]);
 
   return (
@@ -92,17 +91,9 @@ export default function CartPage() {
           </div>
         </label>
 
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>Shipping method</span>
-          <select
-            value={shippingMethod}
-            onChange={(e) => setShippingMethod(e.target.value as "standard" | "priority")}
-            style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 10 }}
-          >
-            <option value="standard">Standard (2-4 days) - 9.90</option>
-            <option value="priority">Priority (1-2 days) - 19.90</option>
-          </select>
-        </label>
+        <p className="small" style={{ margin: 0 }}>
+          Shipping: DHL Standard, 5 business days, fixed {shippingCost.toFixed(2)} {currency} (10 EUR base).
+        </p>
       </div>
 
       <h3>Subtotal: {total.toFixed(2)} {currency}</h3>

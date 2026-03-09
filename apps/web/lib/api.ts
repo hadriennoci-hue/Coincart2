@@ -36,6 +36,9 @@ export type Order = {
   customerEmail: string;
   customerPhone?: string | null;
   currency: Currency;
+  shippingMethod?: string | null;
+  estimatedDeliveryDays?: number | null;
+  shippingCost?: number;
   totalAmount: number;
   status: string;
   btcpayInvoiceId?: string | null;
@@ -109,6 +112,7 @@ export const fetchProductsBySkus = async (skus: string[], currency: Currency) =>
 export const createCheckoutSession = async (payload: {
   email: string;
   phone?: string;
+  shippingCountry: string;
   currency: Currency;
   lines: Array<{ sku: string; quantity: number }>;
 }) => {
@@ -123,6 +127,9 @@ export const createCheckoutSession = async (payload: {
   }
   return res.json() as Promise<{
     orderId: string;
+    shippingMethod: string;
+    estimatedDeliveryDays: number;
+    shippingCost: number;
     checkoutUrl: string;
   }>;
 };

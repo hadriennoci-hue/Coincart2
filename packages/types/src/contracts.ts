@@ -65,6 +65,7 @@ export const checkoutLineSchema = z.object({
 export const checkoutSessionCreateSchema = z.object({
   email: z.string().email(),
   phone: z.string().max(30).optional(),
+  shippingCountry: z.string().min(2).max(100),
   currency: currencySchema,
   lines: z.array(checkoutLineSchema).min(1).max(100),
 });
@@ -74,6 +75,9 @@ export const checkoutSessionResponseSchema = z.object({
   status: z.enum(["pending_payment", "paid", "confirmed", "fulfilled", "cancelled"]),
   invoiceId: z.string(),
   checkoutUrl: z.string().url(),
+  shippingMethod: z.string(),
+  estimatedDeliveryDays: z.number().int().positive(),
+  shippingCost: z.number().nonnegative(),
   amount: z.number().nonnegative(),
   currency: currencySchema,
 });

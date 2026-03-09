@@ -14,6 +14,13 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       <h2>Order {order.id}</h2>
       <p className="small">Status: {order.status}</p>
       <p className="small">Customer: {order.customerEmail}</p>
+      {order.shippingMethod ? (
+        <p className="small">
+          Shipping: {order.shippingMethod}
+          {order.estimatedDeliveryDays ? ` (${order.estimatedDeliveryDays} business days)` : ""}
+          {typeof order.shippingCost === "number" ? ` - ${order.shippingCost.toFixed(2)} ${order.currency}` : ""}
+        </p>
+      ) : null}
       <div style={{ borderTop: "1px solid var(--line)", marginTop: 12 }}>
         {order.items.map((item) => (
           <div key={item.sku} style={{ paddingTop: 10 }}>

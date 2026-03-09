@@ -15,6 +15,20 @@
       "when": 1773070397347,
       "tag": "0001_sleepy_boom_boom",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773072046322,
+      "tag": "0002_high_lady_mastermind",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1773072178600,
+      "tag": "0003_melodic_chameleon",
+      "breakpoints": true
     }
   ]
 }

@@ -17,6 +17,58 @@ import type {
 
 type Db = ReturnType<typeof createDb>;
 
+const EU_COUNTRY_CODES = new Set([
+  "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV",
+  "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+]);
+
+const EU_COUNTRY_NAME_TO_CODE: Record<string, string> = {
+  austria: "AT",
+  belgium: "BE",
+  bulgaria: "BG",
+  croatia: "HR",
+  cyprus: "CY",
+  czechia: "CZ",
+  "czech republic": "CZ",
+  denmark: "DK",
+  estonia: "EE",
+  finland: "FI",
+  france: "FR",
+  germany: "DE",
+  greece: "GR",
+  hungary: "HU",
+  ireland: "IE",
+  italy: "IT",
+  latvia: "LV",
+  lithuania: "LT",
+  luxembourg: "LU",
+  malta: "MT",
+  netherlands: "NL",
+  poland: "PL",
+  portugal: "PT",
+  romania: "RO",
+  slovakia: "SK",
+  slovenia: "SI",
+  spain: "ES",
+  sweden: "SE",
+};
+
+const normalizeCountryToCode = (input: string) => {
+  const value = input.trim();
+  if (!value) return "";
+  const upper = value.toUpperCase();
+  if (upper.length === 2) return upper;
+  return EU_COUNTRY_NAME_TO_CODE[value.toLowerCase()] || "";
+};
+
+const SHIPPING_METHOD = "DHL Standard";
+const ESTIMATED_DELIVERY_DAYS = 5;
+const SHIPPING_FEE_EUR = 10;
+const EUR_TO_USD = 1.1;
+
+const shippingFeeForCurrency = (currency: Currency) =>
+  currency === "EUR" ? SHIPPING_FEE_EUR : Number((SHIPPING_FEE_EUR * EUR_TO_USD).toFixed(2));
+
 export const startSyncJob = async (db: Db, source: string) => {
   const [job] = await db.insert(syncJobs).values({ source, status: "running" }).returning();
   return job;
@@ -142,6 +194,11 @@ export const createCheckoutSession = async (
   btcpay: BtcPayClient,
   input: CheckoutSessionCreate,
 ) => {
+  const shippingCountryCode = normalizeCountryToCode(input.shippingCountry);
+  if (!EU_COUNTRY_CODES.has(shippingCountryCode)) {
+    throw new Error("Shipping is currently available only in EU countries.");
+  }
+
   let subtotal = 0;
   const pricedLines: Array<{
     productId: string;
@@ -172,14 +229,21 @@ export const createCheckoutSession = async (
     });
   }
 
+  const shippingCost = shippingFeeForCurrency(input.currency);
+  const totalAmount = subtotal + shippingCost;
+
   const [order] = await db
     .insert(orders)
     .values({
       customerEmail: input.email,
       customerPhone: input.phone,
+      shippingCountry: shippingCountryCode,
+      shippingMethod: SHIPPING_METHOD,
+      estimatedDeliveryDays: ESTIMATED_DELIVERY_DAYS,
+      shippingCost: shippingCost.toFixed(2),
       currency: input.currency,
       subtotalAmount: subtotal.toFixed(2),
-      totalAmount: subtotal.toFixed(2),
+      totalAmount: totalAmount.toFixed(2),
       status: "pending_payment",
     })
     .returning();
@@ -197,7 +261,7 @@ export const createCheckoutSession = async (
   }
 
   const invoice = await btcpay.createInvoice({
-    amount: subtotal,
+    amount: totalAmount,
     currency: input.currency,
     orderId: order.id,
     buyerEmail: input.email,
@@ -218,6 +282,9 @@ export const createCheckoutSession = async (
     status: updated.status,
     invoiceId: invoice.invoiceId,
     checkoutUrl: invoice.checkoutUrl,
+    shippingMethod: updated.shippingMethod || SHIPPING_METHOD,
+    estimatedDeliveryDays: updated.estimatedDeliveryDays || ESTIMATED_DELIVERY_DAYS,
+    shippingCost: Number(updated.shippingCost ?? shippingCost),
     amount: Number(updated.totalAmount),
     currency: updated.currency as Currency,
   };
@@ -319,7 +386,7 @@ export const listProductsWithFilters = async (
     sql`${products.stockQty} > 0`,
     filters.featuredOnly ? eq(products.featured, true) : sql`true`,
     filters.search
-      ? sql`(${products.name} ILIKE ${`%${filters.search}%`} OR ${products.sku} ILIKE ${`%${filters.search}%`})`
+      ? sql`(${products.name} ILIKE ${`%${filters.search}%`} OR ${products.sku} ILIKE ${`%${filters.search}%`} OR ${products.category} ILIKE ${`%${filters.search}%`})`
       : sql`true`,
     filters.category ? eq(products.category, filters.category) : sql`true`,
     filters.keyboardLayout ? eq(products.keyboardLayout, filters.keyboardLayout) : sql`true`,
@@ -444,6 +511,9 @@ export const getOrderById = async (db: Db, orderId: string) => {
       customerEmail: orders.customerEmail,
       customerPhone: orders.customerPhone,
       currency: orders.currency,
+      shippingMethod: orders.shippingMethod,
+      estimatedDeliveryDays: orders.estimatedDeliveryDays,
+      shippingCost: orders.shippingCost,
       totalAmount: orders.totalAmount,
       status: orders.status,
       btcpayInvoiceId: orders.btcpayInvoiceId,
@@ -468,6 +538,7 @@ export const getOrderById = async (db: Db, orderId: string) => {
 
   return {
     ...orderRows[0],
+    shippingCost: Number(orderRows[0].shippingCost ?? 0),
     totalAmount: Number(orderRows[0].totalAmount),
     items: itemRows.map((x) => ({
       ...x,

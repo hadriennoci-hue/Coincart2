@@ -1,8 +1,29 @@
 import "./globals.css";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { SiteHeader } from "../components/SiteHeader";
 
 export const runtime = 'edge';
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://coincart-web.pages.dev";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Coincart - Crypto Electronics Store",
+    template: "%s | Coincart",
+  },
+  description:
+    "Buy electronics with crypto on Coincart. EU shipping, transparent policies, and secure BTCPay checkout.",
+  openGraph: {
+    type: "website",
+    url: siteUrl,
+    title: "Coincart - Crypto Electronics Store",
+    description:
+      "Buy electronics with crypto on Coincart. EU shipping, transparent policies, and secure BTCPay checkout.",
+    siteName: "Coincart",
+  },
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -36,3 +57,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+

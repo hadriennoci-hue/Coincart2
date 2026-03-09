@@ -4,10 +4,40 @@ import { useEffect, useState } from "react";
 import { createCheckoutSession, type Currency } from "../../lib/api";
 import { clearCart, getCart } from "../../lib/cart";
 
+const euCountries = [
+  { code: "AT", name: "Austria" },
+  { code: "BE", name: "Belgium" },
+  { code: "BG", name: "Bulgaria" },
+  { code: "HR", name: "Croatia" },
+  { code: "CY", name: "Cyprus" },
+  { code: "CZ", name: "Czechia" },
+  { code: "DK", name: "Denmark" },
+  { code: "EE", name: "Estonia" },
+  { code: "FI", name: "Finland" },
+  { code: "FR", name: "France" },
+  { code: "DE", name: "Germany" },
+  { code: "GR", name: "Greece" },
+  { code: "HU", name: "Hungary" },
+  { code: "IE", name: "Ireland" },
+  { code: "IT", name: "Italy" },
+  { code: "LV", name: "Latvia" },
+  { code: "LT", name: "Lithuania" },
+  { code: "LU", name: "Luxembourg" },
+  { code: "MT", name: "Malta" },
+  { code: "NL", name: "Netherlands" },
+  { code: "PL", name: "Poland" },
+  { code: "PT", name: "Portugal" },
+  { code: "RO", name: "Romania" },
+  { code: "SK", name: "Slovakia" },
+  { code: "SI", name: "Slovenia" },
+  { code: "ES", name: "Spain" },
+  { code: "SE", name: "Sweden" },
+];
+
 export default function CheckoutPage() {
   const [shippingName, setShippingName] = useState("");
   const [companyName, setCompanyName] = useState("");
-  const [country, setCountry] = useState("");
+  const [country, setCountry] = useState("FR");
   const [streetAddress, setStreetAddress] = useState("");
   const [secondaryAddress, setSecondaryAddress] = useState("");
   const [city, setCity] = useState("");
@@ -19,6 +49,7 @@ export default function CheckoutPage() {
   const [currency, setCurrency] = useState<Currency>("USD");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const shippingCost = currency === "EUR" ? 10 : 11;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -32,7 +63,13 @@ export default function CheckoutPage() {
       setError("");
       const lines = getCart();
       if (lines.length === 0) throw new Error("Cart is empty");
-      const session = await createCheckoutSession({ email, phone: phone || undefined, currency, lines });
+      const session = await createCheckoutSession({
+        email,
+        phone: phone || undefined,
+        shippingCountry: country,
+        currency,
+        lines,
+      });
       clearCart();
       window.location.href = `/order/${session.orderId}`;
     } catch (err) {
@@ -64,11 +101,17 @@ export default function CheckoutPage() {
       </label>
       <label>
         Country
-        <input
+        <select
           value={country}
           onChange={(e) => setCountry(e.target.value)}
           style={{ width: "100%", marginTop: 4, marginBottom: 10, padding: 8 }}
-        />
+        >
+          {euCountries.map((c) => (
+            <option key={c.code} value={c.code}>
+              {c.name}
+            </option>
+          ))}
+        </select>
       </label>
       <label>
         Street Address
@@ -135,6 +178,9 @@ export default function CheckoutPage() {
       </div>
       <p className="small" style={{ marginTop: -4 }}>
         You will be redirected to BTCPay Server to complete your payment.
+      </p>
+      <p className="small" style={{ marginTop: -6 }}>
+        Shipping method: DHL Standard. Estimated delivery: 5 business days. Shipping cost: {shippingCost.toFixed(2)} {currency}.
       </p>
       <label style={{ display: "flex", gap: 8, marginBottom: 14 }}>
         <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} />

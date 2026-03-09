@@ -1,24 +1,62 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { AddToCartButton } from "../../../components/AddToCartButton";
 import { fetchProductBySlug, type Currency } from "../../../lib/api";
 
 export const runtime = 'edge';
 
-export default async function ProductPage({
-  params,
-  searchParams,
-}: {
+type ProductPageProps = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ currency?: Currency }>;
-}) {
+};
+
+export async function generateMetadata({ params, searchParams }: ProductPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const { currency = "USD" } = await searchParams;
+  const product = await fetchProductBySlug(slug, currency);
+  if (!product) {
+    return { title: "Product not found" };
+  }
+
+  return {
+    title: product.name,
+    description: product.description || `${product.name} - pay with crypto on Coincart.`,
+    openGraph: {
+      title: product.name,
+      description: product.description || `${product.name} - pay with crypto on Coincart.`,
+      type: "website",
+    },
+  };
+}
+
+export default async function ProductPage({ params, searchParams }: ProductPageProps) {
   const { slug } = await params;
   const { currency = "USD" } = await searchParams;
   const product = await fetchProductBySlug(slug, currency);
   if (!product) return notFound();
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://coincart-web.pages.dev";
+  const productUrl = `${siteUrl}/product/${product.slug}?currency=${currency}`;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    sku: product.sku,
+    description: product.description || undefined,
+    category: product.category || undefined,
+    offers: {
+      "@type": "Offer",
+      priceCurrency: product.currency,
+      price: product.price.toFixed(2),
+      availability: product.stockQty > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      url: productUrl,
+    },
+  };
+
   return (
     <div className="card">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <p className="small">SKU: {product.sku}</p>
       <h2>{product.name}</h2>
       <p>{product.description || "No description"}</p>
