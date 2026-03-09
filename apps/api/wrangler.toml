@@ -4,5 +4,4 @@ compatibility_date = "2026-03-09"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-CORS_ORIGIN = "*"
-
+CORS_ORIGIN = "https://coincart-web.pages.dev"
