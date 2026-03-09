@@ -13,9 +13,13 @@ import {
 
 export const products = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
+  wooId: integer("woo_id").unique(),
   sku: varchar("sku", { length: 120 }).notNull().unique(),
   slug: varchar("slug", { length: 160 }).notNull().unique(),
   category: varchar("category", { length: 120 }),
+  visibilityStatus: varchar("visibility_status", { length: 20 }).notNull().default("publish"),
+  brand: varchar("brand", { length: 120 }),
+  ean: varchar("ean", { length: 64 }),
   name: varchar("name", { length: 220 }).notNull(),
   description: text("description"),
   imageUrl: text("image_url"),

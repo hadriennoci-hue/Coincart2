@@ -5,6 +5,7 @@ import { FakeBtcPayClient } from "@coincart/payments";
 import { checkoutRoutes } from "./routes/checkout";
 import { catalogRoutes } from "./routes/catalog";
 import { contactRoutes } from "./routes/contact";
+import { connectorRoutes } from "./routes/connector";
 import { orderRoutes } from "./routes/orders";
 import { syncRoutes } from "./routes/sync";
 import { webhookRoutes } from "./routes/webhooks";
@@ -16,6 +17,8 @@ type CreateAppOptions = {
   resendApiKey?: string;
   contactToEmail?: string;
   contactFromEmail?: string;
+  wooConsumerKey?: string;
+  wooConsumerSecret?: string;
 };
 
 export const createApp = ({
@@ -24,6 +27,8 @@ export const createApp = ({
   resendApiKey,
   contactToEmail = "coincartstore@proton.me",
   contactFromEmail = "Coincart Contact <onboarding@resend.dev>",
+  wooConsumerKey,
+  wooConsumerSecret,
 }: CreateAppOptions) => {
   const db = createDb(databaseUrl);
   const btcpay = new FakeBtcPayClient();
@@ -48,6 +53,10 @@ export const createApp = ({
       contactToEmail,
       contactFromEmail,
     });
+    c.set("connectorAuth", {
+      consumerKey: wooConsumerKey,
+      consumerSecret: wooConsumerSecret,
+    });
     await next();
   });
 
@@ -56,6 +65,8 @@ export const createApp = ({
   app.route("/v1/sync/catalog", syncRoutes);
   app.route("/v1/checkout", checkoutRoutes);
   app.route("/v1/contact", contactRoutes);
+  app.route("/v1/connector", connectorRoutes);
+  app.route("/wp-json/wc/v3", connectorRoutes);
   app.route("/v1/orders", orderRoutes);
   app.route("/v1/webhooks", webhookRoutes);
 

@@ -10,6 +10,10 @@ export type AppContext = {
       contactToEmail: string;
       contactFromEmail: string;
     };
+    connectorAuth: {
+      consumerKey?: string;
+      consumerSecret?: string;
+    };
     rawBody?: string;
   };
 };

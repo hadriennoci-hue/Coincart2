@@ -10,6 +10,8 @@ const corsOrigin = process.env.CORS_ORIGIN || "*";
 const resendApiKey = process.env.RESEND_API_KEY;
 const contactToEmail = process.env.CONTACT_TO_EMAIL;
 const contactFromEmail = process.env.CONTACT_FROM_EMAIL;
+const wooConsumerKey = process.env.WOO_CONSUMER_KEY;
+const wooConsumerSecret = process.env.WOO_CONSUMER_SECRET;
 const port = Number(process.env.PORT || 4000);
 const app = createApp({
   databaseUrl,
@@ -17,6 +19,8 @@ const app = createApp({
   resendApiKey,
   contactToEmail,
   contactFromEmail,
+  wooConsumerKey,
+  wooConsumerSecret,
 });
 
 serve({ fetch: app.fetch, port, hostname: "0.0.0.0" });
