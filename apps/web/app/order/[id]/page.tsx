@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { fetchOrder } from "../../../lib/api";
 
-export const runtime = "edge";
+export const runtime = 'edge';
 
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
