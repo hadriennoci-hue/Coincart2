@@ -1,0 +1,27 @@
+{
+  "name": "@coincart/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "echo build-api",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "@coincart/core": "workspace:*",
+    "@coincart/db": "workspace:*",
+    "@coincart/payments": "workspace:*",
+    "@coincart/types": "workspace:*",
+    "drizzle-orm": "^0.36.4",
+    "hono": "^4.6.15",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
