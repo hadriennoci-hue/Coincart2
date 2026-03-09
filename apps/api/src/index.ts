@@ -10,8 +10,8 @@ const corsOrigin = process.env.CORS_ORIGIN || "*";
 const resendApiKey = process.env.RESEND_API_KEY;
 const contactToEmail = process.env.CONTACT_TO_EMAIL;
 const contactFromEmail = process.env.CONTACT_FROM_EMAIL;
-const wooConsumerKey = process.env.WOO_CONSUMER_KEY;
-const wooConsumerSecret = process.env.WOO_CONSUMER_SECRET;
+const wooConsumerKey = process.env.COINCART_KEY || process.env.WOO_CONSUMER_KEY;
+const wooConsumerSecret = process.env.COINCART_SECRET || process.env.WOO_CONSUMER_SECRET;
 const port = Number(process.env.PORT || 4000);
 const app = createApp({
   databaseUrl,

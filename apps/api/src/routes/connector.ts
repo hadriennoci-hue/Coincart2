@@ -106,8 +106,8 @@ const euDefaultPrices = { EUR: 0, USD: 0 };
 export const connectorRoutes = new Hono<AppContext>();
 
 connectorRoutes.use("*", async (c, next) => {
-  const consumerKey = c.req.query("consumer_key");
-  const consumerSecret = c.req.query("consumer_secret");
+  const consumerKey = c.req.query("coincart_key") ?? c.req.query("consumer_key");
+  const consumerSecret = c.req.query("coincart_secret") ?? c.req.query("consumer_secret");
   const expectedKey = c.var.connectorAuth.consumerKey;
   const expectedSecret = c.var.connectorAuth.consumerSecret;
 
