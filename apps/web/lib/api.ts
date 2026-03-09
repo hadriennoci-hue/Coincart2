@@ -91,3 +91,30 @@ export const fetchOrder = async (orderId: string) => {
   if (!res.ok) return null;
   return (await res.json()) as Order;
 };
+
+export const sendContactMessage = async (payload: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  subject:
+    | "The product / brand I want is not listed (provide link)"
+    | "Order support (payment, delivery, product)"
+    | "Suggestion for Coincart"
+    | "Business proposal for Coincart"
+    | "Other";
+  message: string;
+  company?: string;
+}) => {
+  const res = await fetch(`${apiBase}/v1/contact`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({ error: "Failed to send message" }));
+    throw new Error(data.error || "Failed to send message");
+  }
+
+  return res.json() as Promise<{ ok: true }>;
+};
