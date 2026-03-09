@@ -9,9 +9,22 @@ export type Product = {
   id: string;
   sku: string;
   slug: string;
+  category?: string | null;
   name: string;
   description?: string | null;
   imageUrl?: string | null;
+  cpu?: string | null;
+  gpu?: string | null;
+  keyboardLayout?: string | null;
+  usage?: string | null;
+  screenSize?: string | null;
+  displayType?: string | null;
+  resolution?: string | null;
+  maxResolution?: string | null;
+  refreshRate?: number | null;
+  ramMemory?: number | null;
+  ssdSize?: number | null;
+  storage?: string | null;
   featured: boolean;
   stockQty: number;
   price: number;
@@ -37,8 +50,36 @@ export type Order = {
   }>;
 };
 
-export const fetchProducts = async (currency: Currency, featured = false) => {
-  const res = await fetch(`${apiBase}/v1/catalog/products?currency=${currency}&featured=${featured}`, {
+export const fetchProducts = async (
+  currency: Currency,
+  featured = false,
+  filters?: {
+    q?: string;
+    category?: string;
+    keyboard_layout?: string;
+    usage?: string;
+    screen_size?: string;
+    ram_memory?: string;
+    ssd_size?: string;
+    max_resolution?: string;
+    sort?: "default" | "price_asc" | "price_desc" | "popularity" | "newest";
+  },
+) => {
+  const params = new URLSearchParams({
+    currency,
+    featured: String(featured),
+  });
+  if (filters?.q) params.set("q", filters.q);
+  if (filters?.category) params.set("category", filters.category);
+  if (filters?.keyboard_layout) params.set("keyboard_layout", filters.keyboard_layout);
+  if (filters?.usage) params.set("usage", filters.usage);
+  if (filters?.screen_size) params.set("screen_size", filters.screen_size);
+  if (filters?.ram_memory) params.set("ram_memory", filters.ram_memory);
+  if (filters?.ssd_size) params.set("ssd_size", filters.ssd_size);
+  if (filters?.max_resolution) params.set("max_resolution", filters.max_resolution);
+  if (filters?.sort) params.set("sort", filters.sort);
+
+  const res = await fetch(`${apiBase}/v1/catalog/products?${params.toString()}`, {
     cache: "no-store",
   });
   if (!res.ok) return [] as Product[];

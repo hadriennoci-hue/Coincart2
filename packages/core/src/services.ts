@@ -1,4 +1,4 @@
-import { and, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import {
   orderItems,
   orders,
@@ -29,9 +29,22 @@ export const applySyncItems = async (db: Db, input: SyncItemsRequest) => {
       .values({
         sku: item.sku,
         slug: item.slug,
+        category: item.category,
         name: item.name,
         description: item.description,
         imageUrl: item.imageUrl,
+        cpu: item.cpu,
+        gpu: item.gpu,
+        keyboardLayout: item.keyboardLayout,
+        usage: item.usage,
+        screenSize: item.screenSize,
+        displayType: item.displayType,
+        resolution: item.resolution,
+        maxResolution: item.maxResolution,
+        refreshRate: item.refreshRate,
+        ramMemory: item.ramMemory,
+        ssdSize: item.ssdSize,
+        storage: item.storage,
         featured: item.featured,
         stockQty: item.stockQty,
         lastSeenSyncJobId: input.syncJobId,
@@ -41,9 +54,22 @@ export const applySyncItems = async (db: Db, input: SyncItemsRequest) => {
         target: products.sku,
         set: {
           slug: item.slug,
+          category: item.category,
           name: item.name,
           description: item.description,
           imageUrl: item.imageUrl,
+          cpu: item.cpu,
+          gpu: item.gpu,
+          keyboardLayout: item.keyboardLayout,
+          usage: item.usage,
+          screenSize: item.screenSize,
+          displayType: item.displayType,
+          resolution: item.resolution,
+          maxResolution: item.maxResolution,
+          refreshRate: item.refreshRate,
+          ramMemory: item.ramMemory,
+          ssdSize: item.ssdSize,
+          storage: item.storage,
           featured: item.featured,
           stockQty: item.stockQty,
           lastSeenSyncJobId: input.syncJobId,
@@ -233,9 +259,22 @@ export const listProducts = async (db: Db, currency: Currency, featuredOnly = fa
       id: products.id,
       sku: products.sku,
       slug: products.slug,
+      category: products.category,
       name: products.name,
       description: products.description,
       imageUrl: products.imageUrl,
+      cpu: products.cpu,
+      gpu: products.gpu,
+      keyboardLayout: products.keyboardLayout,
+      usage: products.usage,
+      screenSize: products.screenSize,
+      displayType: products.displayType,
+      resolution: products.resolution,
+      maxResolution: products.maxResolution,
+      refreshRate: products.refreshRate,
+      ramMemory: products.ramMemory,
+      ssdSize: products.ssdSize,
+      storage: products.storage,
       featured: products.featured,
       stockQty: products.stockQty,
       price: productPrices.amount,
@@ -257,15 +296,107 @@ export const listProducts = async (db: Db, currency: Currency, featuredOnly = fa
   }));
 };
 
+type ListProductFilters = {
+  featuredOnly?: boolean;
+  search?: string;
+  category?: string;
+  keyboardLayout?: string;
+  usage?: string;
+  screenSize?: string;
+  ramMemory?: number;
+  ssdSize?: number;
+  maxResolution?: string;
+  sort?: "default" | "price_asc" | "price_desc" | "popularity" | "newest";
+};
+
+export const listProductsWithFilters = async (
+  db: Db,
+  currency: Currency,
+  filters: ListProductFilters,
+) => {
+  const where = and(
+    eq(productPrices.currency, currency),
+    sql`${products.stockQty} > 0`,
+    filters.featuredOnly ? eq(products.featured, true) : sql`true`,
+    filters.search
+      ? sql`(${products.name} ILIKE ${`%${filters.search}%`} OR ${products.sku} ILIKE ${`%${filters.search}%`})`
+      : sql`true`,
+    filters.category ? eq(products.category, filters.category) : sql`true`,
+    filters.keyboardLayout ? eq(products.keyboardLayout, filters.keyboardLayout) : sql`true`,
+    filters.usage ? eq(products.usage, filters.usage) : sql`true`,
+    filters.screenSize ? eq(products.screenSize, filters.screenSize) : sql`true`,
+    typeof filters.ramMemory === "number" ? eq(products.ramMemory, filters.ramMemory) : sql`true`,
+    typeof filters.ssdSize === "number" ? eq(products.ssdSize, filters.ssdSize) : sql`true`,
+    filters.maxResolution ? eq(products.maxResolution, filters.maxResolution) : sql`true`,
+  );
+
+  const orderBy =
+    filters.sort === "price_asc"
+      ? asc(productPrices.amount)
+      : filters.sort === "price_desc"
+        ? desc(productPrices.amount)
+        : filters.sort === "popularity"
+          ? desc(products.stockQty)
+          : filters.sort === "newest"
+            ? desc(products.createdAt)
+            : asc(products.name);
+
+  const rows = await db
+    .select({
+      id: products.id,
+      sku: products.sku,
+      slug: products.slug,
+      category: products.category,
+      name: products.name,
+      description: products.description,
+      imageUrl: products.imageUrl,
+      cpu: products.cpu,
+      gpu: products.gpu,
+      keyboardLayout: products.keyboardLayout,
+      usage: products.usage,
+      screenSize: products.screenSize,
+      displayType: products.displayType,
+      resolution: products.resolution,
+      maxResolution: products.maxResolution,
+      refreshRate: products.refreshRate,
+      ramMemory: products.ramMemory,
+      ssdSize: products.ssdSize,
+      storage: products.storage,
+      featured: products.featured,
+      stockQty: products.stockQty,
+      price: productPrices.amount,
+      currency: productPrices.currency,
+    })
+    .from(products)
+    .innerJoin(productPrices, eq(productPrices.productId, products.id))
+    .where(where)
+    .orderBy(orderBy);
+
+  return rows.map((row) => ({ ...row, price: Number(row.price) }));
+};
+
 export const getProductBySlug = async (db: Db, slug: string, currency: Currency) => {
   const rows = await db
     .select({
       id: products.id,
       sku: products.sku,
       slug: products.slug,
+      category: products.category,
       name: products.name,
       description: products.description,
       imageUrl: products.imageUrl,
+      cpu: products.cpu,
+      gpu: products.gpu,
+      keyboardLayout: products.keyboardLayout,
+      usage: products.usage,
+      screenSize: products.screenSize,
+      displayType: products.displayType,
+      resolution: products.resolution,
+      maxResolution: products.maxResolution,
+      refreshRate: products.refreshRate,
+      ramMemory: products.ramMemory,
+      ssdSize: products.ssdSize,
+      storage: products.storage,
       featured: products.featured,
       stockQty: products.stockQty,
       price: productPrices.amount,
@@ -286,8 +417,15 @@ export const getProductsBySkus = async (db: Db, skus: string[], currency: Curren
       id: products.id,
       sku: products.sku,
       slug: products.slug,
+      category: products.category,
       name: products.name,
       imageUrl: products.imageUrl,
+      keyboardLayout: products.keyboardLayout,
+      usage: products.usage,
+      screenSize: products.screenSize,
+      ramMemory: products.ramMemory,
+      ssdSize: products.ssdSize,
+      maxResolution: products.maxResolution,
       stockQty: products.stockQty,
       price: productPrices.amount,
       currency: productPrices.currency,

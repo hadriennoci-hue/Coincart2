@@ -6,28 +6,55 @@ export const runtime = 'edge';
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ currency?: Currency; q?: string }>;
+  searchParams: Promise<{
+    currency?: Currency;
+    q?: string;
+    category?: string;
+    keyboard_layout?: string;
+    usage?: string;
+    screen_size?: string;
+    ram_memory?: string;
+    ssd_size?: string;
+    max_resolution?: string;
+    sort?: "default" | "price_asc" | "price_desc" | "popularity" | "newest";
+  }>;
 }) {
-  const { currency = "USD", q = "" } = await searchParams;
-  const items = await fetchProducts(currency, false);
+  const {
+    currency = "USD",
+    q = "",
+    category = "",
+    keyboard_layout = "",
+    usage = "",
+    screen_size = "",
+    ram_memory = "",
+    ssd_size = "",
+    max_resolution = "",
+    sort = "default",
+  } = await searchParams;
+  const items = await fetchProducts(currency, false, {
+    q,
+    category,
+    keyboard_layout,
+    usage,
+    screen_size,
+    ram_memory,
+    ssd_size,
+    max_resolution,
+    sort,
+  });
   const query = q.trim().toLowerCase();
   const filtered = query ? items.filter((item) => item.name.toLowerCase().includes(query) || item.sku.toLowerCase().includes(query)) : items;
   const hero = filtered[0];
-
-  const categoryRules = [
-    { slug: "laptops", name: "Laptops", match: ["laptop", "notebook"] },
-    { slug: "desktops", name: "Desktops", match: ["desktop", "tower", "pc"] },
-    { slug: "monitors", name: "Monitors", match: ["monitor", "display"] },
-    { slug: "components", name: "Components", match: ["gpu", "graphics", "ssd", "ram"] },
-  ];
-
-  const categories = categoryRules
-    .map((rule) => ({
-      slug: rule.slug,
-      name: rule.name,
-      productCount: filtered.filter((item) => rule.match.some((keyword) => item.name.toLowerCase().includes(keyword))).length,
-    }))
-    .filter((category) => category.productCount > 0);
+  const categoriesMap = new Map<string, number>();
+  for (const item of filtered) {
+    const key = item.category || "Uncategorized";
+    categoriesMap.set(key, (categoriesMap.get(key) || 0) + 1);
+  }
+  const categories = Array.from(categoriesMap.entries()).map(([name, productCount]) => ({
+    slug: name.toLowerCase().replace(/\s+/g, "-"),
+    name,
+    productCount,
+  }));
 
   const sales = [...filtered].sort((a, b) => a.price - b.price).slice(0, 4);
   const topSelling = [...filtered].sort((a, b) => b.stockQty - a.stockQty).slice(0, 4);
@@ -65,6 +92,94 @@ export default async function Home({
           </Link>
         </div>
       </div>
+
+      <form className="card" style={{ marginBottom: 16, display: "grid", gap: 10 }} method="get" action="/">
+        <h3 style={{ margin: 0 }}>Filters</h3>
+        <input type="hidden" name="currency" value={currency} />
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>Search</span>
+          <input defaultValue={q} name="q" style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 10 }} />
+        </label>
+        <div className="grid">
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>Category</span>
+            <input
+              name="category"
+              defaultValue={category}
+              placeholder="e.g. laptop"
+              style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 10 }}
+            />
+          </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>Keyboard Layout</span>
+            <input
+              name="keyboard_layout"
+              defaultValue={keyboard_layout}
+              placeholder="e.g. AZERTY"
+              style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 10 }}
+            />
+          </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>Usage</span>
+            <input
+              name="usage"
+              defaultValue={usage}
+              placeholder="e.g. gaming"
+              style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 10 }}
+            />
+          </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>Screen Size</span>
+            <input
+              name="screen_size"
+              defaultValue={screen_size}
+              placeholder='e.g. 15.6"'
+              style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 10 }}
+            />
+          </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>RAM (GB)</span>
+            <input
+              name="ram_memory"
+              defaultValue={ram_memory}
+              placeholder="e.g. 16"
+              style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 10 }}
+            />
+          </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>SSD (GB)</span>
+            <input
+              name="ssd_size"
+              defaultValue={ssd_size}
+              placeholder="e.g. 1024"
+              style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 10 }}
+            />
+          </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>Max Resolution</span>
+            <input
+              name="max_resolution"
+              defaultValue={max_resolution}
+              placeholder="e.g. 3840x2160"
+              style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 10 }}
+            />
+          </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>Sort</span>
+            <select name="sort" defaultValue={sort} style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 10 }}>
+              <option value="default">Default</option>
+              <option value="price_asc">Price (Low to High)</option>
+              <option value="price_desc">Price (High to Low)</option>
+              <option value="popularity">Popularity</option>
+              <option value="newest">Newest</option>
+            </select>
+          </label>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="button" type="submit">Apply filters</button>
+          <Link className="button secondary" href={`/?currency=${currency}`}>Reset</Link>
+        </div>
+      </form>
 
       <div className="grid" style={{ marginBottom: 16 }}>
         {[
