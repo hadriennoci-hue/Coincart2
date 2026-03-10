@@ -33,7 +33,7 @@ export function PredatorHero({ imageUrl, href = "/search?category=Laptops" }: Pr
       style={{
         background: "linear-gradient(160deg, rgba(20,32,53,0.55) 0%, rgba(0,0,0,0) 55%)",
         borderBottom: "1px solid var(--border)",
-        padding: "48px 0 56px",
+        padding: "16px 0 20px",
       }}
     >
       <div className="container">
@@ -75,17 +75,6 @@ export function PredatorHero({ imageUrl, href = "/search?category=Laptops" }: Pr
               Competitive power,{" "}
               <span style={{ color: "#22C55E" }}>refined.</span>
             </motion.h1>
-
-            <motion.p
-              className="ph-body"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.38, duration: 0.52 }}
-            >
-              Intel Core i9 muscle, RTX 4070 graphics, and a silky 240&thinsp;Hz
-              WQXGA panel — the Helios Neo 16 is built for players who demand
-              both raw speed and a flawless visual experience.
-            </motion.p>
 
             <motion.div
               className="ph-specs"

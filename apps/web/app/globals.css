@@ -13,7 +13,7 @@
   --accent-hover: #16A34A;
   --error: #EF4444;
   --warning: #F59E0B;
-  --navbar-h: 64px;
+  --navbar-h: 84px;
   --font-display: 'Space Grotesk';
 }
 
@@ -409,8 +409,8 @@ footer { position: relative; z-index: 1; }
   border: 1px solid rgba(55,65,81,0.75);
   border-radius: 20px;
   overflow: hidden;
-  padding: 60px 64px;
-  min-height: 480px;
+  padding: 28px 48px;
+  min-height: 0;
   transition: border-color 0.45s ease, box-shadow 0.45s ease;
   cursor: default;
 }
@@ -445,7 +445,7 @@ footer { position: relative; z-index: 1; }
 .ph-left {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 14px;
   position: relative;
   z-index: 1;
   padding-right: 32px;
@@ -566,7 +566,7 @@ footer { position: relative; z-index: 1; }
 }
 .ph-img {
   width: 100%;
-  aspect-ratio: 16/10;
+  aspect-ratio: 16/7;
   object-fit: cover;
   border-radius: 12px;
   border: 1px solid rgba(55,65,81,0.55);
@@ -581,7 +581,7 @@ footer { position: relative; z-index: 1; }
 }
 .ph-img-placeholder {
   width: 100%;
-  aspect-ratio: 16/10;
+  aspect-ratio: 16/7;
   border-radius: 12px;
   border: 1px solid rgba(55,65,81,0.4);
   background: linear-gradient(135deg, rgba(20,32,53,0.8) 0%, rgba(8,14,26,0.9) 100%);
@@ -645,6 +645,40 @@ footer { position: relative; z-index: 1; }
   .ph-price { font-size: 1.875rem; }
 }
 /* ────────────────────────────────────────────────────── */
+
+/* Trust strip */
+.trust-strip {
+  border-bottom: 1px solid var(--border);
+  background: rgba(20,32,53,0.35);
+  padding: 0;
+}
+.trust-strip-inner {
+  display: flex;
+  align-items: stretch;
+  padding: 20px 0;
+  gap: 0;
+}
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  padding: 0 24px;
+  color: var(--muted);
+}
+.trust-item svg { flex-shrink: 0; color: var(--accent); }
+.trust-item > div { display: flex; flex-direction: column; gap: 2px; }
+.trust-label { font-size: 0.8125rem; font-weight: 600; color: var(--text); line-height: 1.2; }
+.trust-sub { font-size: 0.7rem; color: var(--muted-2); }
+.trust-divider { width: 1px; background: var(--border); flex-shrink: 0; margin: 4px 0; }
+@media (max-width: 768px) {
+  .trust-strip-inner { flex-wrap: wrap; padding: 16px 0; }
+  .trust-item { flex: 1 1 40%; padding: 10px 16px; }
+  .trust-divider { display: none; }
+}
+@media (max-width: 480px) {
+  .trust-item { flex: 1 1 100%; }
+}
 
 @media (max-width: 1024px) {
   .product-grid { grid-template-columns: repeat(3, 1fr); }

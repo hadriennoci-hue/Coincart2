@@ -17,9 +17,9 @@ export function SiteFooter() {
               <img
                 src="/coincart-logo-mark.png"
                 alt="Coincart"
-                style={{ height: 34, width: "auto", display: "block" }}
+                style={{ height: 68, width: "auto", display: "block" }}
               />
-              <span style={{ fontSize: "1rem", fontWeight: 700, letterSpacing: "0.01em" }}>Coincart</span>
+              <span style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "0.01em" }}>Coincart</span>
             </Link>
             <p className="small" style={{ lineHeight: 1.6, maxWidth: 300 }}>
               Buy electronics with crypto. EU shipping, official ACER partner, secure BTCPay checkout.
