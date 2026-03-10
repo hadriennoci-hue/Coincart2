@@ -3,6 +3,49 @@ import { fetchProducts, type Currency } from "../lib/api";
 import { AnimatedGroup } from "../components/ui/AnimatedGroup";
 import { FlipCard } from "../components/ui/FlipCard";
 import { Banner } from "../components/ui/Banner";
+import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
+
+const allTestimonials: Testimonial[] = [
+  {
+    text: "Very good seller that offers all the Acer products without fee. Shipment are tracked. It's like Acer accepting XMR directly.",
+    name: "Anonymous",
+    date: "Jul 24, 2025",
+  },
+  {
+    text: "Seller was very helpful and communicative. Despite experiencing some unfortunate delays through no fault of the seller, I received my package intact, well wrapped and fully working without any abnormalities.",
+    name: "mntn",
+    date: "Jul 18, 2025",
+  },
+  {
+    text: "Just woke up to see the deal wrapped up perfectly: it was a smooth process! Loved the excellent communication throughout, and congrats on becoming a seasoned escrow user.",
+    name: "AilliA",
+    role: "Verified buyer",
+    date: "Jul 12, 2025",
+  },
+  {
+    text: "Ordered again from this seller, everything is great! I had a custom request — getting a QWERTY laptop to a non-QWERTY country, and they found a way to do that, re-shipped it for me as fast as possible.",
+    name: "Anonymous",
+    date: "Jul 12, 2025",
+  },
+  {
+    text: "This seller was fantastic to work with! Incredibly dependable, honest, and professional from start to finish. It was a smooth transaction.",
+    name: "AilliA",
+    role: "Verified buyer",
+    date: "Jun 23, 2025",
+  },
+  {
+    text: "I had a great experience ordering a GPU from this seller. It was dispatched within 24h via express delivery, so it came to me very fast.",
+    name: "cocoa21",
+    role: "Donor – Liberator",
+    date: "Jun 23, 2025",
+  },
+  {
+    text: "Great customer, happy to do business with them!",
+    name: "cypherpink",
+    role: "Verified Seller",
+    date: "Jan 27, 2025",
+  },
+];
 
 export const runtime = "edge";
 
@@ -148,20 +191,21 @@ export default async function Home({
         </section>
 
         <section id="reviews" style={{ marginBottom: 64 }}>
-          <h2 className="section-title" style={{ marginBottom: 16 }}>Reviews</h2>
-          <AnimatedGroup className="grid-3" preset="blur-slide">
-            {[
-              { name: "A. Laurent", text: "Checkout was straightforward and shipping status communication was clear.", score: "5.0 / 5" },
-              { name: "M. Novak", text: "Product packaging and delivery timing matched expectations for cross-border shipping.", score: "4.8 / 5" },
-              { name: "E. Rossi", text: "Support responded within one business day and resolved my order question quickly.", score: "4.9 / 5" },
-            ].map((review) => (
-              <div key={review.name} className="surface">
-                <p style={{ fontWeight: 700, marginBottom: 10 }}>{review.score}</p>
-                <p className="small" style={{ marginBottom: 14, lineHeight: 1.6 }}>{review.text}</p>
-                <p className="caption">{review.name}</p>
-              </div>
-            ))}
-          </AnimatedGroup>
+          <div style={{ textAlign: "center", marginBottom: 32 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, border: "1px solid var(--border)", borderRadius: 8, padding: "4px 16px", marginBottom: 16, fontSize: "0.8rem", color: "var(--muted)" }}>
+              Reviews from XMR Bazaar
+            </div>
+            <h2 className="section-title">What our customers say</h2>
+            <p className="small" style={{ marginTop: 10, maxWidth: 400, margin: "10px auto 0" }}>
+              Real feedback from verified buyers on XMR Bazaar.
+            </p>
+          </div>
+
+          <div className="testimonials-columns-wrap">
+            <TestimonialsColumn testimonials={allTestimonials.slice(0, 3)} duration={18} />
+            <TestimonialsColumn testimonials={allTestimonials.slice(3, 5)} duration={22} className="hidden-mobile" />
+            <TestimonialsColumn testimonials={allTestimonials.slice(5, 7)} duration={16} className="hidden-tablet" />
+          </div>
         </section>
       </div>
     </div>

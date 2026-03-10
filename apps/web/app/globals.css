@@ -124,6 +124,41 @@ footer { position: relative; z-index: 1; }
 .badge-warning { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
 .badge-error { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
 
+/* Testimonials scrolling columns */
+.testimonials-columns-wrap {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  max-height: 740px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 18%, black 82%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, black 18%, black 82%, transparent);
+}
+.testimonials-col { overflow: hidden; }
+.testimonials-col-inner { display: flex; flex-direction: column; gap: 20px; padding-bottom: 20px; }
+.testimonial-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px; max-width: 300px; width: 300px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.testimonial-stars { color: #FDC221; font-size: 0.85rem; letter-spacing: 2px; }
+.testimonial-text { font-size: 0.875rem; color: var(--muted); line-height: 1.65; flex: 1; }
+.testimonial-footer { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.testimonial-avatar {
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+  background: var(--primary); color: #fff; font-weight: 700; font-size: 0.875rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.testimonial-meta { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.testimonial-name { font-weight: 600; font-size: 0.875rem; color: var(--text); }
+.testimonial-role { font-size: 0.75rem; color: var(--muted-2); }
+.testimonial-date { font-size: 0.75rem; color: var(--muted-2); }
+.hidden-mobile { display: none; }
+.hidden-tablet { display: none; }
+@media (min-width: 768px) { .hidden-mobile { display: block; } }
+@media (min-width: 1024px) { .hidden-tablet { display: block; } }
+
 .home-tabs { display: inline-flex; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 6px; }
 .home-tab { padding: 8px 14px; border-radius: 999px; border: 1px solid transparent; color: var(--muted); font-size: 0.85rem; font-weight: 600; }
 .home-tab:hover { border-color: var(--border); color: var(--text); background: var(--surface-2); }
