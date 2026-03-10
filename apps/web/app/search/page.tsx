@@ -9,7 +9,6 @@ export default async function SearchPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    currency?: Currency;
     q?: string;
     category?: string;
     keyboard_layout?: string;
@@ -22,7 +21,6 @@ export default async function SearchPage({
   }>;
 }) {
   const {
-    currency = "EUR",
     q = "",
     category = "",
     keyboard_layout = "",
@@ -33,6 +31,7 @@ export default async function SearchPage({
     max_resolution = "",
     sort = "default",
   } = await searchParams;
+  const currency: Currency = "EUR";
 
   const items = await fetchProducts(currency, false, {
     q,
@@ -106,10 +105,6 @@ export default async function SearchPage({
                 ))}
               </div>
             )}
-            <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
-              <Link className={`btn btn-sm ${currency === "USD" ? "btn-teal" : "btn-ghost"}`} href={`/search?currency=USD`}>USD</Link>
-              <Link className={`btn btn-sm ${currency === "EUR" ? "btn-teal" : "btn-ghost"}`} href={`/search?currency=EUR`}>EUR</Link>
-            </div>
           </summary>
           <form
             method="get"
@@ -122,7 +117,6 @@ export default async function SearchPage({
               padding: 16,
             }}
           >
-            <input type="hidden" name="currency" value={currency} />
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 16 }}>
               <label className="form-label">Search<input className="input" name="q" defaultValue={q} placeholder="Product name or SKU" /></label>
               <label className="form-label">Category<input className="input" name="category" defaultValue={category} placeholder="e.g. Laptops" /></label>
@@ -144,7 +138,7 @@ export default async function SearchPage({
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               <button className="btn btn-primary" type="submit">Apply</button>
-              <Link className="btn btn-ghost" href={`/search?currency=${currency}`}>Reset</Link>
+              <Link className="btn btn-ghost" href={`/search`}>Reset</Link>
             </div>
           </form>
         </details>
@@ -158,7 +152,7 @@ export default async function SearchPage({
           <div className="surface" style={{ textAlign: "center", padding: 48 }}>
             <h3 style={{ marginBottom: 8 }}>No products found</h3>
             <p className="small" style={{ marginBottom: 18 }}>Try broader filters or reset your search.</p>
-            <Link className="btn btn-primary" href={`/search?currency=${currency}`}>Reset Search</Link>
+            <Link className="btn btn-primary" href={`/search`}>Reset Search</Link>
           </div>
         ) : (
           <AnimatedGroup className="product-grid" preset="blur-slide">
@@ -172,7 +166,7 @@ export default async function SearchPage({
                 stockQty={item.stockQty}
                 description={item.description}
                 sku={item.sku}
-                href={`/product/${item.slug}?currency=${currency}`}
+                href={`/product/${item.slug}`}
               />
             ))}
           </AnimatedGroup>

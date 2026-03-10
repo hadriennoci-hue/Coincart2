@@ -83,12 +83,13 @@ export function SiteHeader() {
         gap: 16,
       }}>
         {/* Logo */}
-        <Link href="/" aria-label="Coincart home" style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+        <Link href="/" aria-label="Coincart home" style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
           <img
-            src="/coincart-logo.png"
+            src="/coincart-logo-mark.png"
             alt="Coincart"
-            style={{ height: 38, width: "auto", display: "block" }}
+            style={{ height: 34, width: "auto", display: "block" }}
           />
+          <span style={{ fontSize: "1rem", fontWeight: 700, letterSpacing: "0.01em" }}>Coincart</span>
         </Link>
 
         {/* Search */}

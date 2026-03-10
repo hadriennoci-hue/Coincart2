@@ -29,6 +29,10 @@ export const metadata: Metadata = {
       "Buy electronics with crypto on Coincart. EU shipping, transparent policies, and secure BTCPay checkout.",
     siteName: "Coincart",
   },
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

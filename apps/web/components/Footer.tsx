@@ -13,12 +13,13 @@ export function SiteFooter() {
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 48, paddingBottom: 48 }}>
           {/* Brand */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <Link href="/" aria-label="Coincart home" style={{ display: "inline-flex", alignItems: "center", width: "fit-content" }}>
+            <Link href="/" aria-label="Coincart home" style={{ display: "inline-flex", alignItems: "center", gap: 10, width: "fit-content" }}>
               <img
-                src="/coincart-logo.png"
+                src="/coincart-logo-mark.png"
                 alt="Coincart"
-                style={{ height: 38, width: "auto", display: "block" }}
+                style={{ height: 34, width: "auto", display: "block" }}
               />
+              <span style={{ fontSize: "1rem", fontWeight: 700, letterSpacing: "0.01em" }}>Coincart</span>
             </Link>
             <p className="small" style={{ lineHeight: 1.6, maxWidth: 300 }}>
               Buy electronics with crypto. EU shipping, official ACER partner, secure BTCPay checkout.
