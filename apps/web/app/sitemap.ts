@@ -8,6 +8,7 @@ const staticRoutes = [
   "/contact-us",
   "/cart",
   "/checkout",
+  "/search",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -20,4 +21,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: path === "" ? 1 : 0.7,
   }));
 }
-

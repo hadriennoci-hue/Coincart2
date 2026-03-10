@@ -45,22 +45,16 @@ export function SiteHeader() {
         gap: 16,
       }}>
         {/* Logo */}
-        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 8,
-            background: "var(--primary)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path d="M9 2L14.196 5V11L9 14L3.804 11V5L9 2Z" stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
-              <circle cx="9" cy="9" r="2" fill="white"/>
-            </svg>
-          </div>
-          <span style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--text)" }}>Coincart</span>
+        <Link href="/" aria-label="Coincart home" style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+          <img
+            src="/coincart-logo.png"
+            alt="Coincart"
+            style={{ height: 38, width: "auto", display: "block" }}
+          />
         </Link>
 
         {/* Search */}
-        <form action="/" method="get" style={{ flex: 1, maxWidth: 540, display: "flex", gap: 8 }}>
+        <form action="/search" method="get" style={{ flex: 1, maxWidth: 540, display: "flex", gap: 8 }}>
           <input
             name="q"
             placeholder="Search products..."
