@@ -81,126 +81,308 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="card" style={{ maxWidth: 640 }}>
-      <h2>Checkout</h2>
-      <p className="small">Guest checkout. Shipping details are used to process your order.</p>
-      <label>
-        Shipping Name
-        <input
-          value={shippingName}
-          onChange={(e) => setShippingName(e.target.value)}
-          style={{ width: "100%", marginTop: 4, marginBottom: 10, padding: 8 }}
-        />
-      </label>
-      <label>
-        Company Name (optional)
-        <input
-          value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
-          style={{ width: "100%", marginTop: 4, marginBottom: 10, padding: 8 }}
-        />
-      </label>
-      <label>
-        Country
-        <select
-          value={country}
-          onChange={(e) => setCountry(e.target.value)}
-          style={{ width: "100%", marginTop: 4, marginBottom: 10, padding: 8 }}
-        >
-          {euCountries.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Street Address
-        <input
-          value={streetAddress}
-          onChange={(e) => setStreetAddress(e.target.value)}
-          style={{ width: "100%", marginTop: 4, marginBottom: 10, padding: 8 }}
-        />
-      </label>
-      <label>
-        Secondary Address (optional)
-        <input
-          value={secondaryAddress}
-          onChange={(e) => setSecondaryAddress(e.target.value)}
-          style={{ width: "100%", marginTop: 4, marginBottom: 10, padding: 8 }}
-        />
-      </label>
-      <label>
-        City
-        <input
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          style={{ width: "100%", marginTop: 4, marginBottom: 10, padding: 8 }}
-        />
-      </label>
-      <label>
-        Postcode
-        <input
-          value={postcode}
-          onChange={(e) => setPostcode(e.target.value)}
-          style={{ width: "100%", marginTop: 4, marginBottom: 10, padding: 8 }}
-        />
-      </label>
-      <label>
-        Email
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          type="email"
-          style={{ width: "100%", marginTop: 4, marginBottom: 10, padding: 8 }}
-        />
-      </label>
-      <label>
-        Phone (optional)
-        <input
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          type="tel"
-          style={{ width: "100%", marginTop: 4, marginBottom: 10, padding: 8 }}
-        />
-      </label>
-      <label>
-        Order Notes (optional)
-        <textarea
-          value={orderNotes}
-          onChange={(e) => setOrderNotes(e.target.value)}
-          rows={4}
-          style={{ width: "100%", marginTop: 4, marginBottom: 10, padding: 8 }}
-        />
-      </label>
-      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-        <button className="button secondary" onClick={() => setCurrency("USD")}>USD</button>
-        <button className="button secondary" onClick={() => setCurrency("EUR")}>EUR</button>
+    <div className="container" style={{ paddingTop: 40, paddingBottom: 64 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "60% 40%",
+          gap: 32,
+          alignItems: "start",
+        }}
+      >
+        {/* Left: Form */}
+        <div>
+          <h1 className="page-title" style={{ marginBottom: 8 }}>
+            Checkout
+          </h1>
+          <p className="small" style={{ marginBottom: 32, color: "var(--muted)" }}>
+            Guest checkout — no account required. Your shipping details are used
+            to process your order.
+          </p>
+
+          {/* Shipping Details */}
+          <div className="surface" style={{ marginBottom: 20 }}>
+            <h2 className="card-title" style={{ marginBottom: 20 }}>
+              Shipping Details
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <label className="form-label">
+                Full Name *
+                <input
+                  className="input"
+                  value={shippingName}
+                  onChange={(e) => setShippingName(e.target.value)}
+                  placeholder="Your full name"
+                />
+              </label>
+              <label className="form-label">
+                Company Name{" "}
+                <span style={{ color: "var(--muted-2)" }}>(optional)</span>
+                <input
+                  className="input"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="Company or organization"
+                />
+              </label>
+              <label className="form-label">
+                Country *
+                <select
+                  className="select"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                >
+                  {euCountries.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="form-label">
+                Street Address *
+                <input
+                  className="input"
+                  value={streetAddress}
+                  onChange={(e) => setStreetAddress(e.target.value)}
+                  placeholder="Street and house number"
+                />
+              </label>
+              <label className="form-label">
+                Secondary Address{" "}
+                <span style={{ color: "var(--muted-2)" }}>(optional)</span>
+                <input
+                  className="input"
+                  value={secondaryAddress}
+                  onChange={(e) => setSecondaryAddress(e.target.value)}
+                  placeholder="Apartment, suite, floor, etc."
+                />
+              </label>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 16,
+                }}
+              >
+                <label className="form-label">
+                  City *
+                  <input
+                    className="input"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="City"
+                  />
+                </label>
+                <label className="form-label">
+                  Postcode *
+                  <input
+                    className="input"
+                    value={postcode}
+                    onChange={(e) => setPostcode(e.target.value)}
+                    placeholder="Postal code"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact */}
+          <div className="surface" style={{ marginBottom: 20 }}>
+            <h2 className="card-title" style={{ marginBottom: 20 }}>
+              Contact
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <label className="form-label">
+                Email *
+                <input
+                  className="input"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                />
+              </label>
+              <label className="form-label">
+                Phone{" "}
+                <span style={{ color: "var(--muted-2)" }}>(optional)</span>
+                <input
+                  className="input"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+33 6 00 00 00 00"
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* Order Notes */}
+          <div className="surface" style={{ marginBottom: 20 }}>
+            <h2 className="card-title" style={{ marginBottom: 20 }}>
+              Order Notes{" "}
+              <span style={{ color: "var(--muted-2)", fontWeight: 400 }}>
+                (optional)
+              </span>
+            </h2>
+            <label className="form-label">
+              Notes
+              <textarea
+                className="textarea"
+                value={orderNotes}
+                onChange={(e) => setOrderNotes(e.target.value)}
+                rows={4}
+                placeholder="Any special instructions or notes for your order..."
+              />
+            </label>
+          </div>
+
+          {/* Terms */}
+          <label
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10,
+              cursor: "pointer",
+              marginBottom: 16,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={agreeTerms}
+              onChange={(e) => setAgreeTerms(e.target.checked)}
+              style={{ marginTop: 2, flexShrink: 0 }}
+            />
+            <span className="small">
+              I have read and agree to the{" "}
+              <Link
+                href="/terms-of-sale"
+                style={{ color: "var(--primary)", textDecoration: "underline" }}
+              >
+                Terms of Sale
+              </Link>{" "}
+              and{" "}
+              <Link
+                href="/privacy-policy"
+                style={{ color: "var(--primary)", textDecoration: "underline" }}
+              >
+                Privacy Policy
+              </Link>
+              .
+            </span>
+          </label>
+
+          {error && (
+            <div
+              style={{
+                background: "rgba(239,68,68,0.1)",
+                border: "1px solid var(--error)",
+                borderRadius: 8,
+                padding: "10px 14px",
+                color: "var(--error)",
+                fontSize: "0.875rem",
+                marginBottom: 16,
+              }}
+            >
+              {error}
+            </div>
+          )}
+        </div>
+
+        {/* Right: Order Summary */}
+        <div style={{ position: "sticky", top: 24 }}>
+          <div className="surface" style={{ marginBottom: 16 }}>
+            <h2 className="card-title" style={{ marginBottom: 20 }}>
+              Order Summary
+            </h2>
+
+            {/* Currency Toggle */}
+            <div style={{ marginBottom: 20 }}>
+              <div className="caption" style={{ marginBottom: 8 }}>
+                Currency
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  className={`btn btn-sm ${currency === "USD" ? "btn-teal" : "btn-ghost"}`}
+                  onClick={() => setCurrency("USD")}
+                  style={{ flex: 1 }}
+                  type="button"
+                >
+                  USD
+                </button>
+                <button
+                  className={`btn btn-sm ${currency === "EUR" ? "btn-teal" : "btn-ghost"}`}
+                  onClick={() => setCurrency("EUR")}
+                  style={{ flex: 1 }}
+                  type="button"
+                >
+                  EUR
+                </button>
+              </div>
+            </div>
+
+            <div className="divider" style={{ marginBottom: 16 }} />
+
+            {/* Shipping Info */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+                marginBottom: 20,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>
+                    🚚 DHL Standard
+                  </div>
+                  <div className="caption">Estimated 5 business days</div>
+                </div>
+                <div style={{ fontWeight: 600, color: "var(--text)" }}>
+                  {shippingCost.toFixed(2)} {currency}
+                </div>
+              </div>
+            </div>
+
+            <div className="divider" style={{ marginBottom: 16 }} />
+
+            <p className="small" style={{ color: "var(--muted)", marginBottom: 4 }}>
+              Shipping is available within the EU only.{" "}
+              <Link
+                href="/shipping-policy"
+                style={{ color: "var(--primary)", textDecoration: "underline" }}
+              >
+                See shipping policy
+              </Link>
+              .
+            </p>
+            <p className="small" style={{ color: "var(--muted)", marginBottom: 0 }}>
+              Taxes and duties are handled according to destination-country and
+              supplier rules.
+            </p>
+          </div>
+
+          <button
+            className="btn btn-primary btn-full btn-lg"
+            onClick={submit}
+            disabled={loading || !email || !agreeTerms}
+            type="button"
+          >
+            {loading ? "Creating session..." : "Create BTCPay Session"}
+          </button>
+
+          <div className="caption" style={{ marginTop: 10, textAlign: "center" }}>
+            🔒 You will be redirected to BTCPay Server to complete payment
+          </div>
+        </div>
       </div>
-      <p className="small" style={{ marginTop: -4 }}>
-        You will be redirected to BTCPay Server to complete your payment.
-      </p>
-      <p className="small" style={{ marginTop: -6 }}>
-        Shipping method: DHL Standard. Estimated delivery: 5 business days. Shipping cost: {shippingCost.toFixed(2)} {currency}.
-      </p>
-      <p className="small" style={{ marginTop: -6 }}>
-        Shipping is currently available only within the EU. See{" "}
-        <Link href="/shipping-policy" style={{ textDecoration: "underline" }}>
-          shipping policy
-        </Link>
-        .
-      </p>
-      <p className="small" style={{ marginTop: -6 }}>
-        Taxes and duties are handled according to destination-country and supplier rules.
-      </p>
-      <label style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-        <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} />
-        <span className="small">I have read and agree to the website terms and conditions.</span>
-      </label>
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
-      <button className="button" onClick={submit} disabled={loading || !email || !agreeTerms}>
-        {loading ? "Creating session..." : "Create BTCPay session"}
-      </button>
     </div>
   );
 }

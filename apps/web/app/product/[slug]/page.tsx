@@ -49,46 +49,187 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
       "@type": "Offer",
       priceCurrency: product.currency,
       price: product.price.toFixed(2),
-      availability: product.stockQty > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      availability:
+        product.stockQty > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
       url: productUrl,
     },
   };
 
   return (
-    <div className="card">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      {product.imageUrl ? (
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          style={{ width: "100%", maxWidth: 760, aspectRatio: "16/10", objectFit: "cover", borderRadius: 14, border: "1px solid var(--line)", marginBottom: 12 }}
-        />
-      ) : null}
-      <p className="small">SKU: {product.sku}</p>
-      <h2>{product.name}</h2>
-      <p>{product.description || "No description"}</p>
-      <p>
-        <b>
-          {product.price.toFixed(2)} {product.currency}
-        </b>
-      </p>
-      <p className="small">Stock: {product.stockQty}</p>
-      <div className="small" style={{ display: "grid", gap: 4, marginBottom: 10 }}>
-        {product.category ? <span>Category: {product.category}</span> : null}
-        {product.cpu ? <span>CPU: {product.cpu}</span> : null}
-        {product.gpu ? <span>GPU: {product.gpu}</span> : null}
-        {product.screenSize ? <span>Screen: {product.screenSize}</span> : null}
-        {product.maxResolution ? <span>Max resolution: {product.maxResolution}</span> : null}
-        {product.refreshRate ? <span>Refresh rate: {product.refreshRate}Hz</span> : null}
-        {product.ramMemory ? <span>RAM: {product.ramMemory}GB</span> : null}
-        {product.ssdSize ? <span>SSD: {product.ssdSize}GB</span> : null}
-        {product.keyboardLayout ? <span>Keyboard: {product.keyboardLayout}</span> : null}
+    <div className="container" style={{ paddingTop: 40, paddingBottom: 64 }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      {/* Two-column layout */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "55% 45%",
+          gap: 40,
+          marginBottom: 40,
+          alignItems: "start",
+        }}
+      >
+        {/* Left: Product Image */}
+        <div>
+          {product.imageUrl ? (
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              style={{
+                width: "100%",
+                aspectRatio: "4/3",
+                objectFit: "cover",
+                borderRadius: 16,
+                border: "1px solid var(--border)",
+                display: "block",
+              }}
+            />
+          ) : (
+            <div
+              className="product-card-img-placeholder"
+              style={{ aspectRatio: "4/3", borderRadius: 16 }}
+            />
+          )}
+        </div>
+
+        {/* Right: Product Info */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {product.category && (
+            <span className="badge badge-teal" style={{ alignSelf: "flex-start" }}>
+              {product.category}
+            </span>
+          )}
+
+          <h1
+            style={{
+              fontSize: "2rem",
+              fontWeight: 700,
+              color: "var(--text)",
+              margin: 0,
+              lineHeight: 1.2,
+            }}
+          >
+            {product.name}
+          </h1>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span
+              style={{
+                fontSize: "2rem",
+                fontWeight: 700,
+                color: "var(--accent)",
+              }}
+            >
+              {product.price.toFixed(2)} {product.currency}
+            </span>
+            <span
+              className={
+                product.stockQty > 0 ? "badge badge-green" : "badge badge-error"
+              }
+            >
+              {product.stockQty > 0 ? "In Stock" : "Out of Stock"}
+            </span>
+          </div>
+
+          <div className="caption">SKU: {product.sku}</div>
+
+          {product.description && (
+            <p
+              style={{
+                color: "var(--muted)",
+                lineHeight: 1.6,
+                margin: 0,
+              }}
+            >
+              {product.description}
+            </p>
+          )}
+
+          <div className="divider" />
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <AddToCartButton sku={product.sku} />
+            <Link
+              className="btn btn-ghost btn-full"
+              href={`/cart?currency=${currency}`}
+            >
+              View Cart
+            </Link>
+          </div>
+        </div>
       </div>
-      <div style={{ display: "flex", gap: 10 }}>
-        <AddToCartButton sku={product.sku} />
-        <Link className="button secondary" href={`/cart?currency=${currency}`}>
-          View cart
-        </Link>
+
+      {/* Specs Table */}
+      <div className="surface">
+        <h2 className="card-title" style={{ marginBottom: 20 }}>
+          Product Specifications
+        </h2>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+          }}
+        >
+          <tbody>
+            {[
+              { label: "CPU", value: product.cpu },
+              { label: "GPU", value: product.gpu },
+              { label: "Screen Size", value: product.screenSize },
+              { label: "Max Resolution", value: product.maxResolution },
+              {
+                label: "Refresh Rate",
+                value: product.refreshRate ? `${product.refreshRate}Hz` : null,
+              },
+              {
+                label: "RAM",
+                value: product.ramMemory ? `${product.ramMemory} GB` : null,
+              },
+              {
+                label: "SSD",
+                value: product.ssdSize ? `${product.ssdSize} GB` : null,
+              },
+              { label: "Keyboard Layout", value: product.keyboardLayout },
+              { label: "Category", value: product.category },
+            ]
+              .filter((row) => row.value)
+              .map((row, i, arr) => (
+                <tr
+                  key={row.label}
+                  style={{
+                    borderBottom:
+                      i < arr.length - 1
+                        ? "1px solid var(--border)"
+                        : "none",
+                  }}
+                >
+                  <td
+                    style={{
+                      padding: "12px 0",
+                      width: "40%",
+                      color: "var(--muted)",
+                      fontSize: "0.875rem",
+                    }}
+                  >
+                    {row.label}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px 0",
+                      color: "var(--text)",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {row.value}
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
