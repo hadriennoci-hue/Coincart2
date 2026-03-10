@@ -350,14 +350,12 @@ export default async function Home({
                 <Link
                   className={`btn btn-sm ${currency === "USD" ? "btn-teal" : "btn-ghost"}`}
                   href={`/?currency=USD${q ? `&q=${q}` : ""}${category ? `&category=${category}` : ""}`}
-                  onClick={(e) => e.stopPropagation()}
                 >
                   USD
                 </Link>
                 <Link
                   className={`btn btn-sm ${currency === "EUR" ? "btn-teal" : "btn-ghost"}`}
                   href={`/?currency=EUR${q ? `&q=${q}` : ""}${category ? `&category=${category}` : ""}`}
-                  onClick={(e) => e.stopPropagation()}
                 >
                   EUR
                 </Link>
