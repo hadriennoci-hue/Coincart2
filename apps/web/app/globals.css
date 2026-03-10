@@ -124,6 +124,26 @@ footer { position: relative; z-index: 1; }
 .testimonial-name { font-weight: 600; font-size: 0.875rem; color: var(--text); }
 .testimonial-role { font-size: 0.75rem; color: var(--muted-2); }
 .testimonial-date { font-size: 0.75rem; color: var(--muted-2); }
+/* Sonner toasts — blue theme matching the announcement banner */
+[data-sonner-toast][data-type="success"],
+.toast-success {
+  background: var(--primary) !important;
+  border: 1px solid var(--primary-hover) !important;
+  color: #fff !important;
+}
+[data-sonner-toast][data-type="success"] [data-title],
+[data-sonner-toast][data-type="success"] [data-description] {
+  color: #fff !important;
+}
+[data-sonner-toast][data-type="success"] [data-icon] svg {
+  color: rgba(255,255,255,0.85) !important;
+}
+[data-sonner-toast][data-type="success"] [data-close-button] {
+  background: rgba(255,255,255,0.15) !important;
+  border-color: rgba(255,255,255,0.2) !important;
+  color: #fff !important;
+}
+
 .hidden-mobile { display: none; }
 .hidden-tablet { display: none; }
 @media (min-width: 768px) { .hidden-mobile { display: block; } }
