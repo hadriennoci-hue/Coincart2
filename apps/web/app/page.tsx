@@ -2,7 +2,6 @@ import Link from "next/link";
 import { fetchProducts, fetchTopSellingProducts, type Currency } from "../lib/api";
 import { FlipCard } from "../components/ui/FlipCard";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
-import { InteractiveHoverButton } from "../components/ui/InteractiveHoverButton";
 import { PredatorHero } from "../components/ui/PredatorHero";
 
 const allTestimonials: Testimonial[] = [
@@ -104,20 +103,8 @@ export default async function Home({
       />
 
 
-<div className="container" style={{ paddingTop: 44 }}>
+<div className="container" style={{ paddingTop: 24 }}>
         <section style={{ marginBottom: 40 }}>
-          <div className="home-tabs">
-            <a className="home-tab" href="#promotions">Promotions</a>
-            <a className="home-tab" href="#top-selling">Top Selling</a>
-            <a className="home-tab" href="#reviews">Reviews</a>
-          </div>
-        </section>
-
-        <section style={{ marginBottom: 48 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-            <h2 className="section-title" style={{ margin: 0 }}>Shop by Category</h2>
-            <InteractiveHoverButton text="View Full Catalog" variant="dark" href={`/search?currency=${currency}`} />
-          </div>
           <div className="category-grid">
             {categories.map((cat) => (
               <Link key={cat.slug} className="category-card" href={`/search?currency=${currency}&category=${encodeURIComponent(cat.name)}`}>
@@ -171,13 +158,9 @@ export default async function Home({
 
         <section id="reviews" style={{ marginBottom: 64 }}>
           <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, border: "1px solid var(--border)", borderRadius: 8, padding: "4px 16px", marginBottom: 16, fontSize: "0.8rem", color: "var(--muted)" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, border: "1px solid var(--border)", borderRadius: 8, padding: "4px 16px", marginBottom: 24, fontSize: "0.8rem", color: "var(--muted)" }}>
               Reviews from XMR Bazaar
             </div>
-            <h2 className="section-title">What our customers say</h2>
-            <p className="small" style={{ marginTop: 10, maxWidth: 400, margin: "10px auto 0" }}>
-              Real feedback from verified buyers on XMR Bazaar.
-            </p>
           </div>
 
           <div className="testimonials-columns-wrap">
