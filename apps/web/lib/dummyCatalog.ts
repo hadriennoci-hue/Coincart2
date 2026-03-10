@@ -36,17 +36,12 @@ type ProductSeed = Omit<DummyCatalogProduct, "currency" | "price"> & {
 
 const EUR_RATE = 0.92;
 
-const cloudflareImageUrls = (
-  process.env.NEXT_PUBLIC_DUMMY_IMAGE_URLS || ""
-)
-  .split(",")
-  .map((x) => x.trim())
-  .filter(Boolean);
+const cloudflareImageBasePath = (
+  process.env.NEXT_PUBLIC_DUMMY_IMAGE_BASE_PATH || "https://img.coincart.store/dummy"
+).replace(/\/+$/, "");
 
-const productImage = (seed: string, index: number) => {
-  if (cloudflareImageUrls[index]) return cloudflareImageUrls[index];
-  return `/api/dummy-image?seed=${encodeURIComponent(seed)}`;
-};
+const productImage = (slug: string, slot: number) =>
+  `${cloudflareImageBasePath}/${slug}-${slot}.jpg`;
 
 const galleryCountForProductId = (id: string) => {
   const n = Number.parseInt(id.replace("dummy-", ""), 10);
@@ -56,10 +51,7 @@ const galleryCountForProductId = (id: string) => {
 
 const buildGalleryImages = (slug: string, id: string) => {
   const count = galleryCountForProductId(id);
-  const baseOffset = (Number.parseInt(id.replace("dummy-", ""), 10) - 1) * 6;
-  return Array.from({ length: count }, (_, i) =>
-    productImage(`${slug}-gallery-${i + 1}`, baseOffset + i),
-  );
+  return Array.from({ length: count }, (_, i) => productImage(slug, i + 1));
 };
 
 const seeds: ProductSeed[] = [
