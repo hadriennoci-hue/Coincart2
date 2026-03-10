@@ -338,7 +338,7 @@ footer { position: relative; z-index: 1; }
 
 /* Flip Card */
 .flip-card {
-  min-height: 340px;
+  min-height: 260px;
   perspective: 2000px;
   cursor: pointer;
   display: flex;
@@ -377,26 +377,19 @@ footer { position: relative; z-index: 1; }
   flex-direction: column;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 24px;
-  gap: 12px;
+  padding: 20px;
+  gap: 10px;
 }
 .flip-card-desc {
   color: var(--muted);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.6;
   flex: 1;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 5;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   margin: 0;
-}
-.flip-card-back-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 12px;
 }
 
 /* ── Predator Hero ────────────────────────────────────── */
@@ -409,10 +402,10 @@ footer { position: relative; z-index: 1; }
   border: 1px solid rgba(55,65,81,0.75);
   border-radius: 20px;
   overflow: hidden;
-  padding: 28px 48px;
+  padding: 20px 40px;
   min-height: 0;
   transition: border-color 0.45s ease, box-shadow 0.45s ease;
-  cursor: default;
+  cursor: pointer;
 }
 .ph-card:hover {
   border-color: rgba(34,197,94,0.28);
@@ -469,7 +462,7 @@ footer { position: relative; z-index: 1; }
 
 .ph-headline {
   font-family: var(--font-display), 'Space Grotesk', sans-serif;
-  font-size: clamp(2rem, 3.2vw, 2.875rem);
+  font-size: clamp(1.5rem, 2.4vw, 2.125rem);
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.025em;
@@ -507,7 +500,7 @@ footer { position: relative; z-index: 1; }
 }
 .ph-price {
   font-family: var(--font-display), 'Space Grotesk', sans-serif;
-  font-size: 2.5rem;
+  font-size: 1.875rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.03em;

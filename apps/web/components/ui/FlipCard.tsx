@@ -28,84 +28,62 @@ export function FlipCard({
   const hasPromo = typeof promoPrice === "number" && promoPrice > 0 && promoPrice < price;
   const displayPrice = hasPromo ? promoPrice : price;
 
-  return (
-    <div className="flip-card">
-      <div className="flip-card-inner">
-        <div className="flip-card-front">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={name}
-              className="product-card-img"
-              width={960}
-              height={720}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-              loading="lazy"
-              decoding="async"
-              fetchPriority="low"
-            />
-          ) : (
-            <div className="product-card-img-placeholder" />
-          )}
-          <div className="product-card-body">
-            <div className="card-title" style={{ marginBottom: 4, fontSize: "0.9375rem" }}>
-              {name}
-            </div>
-            {sku && <div className="caption">{sku}</div>}
-          </div>
-          <div className="product-card-footer">
-            <span className="product-card-price">
-              {hasPromo ? (
-                <>
-                  <span style={{ textDecoration: "line-through", opacity: 0.65, marginRight: 8 }}>
-                    {price.toFixed(2)} {currency}
-                  </span>
-                  <span>
-                    {displayPrice.toFixed(2)} {currency}
-                  </span>
-                </>
-              ) : (
-                <>
-                  {displayPrice.toFixed(2)} {currency}
-                </>
-              )}
-            </span>
-            <span className={stockQty > 0 ? "badge badge-green" : "badge badge-error"}>
-              {stockQty > 0 ? "In Stock" : "Out of Stock"}
-            </span>
-          </div>
-        </div>
+  const priceBlock = hasPromo ? (
+    <>
+      <span style={{ textDecoration: "line-through", opacity: 0.55, marginRight: 6 }}>
+        {price.toFixed(2)} {currency}
+      </span>
+      <span>{displayPrice.toFixed(2)} {currency}</span>
+    </>
+  ) : (
+    <>{displayPrice.toFixed(2)} {currency}</>
+  );
 
-        <div className="flip-card-back">
-          <p style={{ fontWeight: 700, fontSize: "0.9375rem", color: "var(--text)", marginBottom: 10, lineHeight: 1.3 }}>
-            {name}
-          </p>
-          <p className="flip-card-desc">
-            {description || "Premium product. View details for full specifications."}
-          </p>
-          <div className="flip-card-back-footer">
+  return (
+    <Link href={href} style={{ display: "block", textDecoration: "none" }}>
+      <div className="flip-card">
+        <div className="flip-card-inner">
+          {/* Front */}
+          <div className="flip-card-front">
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt={name}
+                className="product-card-img"
+                width={960}
+                height={720}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                loading="lazy"
+                decoding="async"
+                fetchPriority="low"
+              />
+            ) : (
+              <div className="product-card-img-placeholder" />
+            )}
+            <div className="product-card-body">
+              <div className="card-title" style={{ marginBottom: 0, fontSize: "0.9375rem" }}>{name}</div>
+            </div>
+            <div className="product-card-footer">
+              <span className="product-card-price">{priceBlock}</span>
+              <span className={stockQty > 0 ? "badge badge-green" : "badge badge-error"}>
+                {stockQty > 0 ? "In Stock" : "Out of Stock"}
+              </span>
+            </div>
+          </div>
+
+          {/* Back */}
+          <div className="flip-card-back">
+            <p style={{ fontWeight: 700, fontSize: "0.9375rem", color: "var(--text)", lineHeight: 1.3 }}>{name}</p>
+            {sku && <p className="caption" style={{ marginTop: 2 }}>{sku}</p>}
+            <p className="flip-card-desc">
+              {description || "Premium product. View details for full specifications."}
+            </p>
             <span style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--accent)" }}>
-              {hasPromo ? (
-                <>
-                  <span style={{ textDecoration: "line-through", opacity: 0.65, marginRight: 8 }}>
-                    {price.toFixed(2)} {currency}
-                  </span>
-                  <span>
-                    {displayPrice.toFixed(2)} {currency}
-                  </span>
-                </>
-              ) : (
-                <>
-                  {displayPrice.toFixed(2)} {currency}
-                </>
-              )}
+              {priceBlock}
             </span>
-            <Link className="btn btn-primary btn-sm" href={href}>
-              View Product
-            </Link>
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

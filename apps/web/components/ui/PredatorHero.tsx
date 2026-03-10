@@ -24,8 +24,8 @@ export function PredatorHero({ imageUrl, href = "/search?category=Laptops" }: Pr
     target: sectionRef,
     offset: ["start start", "end start"],
   });
-  const imgY = useTransform(scrollYProgress, [0, 1], [0, 36]);
-  const textY = useTransform(scrollYProgress, [0, 1], [0, 18]);
+  const imgY = useTransform(scrollYProgress, [0, 1], [0, 24]);
+  const textY = useTransform(scrollYProgress, [0, 1], [0, 12]);
 
   return (
     <section
@@ -33,100 +33,82 @@ export function PredatorHero({ imageUrl, href = "/search?category=Laptops" }: Pr
       style={{
         background: "linear-gradient(160deg, rgba(20,32,53,0.55) 0%, rgba(0,0,0,0) 55%)",
         borderBottom: "1px solid var(--border)",
-        padding: "16px 0 20px",
+        padding: "12px 0 14px",
       }}
     >
       <div className="container">
-        <motion.div
-          className="ph-card"
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {/* Ambient inner glow */}
-          <div className="ph-ambient" />
+        <Link href={href} style={{ display: "block", textDecoration: "none" }}>
+          <motion.div
+            className="ph-card"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {/* Ambient inner glow */}
+            <div className="ph-ambient" />
 
-          {/* Corner accents */}
-          <span className="ph-corner ph-corner-tl" />
-          <span className="ph-corner ph-corner-tr" />
-          <span className="ph-corner ph-corner-bl" />
-          <span className="ph-corner ph-corner-br" />
+            {/* Corner accents */}
+            <span className="ph-corner ph-corner-tl" />
+            <span className="ph-corner ph-corner-tr" />
+            <span className="ph-corner ph-corner-bl" />
+            <span className="ph-corner ph-corner-br" />
 
-          {/* ── Left content ── */}
-          <motion.div className="ph-left" style={{ y: textY }}>
-            <motion.span
-              className="ph-eyebrow"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.18, duration: 0.5 }}
-            >
-              <svg width="7" height="7" viewBox="0 0 7 7" fill="none" aria-hidden>
-                <circle cx="3.5" cy="3.5" r="3.5" fill="#22C55E" />
-              </svg>
-              Predator × Solary
-            </motion.span>
+            {/* ── Left content ── */}
+            <motion.div className="ph-left" style={{ y: textY }}>
+              <motion.span
+                className="ph-eyebrow"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15, duration: 0.4 }}
+              >
+                <svg width="7" height="7" viewBox="0 0 7 7" fill="none" aria-hidden>
+                  <circle cx="3.5" cy="3.5" r="3.5" fill="#22C55E" />
+                </svg>
+                Predator × Solary
+              </motion.span>
 
-            <motion.h1
-              className="ph-headline"
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.28, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            >
-              Competitive power,{" "}
-              <span style={{ color: "#22C55E" }}>refined.</span>
-            </motion.h1>
+              <motion.h1
+                className="ph-headline"
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.22, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              >
+                Competitive power,{" "}
+                <span style={{ color: "#22C55E" }}>refined.</span>
+              </motion.h1>
 
-            <motion.div
-              className="ph-specs"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.46, duration: 0.5 }}
-            >
-              {SPECS.map((s) => (
-                <span key={s} className="ph-chip">{s}</span>
-              ))}
-            </motion.div>
-
-            <motion.div
-              className="ph-price-row"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.54, duration: 0.45 }}
-            >
-              <span className="ph-price">€2&thinsp;496</span>
-              <span className="ph-price-meta">TTC&ensp;·&ensp;In Stock</span>
-            </motion.div>
-
-            <motion.div
-              className="ph-ctas"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.62, duration: 0.45 }}
-            >
-              <Link className="btn btn-lg ph-btn-primary" href={href}>
-                Shop now
-              </Link>
-              <Link className="btn btn-ghost btn-lg" href={href} style={{ borderColor: "rgba(255,255,255,0.12)" }}>
-                View specs →
-              </Link>
-            </motion.div>
-          </motion.div>
-
-          {/* ── Right visual ── */}
-          <div className="ph-right">
-            <div className="ph-right-glow" />
-            {/* Grid lines overlay */}
-            <div className="ph-grid-lines" aria-hidden />
-            <motion.div
-              style={{ y: imgY }}
-              initial={{ opacity: 0, scale: 0.97, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ delay: 0.32, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="ph-visual-wrap"
-            >
               <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+                className="ph-specs"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.32, duration: 0.4 }}
+              >
+                {SPECS.map((s) => (
+                  <span key={s} className="ph-chip">{s}</span>
+                ))}
+              </motion.div>
+
+              <motion.div
+                className="ph-price-row"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.4 }}
+              >
+                <span className="ph-price">€2&thinsp;496</span>
+                <span className="ph-price-meta">TTC&ensp;·&ensp;In Stock</span>
+              </motion.div>
+            </motion.div>
+
+            {/* ── Right visual ── */}
+            <div className="ph-right">
+              <div className="ph-right-glow" />
+              <div className="ph-grid-lines" aria-hidden />
+              <motion.div
+                style={{ y: imgY }}
+                initial={{ opacity: 0, scale: 0.97, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: 0.28, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                className="ph-visual-wrap"
               >
                 {imageUrl ? (
                   <img
@@ -144,31 +126,30 @@ export function PredatorHero({ imageUrl, href = "/search?category=Laptops" }: Pr
                     <span>Acer Predator Helios Neo 16</span>
                   </div>
                 )}
-              </motion.div>
 
-              {/* Floating micro-panel accent */}
-              <motion.div
-                className="ph-micro-panel"
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.9, duration: 0.5 }}
-              >
-                <span className="ph-micro-dot" />
-                <span className="ph-micro-label">240 Hz · WQXGA</span>
-              </motion.div>
+                <motion.div
+                  className="ph-micro-panel"
+                  initial={{ opacity: 0, x: 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.75, duration: 0.4 }}
+                >
+                  <span className="ph-micro-dot" />
+                  <span className="ph-micro-label">240 Hz · WQXGA</span>
+                </motion.div>
 
-              <motion.div
-                className="ph-micro-panel ph-micro-panel-br"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1.05, duration: 0.5 }}
-              >
-                <span className="ph-micro-dot" style={{ background: "#3060C8" }} />
-                <span className="ph-micro-label">RTX 4070 · 8 GB GDDR6</span>
+                <motion.div
+                  className="ph-micro-panel ph-micro-panel-br"
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.85, duration: 0.4 }}
+                >
+                  <span className="ph-micro-dot" style={{ background: "#3060C8" }} />
+                  <span className="ph-micro-label">RTX 4070 · 8 GB GDDR6</span>
+                </motion.div>
               </motion.div>
-            </motion.div>
-          </div>
-        </motion.div>
+            </div>
+          </motion.div>
+        </Link>
       </div>
     </section>
   );
