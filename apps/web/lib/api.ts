@@ -11,7 +11,9 @@ const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   process.env.API_BASE_URL ||
   "http://localhost:4000";
-const forceDummyCatalog = process.env.NEXT_PUBLIC_USE_DUMMY_CATALOG === "true";
+const forceDummyCatalog =
+  process.env.NEXT_PUBLIC_USE_DUMMY_CATALOG === "true" ||
+  process.env.COINCART_USE_DUMMY_CATALOG === "true";
 const allowDummyFallback = forceDummyCatalog || process.env.NODE_ENV !== "production";
 
 export type Product = {
@@ -147,7 +149,9 @@ export const fetchProducts = async (
     });
     if (!res.ok) throw new Error(`fetchProducts failed: ${res.status}`);
     const data = await res.json();
-    return data.items as Product[];
+    const apiItems = (data.items || []) as Product[];
+    if (apiItems.length === 0 && forceDummyCatalog) return dummyList();
+    return apiItems;
   } catch {
     return allowDummyFallback ? dummyList() : ([] as Product[]);
   }
@@ -178,7 +182,9 @@ export const fetchProductsBySkus = async (skus: string[], currency: Currency) =>
     });
     if (!res.ok) throw new Error(`fetchProductsBySkus failed: ${res.status}`);
     const data = await res.json();
-    return data.items as Product[];
+    const apiItems = (data.items || []) as Product[];
+    if (apiItems.length === 0 && forceDummyCatalog) return getDummyProductsBySkus(skus, currency) as Product[];
+    return apiItems;
   } catch {
     return allowDummyFallback ? (getDummyProductsBySkus(skus, currency) as Product[]) : ([] as Product[]);
   }
