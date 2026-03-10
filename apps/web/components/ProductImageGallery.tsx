@@ -13,7 +13,7 @@ export function ProductImageGallery({ images, alt }: ProductImageGalleryProps) {
   const activeImage = gallery[activeIndex] ?? gallery[0] ?? null;
 
   if (!activeImage) {
-    return <div className="product-card-img-placeholder" style={{ aspectRatio: "4/3", borderRadius: 16 }} />;
+    return <div className="product-card-img-placeholder" style={{ aspectRatio: "16/10", borderRadius: 16 }} />;
   }
 
   return (
@@ -21,12 +21,12 @@ export function ProductImageGallery({ images, alt }: ProductImageGalleryProps) {
       <img
         src={activeImage}
         alt={alt}
-        width={960}
-        height={720}
+        width={1600}
+        height={1000}
         sizes="(max-width: 768px) 100vw, 55vw"
         style={{
           width: "100%",
-          aspectRatio: "4/3",
+          aspectRatio: "16/10",
           objectFit: "cover",
           borderRadius: 16,
           border: "1px solid var(--border)",
@@ -53,11 +53,11 @@ export function ProductImageGallery({ images, alt }: ProductImageGalleryProps) {
             <img
               src={url}
               alt={`${alt} ${index + 1}`}
-              width={240}
-              height={180}
+              width={320}
+              height={200}
               loading="lazy"
               decoding="async"
-              style={{ width: "100%", aspectRatio: "4/3", objectFit: "cover", display: "block" }}
+              style={{ width: "100%", aspectRatio: "16/10", objectFit: "cover", display: "block" }}
             />
           </button>
         ))}

@@ -45,7 +45,7 @@ const cloudflareImageUrls = (
 
 const productImage = (seed: string, index: number) => {
   if (cloudflareImageUrls[index]) return cloudflareImageUrls[index];
-  return `https://picsum.photos/seed/${encodeURIComponent(seed)}/960/720`;
+  return `https://picsum.photos/seed/${encodeURIComponent(seed)}/1600/1000`;
 };
 
 const galleryCountForProductId = (id: string) => {
