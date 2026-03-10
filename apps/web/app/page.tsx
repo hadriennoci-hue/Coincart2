@@ -2,6 +2,7 @@ import Link from "next/link";
 import { fetchProducts, type Currency } from "../lib/api";
 import { AnimatedGroup } from "../components/ui/AnimatedGroup";
 import { FlipCard } from "../components/ui/FlipCard";
+import { Banner } from "../components/ui/Banner";
 
 export const runtime = "edge";
 
@@ -42,7 +43,16 @@ export default async function Home({
   return (
     <div>
       {hero ? (
-        <div style={{ background: "linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%)", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ position: "relative", background: "linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%)", borderBottom: "1px solid var(--border)" }}>
+          <div style={{ position: "absolute", top: 16, right: 32, zIndex: 10, maxWidth: 340 }}>
+            <Banner
+              variant="promo"
+              title="🎉 Launch Promotion: Use COINCART10 for 10% off."
+              description="Valid through December 31, 2026"
+              showShade
+              closable
+            />
+          </div>
           <div className="container">
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "center", padding: "64px 0" }}>
               <div>
@@ -80,16 +90,8 @@ export default async function Home({
         </div>
       ) : null}
 
-      <div style={{ background: "var(--primary)", padding: "14px 0" }}>
-        <div className="container" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
-          <span style={{ fontWeight: 700, color: "#fff", fontSize: "0.95rem" }}>
-            🎉 Launch Promotion: Use <b>COINCART10</b> for 10% off.
-          </span>
-          <span className="small" style={{ color: "rgba(255,255,255,0.8)" }}>Valid through December 31, 2026</span>
-        </div>
-      </div>
 
-      <div className="container" style={{ paddingTop: 44 }}>
+<div className="container" style={{ paddingTop: 44 }}>
         <section style={{ marginBottom: 40 }}>
           <div className="home-tabs">
             <a className="home-tab" href="#promotions">Promotions</a>
