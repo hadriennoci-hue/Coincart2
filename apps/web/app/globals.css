@@ -166,9 +166,11 @@ footer { position: relative; z-index: 1; }
 
 .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
 
-/* Animated group wrappers inside grid/flex containers */
-.product-grid > div, .category-grid > div, .grid-2 > div, .grid-3 > div, .grid-4 > div, .bento-grid > div { display: flex; flex-direction: column; }
-.product-grid > div > *, .category-grid > div > *, .grid-2 > div > *, .grid-3 > div > *, .grid-4 > div > *, .bento-grid > div > * { flex: 1; }
+/* Grid/flex wrappers — support both div (AnimatedGroup) and a (Link) direct children */
+.product-grid > div, .product-grid > a,
+.category-grid > div, .grid-2 > div, .grid-3 > div, .grid-4 > div, .bento-grid > div { display: flex; flex-direction: column; }
+.product-grid > div > *, .product-grid > a > *,
+.category-grid > div > *, .grid-2 > div > *, .grid-3 > div > *, .grid-4 > div > *, .bento-grid > div > * { flex: 1; }
 
 .product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .product-card {
@@ -347,6 +349,7 @@ footer { position: relative; z-index: 1; }
 .flip-card-inner {
   position: relative;
   width: 100%;
+  flex: 1;
   height: 100%;
   transform-style: preserve-3d;
   transition: transform 0.55s cubic-bezier(0.25, 0.1, 0.25, 1);
