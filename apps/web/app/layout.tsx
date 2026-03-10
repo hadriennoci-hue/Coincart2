@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/Footer";
 import { ToastProvider } from "../components/ui/ToastProvider";
+import { PageBackground } from "../components/ui/PageBackground";
 
 export const runtime = 'edge';
 
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body>
+        <PageBackground />
         <SiteHeader />
         <main>{children}</main>
         <SiteFooter />
