@@ -67,6 +67,47 @@ export type Order = {
   }>;
 };
 
+const toNumber = (value: unknown, fallback = 0) => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : fallback;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+  return fallback;
+};
+
+const toOptionalNumber = (value: unknown) => {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = toNumber(value, Number.NaN);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const normalizeProduct = (raw: Partial<Product>): Product => ({
+  id: String(raw.id || ""),
+  sku: String(raw.sku || ""),
+  slug: String(raw.slug || ""),
+  category: raw.category ?? null,
+  name: String(raw.name || ""),
+  description: raw.description ?? null,
+  imageUrl: raw.imageUrl ?? null,
+  cpu: raw.cpu ?? null,
+  gpu: raw.gpu ?? null,
+  keyboardLayout: raw.keyboardLayout ?? null,
+  usage: raw.usage ?? null,
+  screenSize: raw.screenSize ?? null,
+  displayType: raw.displayType ?? null,
+  resolution: raw.resolution ?? null,
+  maxResolution: raw.maxResolution ?? null,
+  refreshRate: toOptionalNumber(raw.refreshRate),
+  ramMemory: toOptionalNumber(raw.ramMemory),
+  ssdSize: toOptionalNumber(raw.ssdSize),
+  storage: raw.storage ?? null,
+  featured: Boolean(raw.featured),
+  stockQty: toNumber(raw.stockQty, 0),
+  price: toNumber(raw.price, 0),
+  currency: raw.currency === "USD" ? "USD" : "EUR",
+});
+
 const applyDummyFilters = (
   items: Product[],
   filters?: {
@@ -152,7 +193,7 @@ export const fetchProducts = async (
     });
     if (!res.ok) throw new Error(`fetchProducts failed: ${res.status}`);
     const data = await res.json();
-    const apiItems = (data.items || []) as Product[];
+    const apiItems = ((data.items || []) as Partial<Product>[]).map(normalizeProduct);
     if (apiItems.length === 0) return dummyList();
     return apiItems;
   } catch {
@@ -168,7 +209,7 @@ export const fetchProductBySlug = async (slug: string, currency: Currency) => {
       cache: "no-store",
     });
     if (!res.ok) return (getDummyProductBySlug(slug, currency) as Product | null) ?? null;
-    return (await res.json()) as Product;
+    return normalizeProduct((await res.json()) as Partial<Product>);
   } catch {
     return allowDummyFallback ? ((getDummyProductBySlug(slug, currency) as Product | null) ?? null) : null;
   }
@@ -185,7 +226,7 @@ export const fetchProductsBySkus = async (skus: string[], currency: Currency) =>
     });
     if (!res.ok) throw new Error(`fetchProductsBySkus failed: ${res.status}`);
     const data = await res.json();
-    const apiItems = (data.items || []) as Product[];
+    const apiItems = ((data.items || []) as Partial<Product>[]).map(normalizeProduct);
     if (apiItems.length === 0) return getDummyProductsBySkus(skus, currency) as Product[];
     return apiItems;
   } catch {
