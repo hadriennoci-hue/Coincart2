@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { AddToCartButton } from "../../../components/AddToCartButton";
+import { ProductImageGallery } from "../../../components/ProductImageGallery";
 import { fetchProductBySlug, type Currency } from "../../../lib/api";
 
 export const runtime = 'edge';
@@ -35,6 +36,12 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   const { currency = "EUR" } = await searchParams;
   const product = await fetchProductBySlug(slug, currency);
   if (!product) return notFound();
+  const imageGallery =
+    Array.isArray(product.imageUrls) && product.imageUrls.length > 0
+      ? product.imageUrls
+      : product.imageUrl
+        ? [product.imageUrl]
+        : [];
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://coincart-web.pages.dev";
   const productUrl = `${siteUrl}/product/${product.slug}?currency=${currency}`;
@@ -42,6 +49,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
+    image: imageGallery.length > 0 ? imageGallery : undefined,
     sku: product.sku,
     description: product.description || undefined,
     category: product.category || undefined,
@@ -76,25 +84,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
       >
         {/* Left: Product Image */}
         <div>
-          {product.imageUrl ? (
-            <img
-              src={product.imageUrl}
-              alt={product.name}
-              style={{
-                width: "100%",
-                aspectRatio: "4/3",
-                objectFit: "cover",
-                borderRadius: 16,
-                border: "1px solid var(--border)",
-                display: "block",
-              }}
-            />
-          ) : (
-            <div
-              className="product-card-img-placeholder"
-              style={{ aspectRatio: "4/3", borderRadius: 16 }}
-            />
-          )}
+          <ProductImageGallery images={imageGallery} alt={product.name} />
         </div>
 
         {/* Right: Product Info */}
@@ -154,12 +144,6 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
 
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <AddToCartButton sku={product.sku} />
-            <Link
-              className="btn btn-ghost btn-full"
-              href={`/cart?currency=${currency}`}
-            >
-              View Cart
-            </Link>
           </div>
         </div>
       </div>

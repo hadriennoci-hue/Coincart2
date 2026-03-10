@@ -8,6 +8,7 @@ export type DummyCatalogProduct = {
   name: string;
   description?: string | null;
   imageUrl?: string | null;
+  imageUrls?: string[];
   cpu?: string | null;
   gpu?: string | null;
   keyboardLayout?: string | null;
@@ -45,6 +46,20 @@ const cloudflareImageUrls = (
 const productImage = (seed: string, index: number) => {
   if (cloudflareImageUrls[index]) return cloudflareImageUrls[index];
   return `https://picsum.photos/seed/${encodeURIComponent(seed)}/960/720`;
+};
+
+const galleryCountForProductId = (id: string) => {
+  const n = Number.parseInt(id.replace("dummy-", ""), 10);
+  if (!Number.isFinite(n) || n < 1) return 3;
+  return 3 + ((n - 1) % 4); // 3..6
+};
+
+const buildGalleryImages = (slug: string, id: string) => {
+  const count = galleryCountForProductId(id);
+  const baseOffset = (Number.parseInt(id.replace("dummy-", ""), 10) - 1) * 6;
+  return Array.from({ length: count }, (_, i) =>
+    productImage(`${slug}-gallery-${i + 1}`, baseOffset + i),
+  );
 };
 
 const seeds: ProductSeed[] = [
@@ -357,15 +372,20 @@ const seeds: ProductSeed[] = [
 const toCurrencyPrice = (usdPrice: number, currency: Currency) =>
   currency === "USD" ? usdPrice : Number((usdPrice * EUR_RATE).toFixed(2));
 
-const withCurrency = (seed: ProductSeed, currency: Currency): DummyCatalogProduct => ({
-  ...seed,
-  price: toCurrencyPrice(seed.usdPrice, currency),
-  promoPrice:
-    typeof seed.promoUsdPrice === "number"
-      ? toCurrencyPrice(seed.promoUsdPrice, currency)
-      : null,
-  currency,
-});
+const withCurrency = (seed: ProductSeed, currency: Currency): DummyCatalogProduct => {
+  const imageUrls = buildGalleryImages(seed.slug, seed.id);
+  return {
+    ...seed,
+    imageUrls,
+    imageUrl: imageUrls[0] ?? seed.imageUrl ?? null,
+    price: toCurrencyPrice(seed.usdPrice, currency),
+    promoPrice:
+      typeof seed.promoUsdPrice === "number"
+        ? toCurrencyPrice(seed.promoUsdPrice, currency)
+        : null,
+    currency,
+  };
+};
 
 export const listDummyProducts = (currency: Currency) =>
   seeds.map((seed) => withCurrency(seed, currency));

@@ -27,6 +27,7 @@ export type Product = {
   name: string;
   description?: string | null;
   imageUrl?: string | null;
+  imageUrls?: string[];
   cpu?: string | null;
   gpu?: string | null;
   keyboardLayout?: string | null;
@@ -86,6 +87,7 @@ const toOptionalNumber = (value: unknown) => {
 };
 
 const normalizeProduct = (raw: Partial<Product>): Product => ({
+  ...(raw as Product),
   id: String(raw.id || ""),
   sku: String(raw.sku || ""),
   slug: String(raw.slug || ""),
@@ -93,6 +95,11 @@ const normalizeProduct = (raw: Partial<Product>): Product => ({
   name: String(raw.name || ""),
   description: raw.description ?? null,
   imageUrl: raw.imageUrl ?? null,
+  imageUrls: Array.isArray((raw as Product).imageUrls)
+    ? ((raw as Product).imageUrls as string[]).filter((x) => typeof x === "string")
+    : raw.imageUrl
+      ? [raw.imageUrl]
+      : [],
   cpu: raw.cpu ?? null,
   gpu: raw.gpu ?? null,
   keyboardLayout: raw.keyboardLayout ?? null,
