@@ -89,7 +89,7 @@ export default async function SearchPage({
               Filters
             </span>
             {categories.length > 0 && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }} onClick={(e) => e.preventDefault()}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 <Link className={`btn btn-sm ${!category ? "btn-teal" : "btn-ghost"}`} href={`/search?currency=${currency}`} style={{ borderRadius: 999, padding: "4px 12px", fontSize: "0.75rem" }}>
                   All ({items.length})
                 </Link>
