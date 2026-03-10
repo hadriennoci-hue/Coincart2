@@ -107,7 +107,7 @@ function AnimatedGroup({
     <motion.div
       className={className}
       style={style}
-      initial="hidden"
+      initial={false}
       whileInView="visible"
       viewport={{ once: true, margin: "-40px" }}
       variants={containerVariants}
