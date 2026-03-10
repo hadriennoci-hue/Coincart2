@@ -442,6 +442,77 @@ export const listProductsWithFilters = async (
   return rows.map((row) => ({ ...row, price: Number(row.price) }));
 };
 
+export const listTopSellingProducts = async (db: Db, currency: Currency, limit = 4) => {
+  const cappedLimit = Math.max(1, Math.min(24, limit));
+  const soldQtyExpr = sql<number>`COALESCE(SUM(CASE WHEN ${orders.id} IS NOT NULL THEN ${orderItems.quantity} ELSE 0 END), 0)`;
+
+  const rows = await db
+    .select({
+      id: products.id,
+      sku: products.sku,
+      slug: products.slug,
+      category: products.category,
+      name: products.name,
+      description: products.description,
+      imageUrl: products.imageUrl,
+      cpu: products.cpu,
+      gpu: products.gpu,
+      keyboardLayout: products.keyboardLayout,
+      usage: products.usage,
+      screenSize: products.screenSize,
+      displayType: products.displayType,
+      resolution: products.resolution,
+      maxResolution: products.maxResolution,
+      refreshRate: products.refreshRate,
+      ramMemory: products.ramMemory,
+      ssdSize: products.ssdSize,
+      storage: products.storage,
+      featured: products.featured,
+      stockQty: products.stockQty,
+      price: productPrices.amount,
+      currency: productPrices.currency,
+      soldQty: soldQtyExpr,
+    })
+    .from(products)
+    .innerJoin(productPrices, eq(productPrices.productId, products.id))
+    .leftJoin(orderItems, eq(orderItems.sku, products.sku))
+    .leftJoin(orders, and(eq(orders.id, orderItems.orderId), eq(orders.status, "paid")))
+    .where(and(eq(productPrices.currency, currency), sql`${products.stockQty} > 0`))
+    .groupBy(
+      products.id,
+      products.sku,
+      products.slug,
+      products.category,
+      products.name,
+      products.description,
+      products.imageUrl,
+      products.cpu,
+      products.gpu,
+      products.keyboardLayout,
+      products.usage,
+      products.screenSize,
+      products.displayType,
+      products.resolution,
+      products.maxResolution,
+      products.refreshRate,
+      products.ramMemory,
+      products.ssdSize,
+      products.storage,
+      products.featured,
+      products.stockQty,
+      productPrices.amount,
+      productPrices.currency,
+    )
+    .orderBy(desc(soldQtyExpr), desc(products.stockQty), asc(products.name))
+    .limit(cappedLimit);
+
+  return rows.map((row) => ({
+    ...row,
+    price: Number(row.price),
+    soldQty: Number(row.soldQty ?? 0),
+  }));
+};
+
 export const getProductBySlug = async (db: Db, slug: string, currency: Currency) => {
   const rows = await db
     .select({

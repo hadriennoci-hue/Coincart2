@@ -41,6 +41,7 @@ export type Product = {
   storage?: string | null;
   featured: boolean;
   stockQty: number;
+  soldQty?: number;
   price: number;
   currency: Currency;
 };
@@ -104,6 +105,7 @@ const normalizeProduct = (raw: Partial<Product>): Product => ({
   storage: raw.storage ?? null,
   featured: Boolean(raw.featured),
   stockQty: toNumber(raw.stockQty, 0),
+  soldQty: toNumber((raw as Product).soldQty, 0),
   price: toNumber(raw.price, 0),
   currency: raw.currency === "USD" ? "USD" : "EUR",
 });
@@ -231,6 +233,31 @@ export const fetchProductsBySkus = async (skus: string[], currency: Currency) =>
     return apiItems;
   } catch {
     return allowDummyFallback ? (getDummyProductsBySkus(skus, currency) as Product[]) : ([] as Product[]);
+  }
+};
+
+export const fetchTopSellingProducts = async (currency: Currency, limit = 4) => {
+  const safeLimit = Math.max(1, Math.min(24, limit));
+  const dummyFallback = () =>
+    (listDummyProducts(currency) as Product[])
+      .filter((item) => item.stockQty > 0)
+      .sort((a, b) => b.stockQty - a.stockQty)
+      .slice(0, safeLimit)
+      .map((item, index) => ({ ...item, soldQty: Math.max(1, item.stockQty - index * 3) }));
+
+  if (forceDummyCatalog) return dummyFallback();
+
+  try {
+    const res = await fetch(`${apiBase}/v1/catalog/top-selling?currency=${currency}&limit=${safeLimit}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`fetchTopSellingProducts failed: ${res.status}`);
+    const data = await res.json();
+    const apiItems = ((data.items || []) as Partial<Product>[]).map(normalizeProduct);
+    if (apiItems.length === 0) return dummyFallback();
+    return apiItems;
+  } catch {
+    return allowDummyFallback ? dummyFallback() : ([] as Product[]);
   }
 };
 

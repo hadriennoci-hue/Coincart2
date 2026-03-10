@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fetchProducts, type Currency } from "../lib/api";
+import { fetchProducts, fetchTopSellingProducts, type Currency } from "../lib/api";
 import { AnimatedGroup } from "../components/ui/AnimatedGroup";
 import { FlipCard } from "../components/ui/FlipCard";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
@@ -67,9 +67,11 @@ export default async function Home({
 }) {
   const { currency = "EUR" } = await searchParams;
   const items = await fetchProducts(currency, false);
+  const topSellingFromSales = await fetchTopSellingProducts(currency, 4);
   const hero = items[0];
-  const topSelling = [...items].sort((a, b) => b.stockQty - a.stockQty).slice(0, 4);
-  const featured = items.filter((item) => item.featured).slice(0, 4);
+  const promotions = items.filter((item) => item.featured).slice(0, 4);
+  const topSellingFallback = [...items].sort((a, b) => b.stockQty - a.stockQty).slice(0, 4);
+  const topSelling = topSellingFromSales.length > 0 ? topSellingFromSales : topSellingFallback;
 
   const categoriesMap = new Map<string, number>();
   for (const item of items) {
@@ -152,20 +154,27 @@ export default async function Home({
 
         <section id="promotions" style={{ marginBottom: 48 }}>
           <h2 className="section-title" style={{ marginBottom: 16 }}>Promotions</h2>
-          <div className="surface" style={{ display: "grid", gap: 10 }}>
-            <p style={{ fontWeight: 700, margin: 0 }}>Crypto Launch Offer</p>
-            <p className="small" style={{ margin: 0 }}>Apply coupon <b>COINCART10</b> during checkout.</p>
-            <p className="small" style={{ margin: 0 }}>Eligible on selected product lines. Terms apply.</p>
-            <div>
-              <InteractiveHoverButton text="Shop Offers" variant="blue" href={`/search?currency=${currency}`} />
-            </div>
-          </div>
+          <AnimatedGroup className="product-grid" preset="blur-slide">
+            {(promotions.length > 0 ? promotions : topSellingFallback).map((item) => (
+              <FlipCard
+                key={`promo-${item.id}`}
+                name={item.name}
+                imageUrl={item.imageUrl}
+                price={item.price}
+                currency={item.currency}
+                stockQty={item.stockQty}
+                description={item.description}
+                sku={item.sku}
+                href={`/product/${item.slug}?currency=${currency}`}
+              />
+            ))}
+          </AnimatedGroup>
         </section>
 
         <section id="top-selling" style={{ marginBottom: 48 }}>
           <h2 className="section-title" style={{ marginBottom: 16 }}>Top Selling</h2>
           <AnimatedGroup className="product-grid" preset="blur-slide">
-            {(topSelling.length ? topSelling : featured).map((item) => (
+            {topSelling.map((item) => (
               <FlipCard
                 key={`top-${item.id}`}
                 name={item.name}

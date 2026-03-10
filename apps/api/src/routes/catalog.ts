@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { getProductBySlug, getProductsBySkus, listProductsWithFilters } from "@coincart/core";
+import { getProductBySlug, getProductsBySkus, listProductsWithFilters, listTopSellingProducts } from "@coincart/core";
 import type { AppContext } from "../types";
 
 const currencySchema = z.enum(["USD", "EUR"]);
@@ -39,6 +39,17 @@ catalogRoutes.get("/products", async (c) => {
         ? sort
         : "default",
   });
+  return c.json({ items });
+});
+
+catalogRoutes.get("/top-selling", async (c) => {
+  const currency = currencySchema.safeParse(c.req.query("currency") ?? "EUR");
+  if (!currency.success) {
+    return c.json({ error: "invalid currency" }, 400);
+  }
+
+  const limit = intFromQuery(c.req.query("limit")) ?? 4;
+  const items = await listTopSellingProducts(c.var.db, currency.data, limit);
   return c.json({ items });
 });
 
