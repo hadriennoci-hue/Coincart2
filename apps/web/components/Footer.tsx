@@ -13,19 +13,13 @@ export function SiteFooter() {
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 48, paddingBottom: 48 }}>
           {/* Brand */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{
-                width: 32, height: 32, borderRadius: 8,
-                background: "var(--primary)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <path d="M9 2L14.196 5V11L9 14L3.804 11V5L9 2Z" stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
-                  <circle cx="9" cy="9" r="2" fill="white"/>
-                </svg>
-              </div>
-              <span style={{ fontSize: "1.125rem", fontWeight: 700 }}>Coincart</span>
-            </div>
+            <Link href="/" aria-label="Coincart home" style={{ display: "inline-flex", alignItems: "center", width: "fit-content" }}>
+              <img
+                src="/coincart-logo.png"
+                alt="Coincart"
+                style={{ height: 38, width: "auto", display: "block" }}
+              />
+            </Link>
             <p className="small" style={{ lineHeight: 1.6, maxWidth: 300 }}>
               Buy electronics with crypto. EU shipping, official ACER partner, secure BTCPay checkout.
             </p>
