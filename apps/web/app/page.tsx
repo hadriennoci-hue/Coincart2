@@ -69,9 +69,17 @@ export default async function Home({
   const items = await fetchProducts(currency, false);
   const topSellingFromSales = await fetchTopSellingProducts(currency, 4);
   const hero = items[0];
-  const promotions = items.filter((item) => item.featured).slice(0, 4);
+  const promotions = items
+    .filter((item) => typeof item.promoPrice === "number" && item.promoPrice > 0 && item.promoPrice < item.price)
+    .slice(0, 4);
+  const bestSellerItems = items.filter((item) => item.bestSeller).slice(0, 4);
   const topSellingFallback = [...items].sort((a, b) => b.stockQty - a.stockQty).slice(0, 4);
-  const topSelling = topSellingFromSales.length > 0 ? topSellingFromSales : topSellingFallback;
+  const topSelling =
+    bestSellerItems.length > 0
+      ? bestSellerItems
+      : topSellingFromSales.length > 0
+        ? topSellingFromSales
+        : topSellingFallback;
 
   const categoriesMap = new Map<string, number>();
   for (const item of items) {
@@ -161,6 +169,7 @@ export default async function Home({
                 name={item.name}
                 imageUrl={item.imageUrl}
                 price={item.price}
+                promoPrice={item.promoPrice}
                 currency={item.currency}
                 stockQty={item.stockQty}
                 description={item.description}
@@ -180,6 +189,7 @@ export default async function Home({
                 name={item.name}
                 imageUrl={item.imageUrl}
                 price={item.price}
+                promoPrice={item.promoPrice}
                 currency={item.currency}
                 stockQty={item.stockQty}
                 description={item.description}

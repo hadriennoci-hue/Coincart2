@@ -40,9 +40,11 @@ export type Product = {
   ssdSize?: number | null;
   storage?: string | null;
   featured: boolean;
+  bestSeller?: boolean;
   stockQty: number;
   soldQty?: number;
   price: number;
+  promoPrice?: number | null;
   currency: Currency;
 };
 
@@ -104,9 +106,11 @@ const normalizeProduct = (raw: Partial<Product>): Product => ({
   ssdSize: toOptionalNumber(raw.ssdSize),
   storage: raw.storage ?? null,
   featured: Boolean(raw.featured),
+  bestSeller: Boolean((raw as Product).bestSeller),
   stockQty: toNumber(raw.stockQty, 0),
   soldQty: toNumber((raw as Product).soldQty, 0),
   price: toNumber(raw.price, 0),
+  promoPrice: toOptionalNumber((raw as Product).promoPrice),
   currency: raw.currency === "USD" ? "USD" : "EUR",
 });
 
@@ -241,7 +245,10 @@ export const fetchTopSellingProducts = async (currency: Currency, limit = 4) => 
   const dummyFallback = () =>
     (listDummyProducts(currency) as Product[])
       .filter((item) => item.stockQty > 0)
-      .sort((a, b) => b.stockQty - a.stockQty)
+      .sort((a, b) => {
+        if (Boolean(a.bestSeller) !== Boolean(b.bestSeller)) return a.bestSeller ? -1 : 1;
+        return b.stockQty - a.stockQty;
+      })
       .slice(0, safeLimit)
       .map((item, index) => ({ ...item, soldQty: Math.max(1, item.stockQty - index * 3) }));
 

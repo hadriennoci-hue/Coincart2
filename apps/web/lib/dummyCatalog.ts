@@ -21,13 +21,16 @@ export type DummyCatalogProduct = {
   ssdSize?: number | null;
   storage?: string | null;
   featured: boolean;
+  bestSeller?: boolean;
   stockQty: number;
   price: number;
+  promoPrice?: number | null;
   currency: Currency;
 };
 
 type ProductSeed = Omit<DummyCatalogProduct, "currency" | "price"> & {
   usdPrice: number;
+  promoUsdPrice?: number;
 };
 
 const EUR_RATE = 0.92;
@@ -66,8 +69,10 @@ const seeds: ProductSeed[] = [
     ssdSize: 1000,
     storage: "1TB NVMe",
     featured: true,
+    bestSeller: true,
     stockQty: 18,
     usdPrice: 1499,
+    promoUsdPrice: 1399,
   },
   {
     id: "dummy-002",
@@ -90,8 +95,10 @@ const seeds: ProductSeed[] = [
     ssdSize: 2000,
     storage: "2TB NVMe",
     featured: true,
+    bestSeller: true,
     stockQty: 7,
     usdPrice: 2799,
+    promoUsdPrice: 2599,
   },
   {
     id: "dummy-003",
@@ -129,6 +136,7 @@ const seeds: ProductSeed[] = [
     featured: true,
     stockQty: 41,
     usdPrice: 249,
+    promoUsdPrice: 219,
   },
   {
     id: "dummy-005",
@@ -140,6 +148,7 @@ const seeds: ProductSeed[] = [
     imageUrl: productImage("turbofry-5l", 4),
     usage: "Home Kitchen",
     featured: false,
+    bestSeller: true,
     stockQty: 58,
     usdPrice: 119,
   },
@@ -181,6 +190,7 @@ const seeds: ProductSeed[] = [
     featured: true,
     stockQty: 67,
     usdPrice: 329,
+    promoUsdPrice: 299,
   },
   {
     id: "dummy-009",
@@ -272,8 +282,10 @@ const seeds: ProductSeed[] = [
     imageUrl: productImage("citybuds-pro-ii", 13),
     usage: "Audio",
     featured: false,
+    bestSeller: true,
     stockQty: 80,
     usdPrice: 179,
+    promoUsdPrice: 159,
   },
   {
     id: "dummy-015",
@@ -299,6 +311,7 @@ const seeds: ProductSeed[] = [
     keyboardLayout: "QWERTY",
     usage: "Gaming",
     featured: false,
+    bestSeller: true,
     stockQty: 55,
     usdPrice: 139,
   },
@@ -347,6 +360,10 @@ const toCurrencyPrice = (usdPrice: number, currency: Currency) =>
 const withCurrency = (seed: ProductSeed, currency: Currency): DummyCatalogProduct => ({
   ...seed,
   price: toCurrencyPrice(seed.usdPrice, currency),
+  promoPrice:
+    typeof seed.promoUsdPrice === "number"
+      ? toCurrencyPrice(seed.promoUsdPrice, currency)
+      : null,
   currency,
 });
 
