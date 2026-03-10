@@ -49,6 +49,7 @@ export default function CartPage() {
     () => Math.max(0, total - couponDiscount) + shippingCost,
     [couponDiscount, shippingCost, total],
   );
+  const isResolvingProducts = lines.length > 0 && items.length === 0;
 
   return (
     <div className="container" style={{ paddingTop: 40, paddingBottom: 64 }}>
@@ -66,7 +67,7 @@ export default function CartPage() {
             Your Cart
           </h1>
 
-          {items.length === 0 ? (
+          {lines.length === 0 ? (
             <div
               className="surface"
               style={{ textAlign: "center", padding: 48 }}
@@ -79,6 +80,13 @@ export default function CartPage() {
               <Link className="btn btn-primary" href="/">
                 Browse Products
               </Link>
+            </div>
+          ) : isResolvingProducts ? (
+            <div className="surface" style={{ textAlign: "center", padding: 40 }}>
+              <h3 style={{ marginBottom: 8 }}>Loading cart items...</h3>
+              <p className="small">
+                Retrieving product details. If this takes too long, refresh the page.
+              </p>
             </div>
           ) : (
             <div

@@ -14,7 +14,10 @@ const apiBase =
 const forceDummyCatalog =
   process.env.NEXT_PUBLIC_USE_DUMMY_CATALOG === "true" ||
   process.env.COINCART_USE_DUMMY_CATALOG === "true";
-const allowDummyFallback = forceDummyCatalog || process.env.NODE_ENV !== "production";
+const allowDummyFallback =
+  forceDummyCatalog ||
+  process.env.NODE_ENV !== "production" ||
+  typeof window !== "undefined";
 
 export type Product = {
   id: string;
