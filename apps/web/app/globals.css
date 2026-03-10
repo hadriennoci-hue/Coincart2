@@ -1,19 +1,20 @@
 :root {
-  --bg: #0F172A;
-  --surface: #1E293B;
-  --surface-2: #263348;
+  --bg: #060B14;
+  --surface: #0F172A;
+  --surface-2: #1E293B;
   --border: #374151;
   --border-2: #4B5563;
   --text: #FFFFFF;
-  --muted: #9CA3AF;
+  --muted: #CBD5E1;
   --muted-2: #6B7280;
-  --primary: #0F766E;
-  --primary-hover: #0e8a80;
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
   --accent: #22C55E;
   --accent-hover: #16A34A;
   --error: #EF4444;
   --warning: #F59E0B;
   --navbar-h: 64px;
+  --font-display: 'Space Grotesk';
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,6 +24,10 @@ html, body {
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+}
+
+h1, h2 {
+  font-family: var(--font-display), var(--font-inter), 'Segoe UI', system-ui, sans-serif;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -51,8 +56,8 @@ main { min-height: calc(100vh - var(--navbar-h)); }
   transition: background 0.15s, opacity 0.15s; white-space: nowrap; text-decoration: none; line-height: 1;
 }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
 .btn-teal { background: var(--primary); color: #fff; }
 .btn-teal:hover:not(:disabled) { background: var(--primary-hover); }
 .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
@@ -81,7 +86,7 @@ main { min-height: calc(100vh - var(--navbar-h)); }
 .select option { background: var(--surface); color: var(--text); }
 
 .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
-.badge-teal { background: rgba(15,118,110,0.2); color: #2dd4bf; border: 1px solid rgba(15,118,110,0.4); }
+.badge-teal { background: rgba(37,99,235,0.2); color: #60a5fa; border: 1px solid rgba(37,99,235,0.4); }
 .badge-green { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
 .badge-gray { background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
 .badge-warning { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
