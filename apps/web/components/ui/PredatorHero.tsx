@@ -147,7 +147,6 @@ export function PredatorHero({ imageUrl, href = "/search?category=Laptops" }: Pr
                     width={960}
                     height={600}
                     loading="eager"
-                    // @ts-expect-error – valid HTML attribute
                     fetchPriority="high"
                     decoding="async"
                   />
