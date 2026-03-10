@@ -60,33 +60,8 @@ export default async function SearchPage({
   );
 
   return (
-    <div className="container" style={{ paddingTop: 42, paddingBottom: 64 }}>
-      <section style={{ marginBottom: 28 }}>
-        <h1 className="page-title" style={{ marginBottom: 8 }}>Search Catalog</h1>
-        <p className="small">Find products by category, specs, and use-case.</p>
-      </section>
-
-      {categories.length > 0 ? (
-        <section style={{ marginBottom: 22 }}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-            <Link className={`btn ${!category ? "btn-teal" : "btn-ghost"}`} href={`/search?currency=${currency}`} style={{ borderRadius: 999 }}>
-              All ({items.length})
-            </Link>
-            {categories.map((cat) => (
-              <Link
-                key={cat.slug}
-                className={`btn ${category === cat.name ? "btn-teal" : "btn-ghost"}`}
-                href={`/search?currency=${currency}&category=${encodeURIComponent(cat.name)}`}
-                style={{ borderRadius: 999 }}
-              >
-                {cat.name} ({cat.productCount})
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <section style={{ marginBottom: 30 }}>
+    <div className="container" style={{ paddingTop: 16, paddingBottom: 64 }}>
+      <section style={{ marginBottom: 16 }}>
         <details open={hasFilters}>
           <summary
             style={{
@@ -94,17 +69,42 @@ export default async function SearchPage({
               display: "flex",
               alignItems: "center",
               gap: 12,
-              padding: "14px 20px",
+              padding: "10px 16px",
               background: "var(--surface)",
-              borderRadius: hasFilters ? "12px 12px 0 0" : 12,
+              borderRadius: hasFilters ? "8px 8px 0 0" : 8,
               border: "1px solid var(--border)",
               listStyle: "none",
               fontWeight: 600,
+              fontSize: "0.875rem",
               color: "var(--text)",
+              flexWrap: "wrap",
+              rowGap: 8,
             }}
           >
-            Filters & Search
-            <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.5 }}>
+                <path d="M1 3h12M3 7h8M5 11h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              Filters
+            </span>
+            {categories.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }} onClick={(e) => e.preventDefault()}>
+                <Link className={`btn btn-sm ${!category ? "btn-teal" : "btn-ghost"}`} href={`/search?currency=${currency}`} style={{ borderRadius: 999, padding: "4px 12px", fontSize: "0.75rem" }}>
+                  All ({items.length})
+                </Link>
+                {categories.map((cat) => (
+                  <Link
+                    key={cat.slug}
+                    className={`btn btn-sm ${category === cat.name ? "btn-teal" : "btn-ghost"}`}
+                    href={`/search?currency=${currency}&category=${encodeURIComponent(cat.name)}`}
+                    style={{ borderRadius: 999, padding: "4px 12px", fontSize: "0.75rem" }}
+                  >
+                    {cat.name} ({cat.productCount})
+                  </Link>
+                ))}
+              </div>
+            )}
+            <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
               <Link className={`btn btn-sm ${currency === "USD" ? "btn-teal" : "btn-ghost"}`} href={`/search?currency=USD`}>USD</Link>
               <Link className={`btn btn-sm ${currency === "EUR" ? "btn-teal" : "btn-ghost"}`} href={`/search?currency=EUR`}>EUR</Link>
             </div>
@@ -116,8 +116,8 @@ export default async function SearchPage({
               background: "var(--surface)",
               border: "1px solid var(--border)",
               borderTop: "none",
-              borderRadius: "0 0 12px 12px",
-              padding: 20,
+              borderRadius: "0 0 8px 8px",
+              padding: 16,
             }}
           >
             <input type="hidden" name="currency" value={currency} />
@@ -149,7 +149,7 @@ export default async function SearchPage({
       </section>
 
       <section>
-        <h2 className="section-title" style={{ marginBottom: 18 }}>
+        <h2 className="section-title" style={{ marginBottom: 16, marginTop: 24, fontSize: "1.25rem" }}>
           Results <span className="caption">({items.length})</span>
         </h2>
         {items.length === 0 ? (
