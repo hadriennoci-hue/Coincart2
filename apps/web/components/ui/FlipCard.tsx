@@ -37,6 +37,9 @@ export function FlipCard({
               src={imageUrl}
               alt={name}
               className="product-card-img"
+              width={960}
+              height={720}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
               loading="lazy"
               decoding="async"
               fetchPriority="low"

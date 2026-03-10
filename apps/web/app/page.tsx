@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { fetchProducts, fetchTopSellingProducts, type Currency } from "../lib/api";
-import { AnimatedGroup } from "../components/ui/AnimatedGroup";
 import { FlipCard } from "../components/ui/FlipCard";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
 import { InteractiveHoverButton } from "../components/ui/InteractiveHoverButton";
@@ -126,6 +125,12 @@ export default async function Home({
                   <img
                     src={hero.imageUrl}
                     alt={hero.name}
+                    width={960}
+                    height={720}
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    loading="eager"
+                    decoding="async"
+                    fetchPriority="high"
                     style={{ width: "100%", aspectRatio: "16/10", objectFit: "cover", borderRadius: 16, border: "1px solid var(--border)" }}
                   />
                 ) : (
@@ -152,7 +157,7 @@ export default async function Home({
             <h2 className="section-title" style={{ margin: 0 }}>Shop by Category</h2>
             <InteractiveHoverButton text="View Full Catalog" variant="dark" href={`/search?currency=${currency}`} />
           </div>
-          <AnimatedGroup className="category-grid" preset="blur-slide">
+          <div className="category-grid">
             {categories.map((cat) => (
               <Link key={cat.slug} className="category-card" href={`/search?currency=${currency}&category=${encodeURIComponent(cat.name)}`}>
                 <div className="category-icon">{cat.icon}</div>
@@ -160,12 +165,12 @@ export default async function Home({
                 <div className="caption">{cat.productCount} products</div>
               </Link>
             ))}
-          </AnimatedGroup>
+          </div>
         </section>
 
         <section id="promotions" style={{ marginBottom: 48 }}>
           <h2 className="section-title" style={{ marginBottom: 16 }}>Promotions</h2>
-          <AnimatedGroup className="product-grid" preset="blur-slide">
+          <div className="product-grid">
             {(promotions.length > 0 ? promotions : topSellingFallback).map((item) => (
               <FlipCard
                 key={`promo-${item.id}`}
@@ -180,12 +185,12 @@ export default async function Home({
                 href={`/product/${item.slug}?currency=${currency}`}
               />
             ))}
-          </AnimatedGroup>
+          </div>
         </section>
 
         <section id="top-selling" style={{ marginBottom: 48 }}>
           <h2 className="section-title" style={{ marginBottom: 16 }}>Top Selling</h2>
-          <AnimatedGroup className="product-grid" preset="blur-slide">
+          <div className="product-grid">
             {topSelling.map((item) => (
               <FlipCard
                 key={`top-${item.id}`}
@@ -200,7 +205,7 @@ export default async function Home({
                 href={`/product/${item.slug}?currency=${currency}`}
               />
             ))}
-          </AnimatedGroup>
+          </div>
         </section>
 
         <section id="reviews" style={{ marginBottom: 64 }}>

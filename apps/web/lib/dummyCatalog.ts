@@ -44,7 +44,7 @@ const cloudflareImageUrls = (
 
 const productImage = (seed: string, index: number) => {
   if (cloudflareImageUrls[index]) return cloudflareImageUrls[index];
-  return `https://picsum.photos/seed/${encodeURIComponent(seed)}/1200/900`;
+  return `https://picsum.photos/seed/${encodeURIComponent(seed)}/960/720`;
 };
 
 const seeds: ProductSeed[] = [
