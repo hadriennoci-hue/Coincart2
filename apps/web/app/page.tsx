@@ -4,6 +4,7 @@ import { AnimatedGroup } from "../components/ui/AnimatedGroup";
 import { FlipCard } from "../components/ui/FlipCard";
 import { Banner } from "../components/ui/Banner";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
+import { InteractiveHoverButton } from "../components/ui/InteractiveHoverButton";
 
 const allTestimonials: Testimonial[] = [
   {
@@ -113,8 +114,8 @@ export default async function Home({
                   </span>
                 </div>
                 <div style={{ display: "flex", gap: 12 }}>
-                  <Link className="btn btn-primary btn-lg" href={`/product/${hero.slug}?currency=${currency}`}>View Product</Link>
-                  <Link className="btn btn-ghost btn-lg" href={`/search?currency=${currency}`}>Browse Catalog</Link>
+                  <InteractiveHoverButton text="View Product" variant="blue" href={`/product/${hero.slug}?currency=${currency}`} />
+                  <InteractiveHoverButton text="Browse Catalog" variant="dark" href={`/search?currency=${currency}`} />
                 </div>
               </div>
               <div>
@@ -146,7 +147,7 @@ export default async function Home({
         <section style={{ marginBottom: 48 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
             <h2 className="section-title" style={{ margin: 0 }}>Shop by Category</h2>
-            <Link className="btn btn-ghost" href={`/search?currency=${currency}`}>View Full Catalog</Link>
+            <InteractiveHoverButton text="View Full Catalog" variant="dark" href={`/search?currency=${currency}`} />
           </div>
           <AnimatedGroup className="category-grid" preset="blur-slide">
             {categories.map((cat) => (
@@ -166,7 +167,7 @@ export default async function Home({
             <p className="small" style={{ margin: 0 }}>Apply coupon <b>COINCART10</b> during checkout.</p>
             <p className="small" style={{ margin: 0 }}>Eligible on selected product lines. Terms apply.</p>
             <div>
-              <Link className="btn btn-primary" href={`/search?currency=${currency}`}>Shop Offers</Link>
+              <InteractiveHoverButton text="Shop Offers" variant="blue" href={`/search?currency=${currency}`} />
             </div>
           </div>
         </section>

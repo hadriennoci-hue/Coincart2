@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { AnimatedGroup } from "../../components/ui/AnimatedGroup";
+import { InteractiveHoverButton } from "../../components/ui/InteractiveHoverButton";
 
 export const runtime = 'edge';
 
@@ -124,9 +124,7 @@ export default function FaqPage() {
             Our support team is available Monday–Friday, 9:00–18:00 CET and
             responds within 24 hours.
           </p>
-          <Link className="btn btn-teal" href="/contact-us">
-            Contact Support
-          </Link>
+          <InteractiveHoverButton text="Contact Support" variant="blue" href="/contact-us" />
         </div>
       </div>
     </div>

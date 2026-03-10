@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { WarningGraphic } from "../components/ui/WarningGraphic";
+import { InteractiveHoverButton } from "../components/ui/InteractiveHoverButton";
 
 export const runtime = "edge";
 
@@ -27,8 +27,8 @@ export default function NotFound() {
       </div>
 
       <div style={{ display: "flex", gap: 12 }}>
-        <Link className="btn btn-primary btn-lg" href="/">Go Home</Link>
-        <Link className="btn btn-ghost btn-lg" href="/search">Browse Catalog</Link>
+        <InteractiveHoverButton text="Go Home" variant="blue" href="/" />
+        <InteractiveHoverButton text="Browse Catalog" variant="dark" href="/search" />
       </div>
     </div>
   );
