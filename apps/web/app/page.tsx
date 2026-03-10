@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { fetchProducts, type Currency } from "../lib/api";
 import { AnimatedGroup } from "../components/ui/AnimatedGroup";
+import { FlipCard } from "../components/ui/FlipCard";
 
 export const runtime = "edge";
 
@@ -129,17 +130,17 @@ export default async function Home({
           <h2 className="section-title" style={{ marginBottom: 16 }}>Top Selling</h2>
           <AnimatedGroup className="product-grid" preset="blur-slide">
             {(topSelling.length ? topSelling : featured).map((item) => (
-              <Link key={`top-${item.id}`} className="product-card" href={`/product/${item.slug}?currency=${currency}`} style={{ textDecoration: "none" }}>
-                {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="product-card-img" /> : <div className="product-card-img-placeholder" />}
-                <div className="product-card-body">
-                  <div className="card-title" style={{ marginBottom: 4 }}>{item.name}</div>
-                  <div className="caption">{item.sku}</div>
-                </div>
-                <div className="product-card-footer">
-                  <span className="product-card-price">{item.price.toFixed(2)} {item.currency}</span>
-                  <span className="badge badge-green">Stock: {item.stockQty}</span>
-                </div>
-              </Link>
+              <FlipCard
+                key={`top-${item.id}`}
+                name={item.name}
+                imageUrl={item.imageUrl}
+                price={item.price}
+                currency={item.currency}
+                stockQty={item.stockQty}
+                description={item.description}
+                sku={item.sku}
+                href={`/product/${item.slug}?currency=${currency}`}
+              />
             ))}
           </AnimatedGroup>
         </section>
