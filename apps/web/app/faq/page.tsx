@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AnimatedGroup } from "../../components/ui/AnimatedGroup";
 
 export const runtime = 'edge';
 
@@ -78,7 +79,8 @@ export default function FaqPage() {
       </div>
 
       <div className="container-sm" style={{ paddingTop: 48, paddingBottom: 64 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <AnimatedGroup preset="blur-slide" style={{ display: "flex", flexDirection: "column", gap: 16 }}
+          variants={{ container: { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } } }}>
           {faqItems.map((item, index) => (
             <div className="surface" key={index}>
               <h3
@@ -104,7 +106,7 @@ export default function FaqPage() {
               </p>
             </div>
           ))}
-        </div>
+        </AnimatedGroup>
 
         {/* CTA Bar */}
         <div

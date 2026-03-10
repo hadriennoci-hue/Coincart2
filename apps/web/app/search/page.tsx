@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { fetchProducts, type Currency } from "../../lib/api";
+import { AnimatedGroup } from "../../components/ui/AnimatedGroup";
 
 export const runtime = "edge";
 
@@ -159,7 +160,7 @@ export default async function SearchPage({
             <Link className="btn btn-primary" href={`/search?currency=${currency}`}>Reset Search</Link>
           </div>
         ) : (
-          <div className="product-grid">
+          <AnimatedGroup className="product-grid" preset="blur-slide">
             {items.map((item) => (
               <Link
                 key={item.id}
@@ -180,7 +181,7 @@ export default async function SearchPage({
                 </div>
               </Link>
             ))}
-          </div>
+          </AnimatedGroup>
         )}
       </section>
     </div>

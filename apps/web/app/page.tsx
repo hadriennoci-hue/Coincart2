@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { fetchProducts, type Currency } from "../lib/api";
+import { AnimatedGroup } from "../components/ui/AnimatedGroup";
 
 export const runtime = "edge";
 
@@ -101,7 +102,7 @@ export default async function Home({
             <h2 className="section-title" style={{ margin: 0 }}>Shop by Category</h2>
             <Link className="btn btn-ghost" href={`/search?currency=${currency}`}>View Full Catalog</Link>
           </div>
-          <div className="category-grid">
+          <AnimatedGroup className="category-grid" preset="blur-slide">
             {categories.map((cat) => (
               <Link key={cat.slug} className="category-card" href={`/search?currency=${currency}&category=${encodeURIComponent(cat.name)}`}>
                 <div className="category-icon">{cat.icon}</div>
@@ -109,7 +110,7 @@ export default async function Home({
                 <div className="caption">{cat.productCount} products</div>
               </Link>
             ))}
-          </div>
+          </AnimatedGroup>
         </section>
 
         <section id="promotions" style={{ marginBottom: 48 }}>
@@ -126,7 +127,7 @@ export default async function Home({
 
         <section id="top-selling" style={{ marginBottom: 48 }}>
           <h2 className="section-title" style={{ marginBottom: 16 }}>Top Selling</h2>
-          <div className="product-grid">
+          <AnimatedGroup className="product-grid" preset="blur-slide">
             {(topSelling.length ? topSelling : featured).map((item) => (
               <Link key={`top-${item.id}`} className="product-card" href={`/product/${item.slug}?currency=${currency}`} style={{ textDecoration: "none" }}>
                 {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="product-card-img" /> : <div className="product-card-img-placeholder" />}
@@ -140,12 +141,12 @@ export default async function Home({
                 </div>
               </Link>
             ))}
-          </div>
+          </AnimatedGroup>
         </section>
 
         <section id="reviews" style={{ marginBottom: 64 }}>
           <h2 className="section-title" style={{ marginBottom: 16 }}>Reviews</h2>
-          <div className="grid-3">
+          <AnimatedGroup className="grid-3" preset="blur-slide">
             {[
               { name: "A. Laurent", text: "Checkout was straightforward and shipping status communication was clear.", score: "5.0 / 5" },
               { name: "M. Novak", text: "Product packaging and delivery timing matched expectations for cross-border shipping.", score: "4.8 / 5" },
@@ -157,7 +158,7 @@ export default async function Home({
                 <p className="caption">{review.name}</p>
               </div>
             ))}
-          </div>
+          </AnimatedGroup>
         </section>
       </div>
     </div>
