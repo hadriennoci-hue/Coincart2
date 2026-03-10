@@ -19,7 +19,7 @@ export default async function Home({
 }: {
   searchParams: Promise<{ currency?: Currency }>;
 }) {
-  const { currency = "USD" } = await searchParams;
+  const { currency = "EUR" } = await searchParams;
   const items = await fetchProducts(currency, false);
   const hero = items[0];
   const topSelling = [...items].sort((a, b) => b.stockQty - a.stockQty).slice(0, 4);

@@ -10,6 +10,9 @@ type Env = {
   COINCART_SECRET?: string;
   WOO_CONSUMER_KEY?: string;
   WOO_CONSUMER_SECRET?: string;
+  BTCPAY_HOST?: string;
+  BTCPAY_STORE_ID?: string;
+  BTCPAY_API_KEY?: string;
 };
 
 let cachedApp: ReturnType<typeof createApp> | null = null;
@@ -18,7 +21,7 @@ let cachedKey = "";
 const getApp = (env: Env) => {
   const resolvedKey = env.COINCART_KEY || env.WOO_CONSUMER_KEY;
   const resolvedSecret = env.COINCART_SECRET || env.WOO_CONSUMER_SECRET;
-  const key = `${env.DATABASE_URL}|${env.CORS_ORIGIN || "*"}|${env.CONTACT_TO_EMAIL || ""}|${env.CONTACT_FROM_EMAIL || ""}|${env.RESEND_API_KEY ? "1" : "0"}|${resolvedKey ? "1" : "0"}|${resolvedSecret ? "1" : "0"}`;
+  const key = `${env.DATABASE_URL}|${env.CORS_ORIGIN || "*"}|${env.CONTACT_TO_EMAIL || ""}|${env.CONTACT_FROM_EMAIL || ""}|${env.RESEND_API_KEY ? "1" : "0"}|${resolvedKey ? "1" : "0"}|${resolvedSecret ? "1" : "0"}|${env.BTCPAY_HOST ? "1" : "0"}|${env.BTCPAY_STORE_ID ? "1" : "0"}|${env.BTCPAY_API_KEY ? "1" : "0"}`;
   if (!cachedApp || cachedKey !== key) {
     cachedApp = createApp({
       databaseUrl: env.DATABASE_URL,
@@ -28,6 +31,9 @@ const getApp = (env: Env) => {
       contactFromEmail: env.CONTACT_FROM_EMAIL,
       wooConsumerKey: resolvedKey,
       wooConsumerSecret: resolvedSecret,
+      btcpayHost: env.BTCPAY_HOST,
+      btcpayStoreId: env.BTCPAY_STORE_ID,
+      btcpayApiKey: env.BTCPAY_API_KEY,
     });
     cachedKey = key;
   }

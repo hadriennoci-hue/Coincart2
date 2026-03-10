@@ -12,6 +12,9 @@ const contactToEmail = process.env.CONTACT_TO_EMAIL;
 const contactFromEmail = process.env.CONTACT_FROM_EMAIL;
 const wooConsumerKey = process.env.COINCART_KEY || process.env.WOO_CONSUMER_KEY;
 const wooConsumerSecret = process.env.COINCART_SECRET || process.env.WOO_CONSUMER_SECRET;
+const btcpayHost = process.env.BTCPAY_HOST;
+const btcpayStoreId = process.env.BTCPAY_STORE_ID;
+const btcpayApiKey = process.env.BTCPAY_API_KEY;
 const port = Number(process.env.PORT || 4000);
 const app = createApp({
   databaseUrl,
@@ -21,6 +24,9 @@ const app = createApp({
   contactFromEmail,
   wooConsumerKey,
   wooConsumerSecret,
+  btcpayHost,
+  btcpayStoreId,
+  btcpayApiKey,
 });
 
 serve({ fetch: app.fetch, port, hostname: "0.0.0.0" });

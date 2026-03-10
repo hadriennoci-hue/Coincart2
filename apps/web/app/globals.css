@@ -1,14 +1,14 @@
 :root {
   --bg: #060B14;
-  --surface: #0F172A;
-  --surface-2: #1E293B;
+  --surface: #142035;
+  --surface-2: #1F2E44;
   --border: #374151;
   --border-2: #4B5563;
   --text: #FFFFFF;
   --muted: #CBD5E1;
   --muted-2: #6B7280;
-  --primary: #2563EB;
-  --primary-hover: #1D4ED8;
+  --primary: #3060C8;
+  --primary-hover: #254FA8;
   --accent: #22C55E;
   --accent-hover: #16A34A;
   --error: #EF4444;
@@ -40,8 +40,8 @@ main { min-height: calc(100vh - var(--navbar-h)); }
 .section { padding: 64px 0; }
 .section-sm { padding: 40px 0; }
 
-.surface { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
-.surface-flat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+.surface { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; }
+.surface-flat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
 
 .page-title { font-size: 2.25rem; font-weight: 700; line-height: 1.2; }
 .section-title { font-size: 1.75rem; font-weight: 700; }
@@ -51,7 +51,7 @@ main { min-height: calc(100vh - var(--navbar-h)); }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  border: none; border-radius: 8px; font-family: inherit; font-size: 0.875rem;
+  border: none; border-radius: 6px; font-family: inherit; font-size: 0.875rem;
   font-weight: 600; cursor: pointer; padding: 10px 20px;
   transition: background 0.15s, opacity 0.15s; white-space: nowrap; text-decoration: none; line-height: 1;
 }
@@ -64,14 +64,14 @@ main { min-height: calc(100vh - var(--navbar-h)); }
 .btn-ghost:hover:not(:disabled) { background: var(--surface-2); border-color: var(--border-2); }
 .btn-danger { background: var(--error); color: #fff; }
 .btn-danger:hover:not(:disabled) { opacity: 0.85; }
-.btn-lg { font-size: 1rem; padding: 14px 28px; border-radius: 10px; }
-.btn-sm { font-size: 0.75rem; padding: 6px 14px; border-radius: 6px; }
+.btn-lg { font-size: 1rem; padding: 14px 28px; border-radius: 7px; }
+.btn-sm { font-size: 0.75rem; padding: 6px 14px; border-radius: 5px; }
 .btn-full { width: 100%; }
 
 .form-label { display: flex; flex-direction: column; gap: 6px; font-size: 0.75rem; font-weight: 500; color: var(--muted); }
 .input, .select, .textarea {
   width: 100%; background: var(--surface); border: 1px solid var(--border);
-  border-radius: 8px; color: var(--text); font-family: inherit; font-size: 0.875rem;
+  border-radius: 6px; color: var(--text); font-family: inherit; font-size: 0.875rem;
   padding: 10px 12px; outline: none; transition: border-color 0.15s;
 }
 .input:focus, .select:focus, .textarea:focus { border-color: var(--primary); }
@@ -85,7 +85,7 @@ main { min-height: calc(100vh - var(--navbar-h)); }
 }
 .select option { background: var(--surface); color: var(--text); }
 
-.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 6px; white-space: nowrap; }
 .badge-teal { background: rgba(37,99,235,0.2); color: #60a5fa; border: 1px solid rgba(37,99,235,0.4); }
 .badge-green { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
 .badge-gray { background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
@@ -99,7 +99,7 @@ main { min-height: calc(100vh - var(--navbar-h)); }
 .category-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
 .category-card {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-  text-align: center; min-height: 132px; border-radius: 12px; border: 1px solid var(--border);
+  text-align: center; min-height: 132px; border-radius: 8px; border: 1px solid var(--border);
   background: var(--surface); text-decoration: none; color: var(--text); padding: 14px;
   transition: transform 0.15s, border-color 0.15s;
 }
@@ -111,7 +111,7 @@ main { min-height: calc(100vh - var(--navbar-h)); }
 
 .product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .product-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
   overflow: hidden; display: flex; flex-direction: column;
   transition: border-color 0.15s, transform 0.15s; text-decoration: none; color: inherit;
 }

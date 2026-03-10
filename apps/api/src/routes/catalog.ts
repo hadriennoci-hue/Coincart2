@@ -15,7 +15,7 @@ export const catalogRoutes = new Hono<AppContext>();
 catalogRoutes.get("/products", async (c) => {
   const featured = c.req.query("featured") === "true";
   const sort = c.req.query("sort");
-  const currency = currencySchema.safeParse(c.req.query("currency") ?? "USD");
+  const currency = currencySchema.safeParse(c.req.query("currency") ?? "EUR");
   if (!currency.success) {
     return c.json({ error: "invalid currency" }, 400);
   }
@@ -43,7 +43,7 @@ catalogRoutes.get("/products", async (c) => {
 });
 
 catalogRoutes.get("/products/by-skus", async (c) => {
-  const currency = currencySchema.safeParse(c.req.query("currency") ?? "USD");
+  const currency = currencySchema.safeParse(c.req.query("currency") ?? "EUR");
   if (!currency.success) {
     return c.json({ error: "invalid currency" }, 400);
   }
@@ -60,7 +60,7 @@ catalogRoutes.get("/products/by-skus", async (c) => {
 });
 
 catalogRoutes.get("/products/:slug", async (c) => {
-  const currency = currencySchema.safeParse(c.req.query("currency") ?? "USD");
+  const currency = currencySchema.safeParse(c.req.query("currency") ?? "EUR");
   if (!currency.success) {
     return c.json({ error: "invalid currency" }, 400);
   }

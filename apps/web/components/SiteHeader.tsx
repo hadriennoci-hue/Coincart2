@@ -61,12 +61,12 @@ export function SiteHeader() {
             className="input"
             style={{ flex: 1 }}
           />
-          <button type="submit" className="btn btn-teal" style={{ flexShrink: 0 }}>Search</button>
+          <button type="submit" className="btn btn-teal" style={{ flexShrink: 0, padding: "7px 14px", fontSize: "0.8rem" }}>Search</button>
         </form>
 
         {/* Actions */}
         <nav style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
-          <Link href="/cart" className="btn btn-ghost" style={{ position: "relative" }}>
+          <Link href="/cart" className="btn btn-ghost" style={{ position: "relative", padding: "7px 14px", fontSize: "0.8rem" }}>
             {cartLabel}
             {cartCount > 0 && (
               <span style={{
@@ -84,7 +84,7 @@ export function SiteHeader() {
               </span>
             )}
           </Link>
-          <Link href="/account" className="btn btn-ghost">Account</Link>
+          <Link href="/account" className="btn btn-ghost" style={{ padding: "7px 14px", fontSize: "0.8rem" }}>Account</Link>
         </nav>
       </div>
     </header>

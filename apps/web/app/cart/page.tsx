@@ -6,7 +6,7 @@ import { fetchProductsBySkus, type Currency, type Product } from "../../lib/api"
 import { getCart, removeFromCart } from "../../lib/cart";
 
 export default function CartPage() {
-  const [currency, setCurrency] = useState<Currency>("USD");
+  const [currency, setCurrency] = useState<Currency>("EUR");
   const [items, setItems] = useState<Product[]>([]);
   const [lines, setLines] = useState<Array<{ sku: string; quantity: number }>>([]);
   const [couponCode, setCouponCode] = useState("");

@@ -20,7 +20,7 @@ export default async function SearchPage({
   }>;
 }) {
   const {
-    currency = "USD",
+    currency = "EUR",
     q = "",
     category = "",
     keyboard_layout = "",

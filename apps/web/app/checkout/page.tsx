@@ -47,7 +47,7 @@ export default function CheckoutPage() {
   const [phone, setPhone] = useState("");
   const [orderNotes, setOrderNotes] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
-  const [currency, setCurrency] = useState<Currency>("USD");
+  const [currency, setCurrency] = useState<Currency>("EUR");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const shippingCost = currency === "EUR" ? 10 : 11;

@@ -13,7 +13,7 @@ type ProductPageProps = {
 
 export async function generateMetadata({ params, searchParams }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const { currency = "USD" } = await searchParams;
+  const { currency = "EUR" } = await searchParams;
   const product = await fetchProductBySlug(slug, currency);
   if (!product) {
     return { title: "Product not found" };
@@ -32,7 +32,7 @@ export async function generateMetadata({ params, searchParams }: ProductPageProp
 
 export default async function ProductPage({ params, searchParams }: ProductPageProps) {
   const { slug } = await params;
-  const { currency = "USD" } = await searchParams;
+  const { currency = "EUR" } = await searchParams;
   const product = await fetchProductBySlug(slug, currency);
   if (!product) return notFound();
 

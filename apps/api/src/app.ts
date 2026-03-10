@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createDb } from "@coincart/db";
-import { FakeBtcPayClient } from "@coincart/payments";
+import { FakeBtcPayClient, GreenfieldBtcPayClient } from "@coincart/payments";
 import { checkoutRoutes } from "./routes/checkout";
 import { catalogRoutes } from "./routes/catalog";
 import { contactRoutes } from "./routes/contact";
@@ -19,6 +19,9 @@ type CreateAppOptions = {
   contactFromEmail?: string;
   wooConsumerKey?: string;
   wooConsumerSecret?: string;
+  btcpayHost?: string;
+  btcpayStoreId?: string;
+  btcpayApiKey?: string;
 };
 
 export const createApp = ({
@@ -29,9 +32,19 @@ export const createApp = ({
   contactFromEmail = "Coincart Contact <onboarding@resend.dev>",
   wooConsumerKey,
   wooConsumerSecret,
+  btcpayHost,
+  btcpayStoreId,
+  btcpayApiKey,
 }: CreateAppOptions) => {
   const db = createDb(databaseUrl);
-  const btcpay = new FakeBtcPayClient();
+  const hasRealBtcPayConfig = Boolean(btcpayHost && btcpayStoreId && btcpayApiKey);
+  const btcpay = hasRealBtcPayConfig
+    ? new GreenfieldBtcPayClient({
+        host: btcpayHost!,
+        storeId: btcpayStoreId!,
+        apiKey: btcpayApiKey!,
+      })
+    : new FakeBtcPayClient();
   const corsOrigins = corsOrigin
     .split(",")
     .map((value) => value.trim())
