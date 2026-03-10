@@ -7,7 +7,7 @@ export function SiteFooter() {
     <footer style={{
       background: "var(--surface)",
       borderTop: "1px solid var(--border)",
-      padding: "20px 0",
+      padding: "15px 0",
     }}>
       <div className="container">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
