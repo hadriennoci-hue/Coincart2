@@ -150,7 +150,7 @@ export const fetchProducts = async (
     if (!res.ok) throw new Error(`fetchProducts failed: ${res.status}`);
     const data = await res.json();
     const apiItems = (data.items || []) as Product[];
-    if (apiItems.length === 0 && forceDummyCatalog) return dummyList();
+    if (apiItems.length === 0) return dummyList();
     return apiItems;
   } catch {
     return allowDummyFallback ? dummyList() : ([] as Product[]);
@@ -164,7 +164,7 @@ export const fetchProductBySlug = async (slug: string, currency: Currency) => {
     const res = await fetch(`${apiBase}/v1/catalog/products/${slug}?currency=${currency}`, {
       cache: "no-store",
     });
-    if (!res.ok) throw new Error(`fetchProductBySlug failed: ${res.status}`);
+    if (!res.ok) return (getDummyProductBySlug(slug, currency) as Product | null) ?? null;
     return (await res.json()) as Product;
   } catch {
     return allowDummyFallback ? ((getDummyProductBySlug(slug, currency) as Product | null) ?? null) : null;
@@ -183,7 +183,7 @@ export const fetchProductsBySkus = async (skus: string[], currency: Currency) =>
     if (!res.ok) throw new Error(`fetchProductsBySkus failed: ${res.status}`);
     const data = await res.json();
     const apiItems = (data.items || []) as Product[];
-    if (apiItems.length === 0 && forceDummyCatalog) return getDummyProductsBySkus(skus, currency) as Product[];
+    if (apiItems.length === 0) return getDummyProductsBySkus(skus, currency) as Product[];
     return apiItems;
   } catch {
     return allowDummyFallback ? (getDummyProductsBySkus(skus, currency) as Product[]) : ([] as Product[]);
