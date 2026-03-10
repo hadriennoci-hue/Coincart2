@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { X } from "lucide-react";
 import { getCart } from "../lib/cart";
 
 export function SiteHeader() {
   const [cartCount, setCartCount] = useState(0);
+  const [showBar, setShowBar] = useState(true);
 
   useEffect(() => {
     const sync = () => {
@@ -24,9 +26,45 @@ export function SiteHeader() {
   const cartLabel = useMemo(() => (cartCount > 0 ? `Cart (${cartCount})` : "Cart"), [cartCount]);
 
   return (
+    <div style={{ position: "sticky", top: 0, zIndex: 100 }}>
+      {showBar && (
+        <div style={{
+          background: "var(--primary)",
+          color: "#fff",
+          fontSize: "0.8rem",
+          fontWeight: 600,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+          padding: "6px 16px",
+          position: "relative",
+          whiteSpace: "nowrap",
+        }}>
+          <span>Use <b>COINCART10</b> for 10% off — Valid through December 31, 2026</span>
+          <button
+            onClick={() => setShowBar(false)}
+            aria-label="Dismiss"
+            style={{
+              position: "absolute",
+              right: 12,
+              top: "50%",
+              transform: "translateY(-50%)",
+              background: "none",
+              border: "none",
+              color: "rgba(255,255,255,0.7)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              padding: 4,
+              borderRadius: 4,
+            }}
+          >
+            <X size={13} />
+          </button>
+        </div>
+      )}
     <header style={{
-      position: "sticky",
-      top: 0,
       zIndex: 100,
       width: "100%",
       height: "var(--navbar-h)",
@@ -88,5 +126,6 @@ export function SiteHeader() {
         </nav>
       </div>
     </header>
+    </div>
   );
 }

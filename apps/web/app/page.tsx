@@ -2,7 +2,6 @@ import Link from "next/link";
 import { fetchProducts, type Currency } from "../lib/api";
 import { AnimatedGroup } from "../components/ui/AnimatedGroup";
 import { FlipCard } from "../components/ui/FlipCard";
-import { Banner } from "../components/ui/Banner";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
 import { InteractiveHoverButton } from "../components/ui/InteractiveHoverButton";
 
@@ -87,16 +86,7 @@ export default async function Home({
   return (
     <div>
       {hero ? (
-        <div style={{ position: "relative", background: "linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%)", borderBottom: "1px solid var(--border)" }}>
-          <div style={{ position: "absolute", top: 16, right: 32, zIndex: 10, maxWidth: 340 }}>
-            <Banner
-              variant="promo"
-              title="🎉 Launch Promotion: Use COINCART10 for 10% off."
-              description="Valid through December 31, 2026"
-              showShade
-              closable
-            />
-          </div>
+        <div style={{ background: "linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%)", borderBottom: "1px solid var(--border)" }}>
           <div className="container">
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "center", padding: "64px 0" }}>
               <div>
