@@ -33,7 +33,14 @@ export function FlipCard({
       <div className="flip-card-inner">
         <div className="flip-card-front">
           {imageUrl ? (
-            <img src={imageUrl} alt={name} className="product-card-img" />
+            <img
+              src={imageUrl}
+              alt={name}
+              className="product-card-img"
+              loading="lazy"
+              decoding="async"
+              fetchPriority="low"
+            />
           ) : (
             <div className="product-card-img-placeholder" />
           )}
