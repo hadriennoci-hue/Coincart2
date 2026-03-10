@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     siteName: "Coincart",
   },
   icons: {
-    icon: "/icon.png",
+    icon: "/favicon.png",
     apple: "/apple-icon.png",
   },
 };
