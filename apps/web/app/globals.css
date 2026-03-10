@@ -338,7 +338,7 @@ footer { position: relative; z-index: 1; }
 
 /* Flip Card */
 .flip-card {
-  height: 340px;
+  min-height: 340px;
   perspective: 2000px;
   cursor: pointer;
   display: flex;
@@ -398,6 +398,253 @@ footer { position: relative; z-index: 1; }
   width: 100%;
   gap: 12px;
 }
+
+/* ── Predator Hero ────────────────────────────────────── */
+.ph-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  background: linear-gradient(140deg, rgba(20,32,53,0.92) 0%, rgba(8,14,26,0.97) 100%);
+  border: 1px solid rgba(55,65,81,0.75);
+  border-radius: 20px;
+  overflow: hidden;
+  padding: 60px 64px;
+  min-height: 480px;
+  transition: border-color 0.45s ease, box-shadow 0.45s ease;
+  cursor: default;
+}
+.ph-card:hover {
+  border-color: rgba(34,197,94,0.28);
+  box-shadow: 0 0 0 1px rgba(34,197,94,0.07), 0 40px 100px rgba(0,0,0,0.45), inset 0 0 80px rgba(34,197,94,0.025);
+}
+
+.ph-ambient {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 72% 48%, rgba(34,197,94,0.04) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* Corner accents */
+.ph-corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  opacity: 0.55;
+  transition: opacity 0.4s;
+}
+.ph-card:hover .ph-corner { opacity: 1; }
+.ph-corner-tl { top: 14px; left: 14px; border-top: 1.5px solid #22C55E; border-left: 1.5px solid #22C55E; }
+.ph-corner-tr { top: 14px; right: 14px; border-top: 1.5px solid #22C55E; border-right: 1.5px solid #22C55E; }
+.ph-corner-bl { bottom: 14px; left: 14px; border-bottom: 1.5px solid #22C55E; border-left: 1.5px solid #22C55E; }
+.ph-corner-br { bottom: 14px; right: 14px; border-bottom: 1.5px solid #22C55E; border-right: 1.5px solid #22C55E; }
+
+/* Left content */
+.ph-left {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  position: relative;
+  z-index: 1;
+  padding-right: 32px;
+}
+
+.ph-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #22C55E;
+  background: rgba(34,197,94,0.08);
+  border: 1px solid rgba(34,197,94,0.22);
+  border-radius: 4px;
+  padding: 5px 10px;
+  width: fit-content;
+}
+
+.ph-headline {
+  font-family: var(--font-display), 'Space Grotesk', sans-serif;
+  font-size: clamp(2rem, 3.2vw, 2.875rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: #fff;
+}
+
+.ph-body {
+  font-size: 0.9375rem;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 420px;
+}
+
+.ph-specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ph-chip {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.72);
+  background: rgba(255,255,255,0.055);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+.ph-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.ph-price {
+  font-family: var(--font-display), 'Space Grotesk', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.ph-price-meta {
+  font-size: 0.8rem;
+  color: var(--muted-2);
+  font-weight: 500;
+}
+
+.ph-ctas {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ph-btn-primary {
+  background: #22C55E !important;
+  color: #061009 !important;
+  border: none !important;
+  font-weight: 700 !important;
+}
+.ph-btn-primary:hover:not(:disabled) {
+  background: #16A34A !important;
+  opacity: 1 !important;
+}
+
+/* Right visual */
+.ph-right {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 16px;
+  z-index: 1;
+}
+.ph-right-glow {
+  position: absolute;
+  inset: -40px;
+  background: radial-gradient(ellipse at 55% 50%, rgba(34,197,94,0.065) 0%, transparent 62%);
+  pointer-events: none;
+}
+.ph-grid-lines {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.5) 40%, transparent 75%);
+}
+.ph-visual-wrap {
+  position: relative;
+  width: 100%;
+}
+.ph-img {
+  width: 100%;
+  aspect-ratio: 16/10;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid rgba(55,65,81,0.55);
+  filter: drop-shadow(0 28px 56px rgba(0,0,0,0.65));
+  position: relative;
+  z-index: 1;
+  transform: perspective(800px) rotateY(-4deg) rotateX(1deg);
+  transition: transform 0.5s ease;
+}
+.ph-card:hover .ph-img {
+  transform: perspective(800px) rotateY(-2deg) rotateX(0.5deg);
+}
+.ph-img-placeholder {
+  width: 100%;
+  aspect-ratio: 16/10;
+  border-radius: 12px;
+  border: 1px solid rgba(55,65,81,0.4);
+  background: linear-gradient(135deg, rgba(20,32,53,0.8) 0%, rgba(8,14,26,0.9) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-2);
+  font-size: 0.875rem;
+  transform: perspective(800px) rotateY(-4deg);
+}
+
+/* Floating micro-panels */
+.ph-micro-panel {
+  position: absolute;
+  top: 16px;
+  right: -8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(8,14,26,0.88);
+  border: 1px solid rgba(55,65,81,0.7);
+  border-radius: 5px;
+  padding: 5px 10px;
+  z-index: 2;
+  backdrop-filter: blur(6px);
+}
+.ph-micro-panel-br {
+  top: auto;
+  bottom: 16px;
+  right: -8px;
+}
+.ph-micro-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22C55E;
+  flex-shrink: 0;
+}
+.ph-micro-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: rgba(255,255,255,0.65);
+  white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .ph-card {
+    grid-template-columns: 1fr;
+    padding: 44px 36px;
+    gap: 40px;
+  }
+  .ph-left { padding-right: 0; }
+  .ph-right { padding-left: 0; order: -1; }
+  .ph-micro-panel, .ph-micro-panel-br { display: none; }
+}
+@media (max-width: 600px) {
+  .ph-card { padding: 32px 24px; border-radius: 14px; }
+  .ph-headline { font-size: 1.75rem; }
+  .ph-price { font-size: 1.875rem; }
+}
+/* ────────────────────────────────────────────────────── */
 
 @media (max-width: 1024px) {
   .product-grid { grid-template-columns: repeat(3, 1fr); }

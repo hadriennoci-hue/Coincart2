@@ -3,6 +3,7 @@ import { fetchProducts, fetchTopSellingProducts, type Currency } from "../lib/ap
 import { FlipCard } from "../components/ui/FlipCard";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
 import { InteractiveHoverButton } from "../components/ui/InteractiveHoverButton";
+import { PredatorHero } from "../components/ui/PredatorHero";
 
 const allTestimonials: Testimonial[] = [
   {
@@ -97,50 +98,10 @@ export default async function Home({
 
   return (
     <div>
-      {hero ? (
-        <div style={{ background: "linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%)", borderBottom: "1px solid var(--border)" }}>
-          <div className="container">
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "center", padding: "64px 0" }}>
-              <div>
-                <span className="badge badge-teal" style={{ marginBottom: 16, display: "inline-block" }}>Featured Product</span>
-                <h1 className="page-title" style={{ marginBottom: 16, marginTop: 8 }}>{hero.name}</h1>
-                <p style={{ color: "var(--muted)", marginBottom: 24, fontSize: "1.05rem", lineHeight: 1.6 }}>
-                  {hero.description || "Premium product selection with secure crypto checkout."}
-                </p>
-                <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
-                  <span style={{ fontSize: "2rem", fontWeight: 700, color: "var(--accent)" }}>
-                    {hero.price.toFixed(2)} {hero.currency}
-                  </span>
-                  <span className={hero.stockQty > 0 ? "badge badge-green" : "badge badge-error"}>
-                    {hero.stockQty > 0 ? "In Stock" : "Out of Stock"}
-                  </span>
-                </div>
-                <div style={{ display: "flex", gap: 12 }}>
-                  <InteractiveHoverButton text="View Product" variant="blue" href={`/product/${hero.slug}?currency=${currency}`} />
-                  <InteractiveHoverButton text="Browse Catalog" variant="dark" href={`/search?currency=${currency}`} />
-                </div>
-              </div>
-              <div>
-                {hero.imageUrl ? (
-                  <img
-                    src={hero.imageUrl}
-                    alt={hero.name}
-                    width={960}
-                    height={720}
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    loading="eager"
-                    decoding="async"
-                    fetchPriority="high"
-                    style={{ width: "100%", aspectRatio: "16/10", objectFit: "cover", borderRadius: 16, border: "1px solid var(--border)" }}
-                  />
-                ) : (
-                  <div className="product-card-img-placeholder" style={{ aspectRatio: "16/10", borderRadius: 16 }} />
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <PredatorHero
+        imageUrl={hero?.imageUrl}
+        href={hero ? `/product/${hero.slug}?currency=${currency}` : `/search?currency=${currency}&category=Laptops`}
+      />
 
 
 <div className="container" style={{ paddingTop: 44 }}>
