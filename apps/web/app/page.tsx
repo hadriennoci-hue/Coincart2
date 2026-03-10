@@ -72,7 +72,10 @@ export default async function Home({
   const promotions = items
     .filter((item) => typeof item.promoPrice === "number" && item.promoPrice > 0 && item.promoPrice < item.price)
     .slice(0, 4);
-  const bestSellerItems = items.filter((item) => item.bestSeller).slice(0, 4);
+  const bestSellerItems = [...items]
+    .filter((item) => item.bestSeller)
+    .sort((a, b) => b.stockQty - a.stockQty)
+    .slice(0, 4);
   const topSellingFallback = [...items].sort((a, b) => b.stockQty - a.stockQty).slice(0, 4);
   const topSelling =
     bestSellerItems.length > 0
