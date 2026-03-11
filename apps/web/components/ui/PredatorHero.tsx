@@ -43,7 +43,6 @@ export function PredatorHero({
       ref={sectionRef}
       style={{
         background: "linear-gradient(160deg, rgba(20,32,53,0.55) 0%, rgba(0,0,0,0) 55%)",
-        borderBottom: "1px solid var(--border)",
         padding: "12px 0 14px",
       }}
     >
