@@ -26,6 +26,7 @@ export function ProductImageGallery({ images, alt }: ProductImageGalleryProps) {
         sizes="(max-width: 768px) 100vw, 55vw"
         style={{
           width: "100%",
+          maxHeight: 400,
           aspectRatio: "16/10",
           objectFit: "cover",
           borderRadius: 16,

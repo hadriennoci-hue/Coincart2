@@ -110,42 +110,46 @@ export function PredatorHero({ imageUrl, href = "/search?category=Laptops" }: Pr
                 transition={{ delay: 0.28, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                 className="ph-visual-wrap"
               >
-                {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt="Acer Predator Helios Neo 16"
-                    className="ph-img"
-                    width={960}
-                    height={600}
-                    loading="eager"
-                    fetchPriority="high"
-                    decoding="async"
-                  />
-                ) : (
-                  <div className="ph-img-placeholder">
-                    <span>Acer Predator Helios Neo 16</span>
+                <div className="ph-flip-card">
+                  <div className="ph-flip-inner">
+                    {/* Front: product image */}
+                    <div className="ph-flip-front">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt="Acer Predator Helios Neo 16"
+                          className="ph-img"
+                          width={960}
+                          height={600}
+                          loading="eager"
+                          fetchPriority="high"
+                          decoding="async"
+                        />
+                      ) : (
+                        <div className="ph-img-placeholder">
+                          <span>Acer Predator Helios Neo 16</span>
+                        </div>
+                      )}
+                      <div className="ph-micro-panel">
+                        <span className="ph-micro-dot" />
+                        <span className="ph-micro-label">240 Hz · WQXGA</span>
+                      </div>
+                      <div className="ph-micro-panel ph-micro-panel-br">
+                        <span className="ph-micro-dot" style={{ background: "#3060C8" }} />
+                        <span className="ph-micro-label">RTX 4070 · 8 GB GDDR6</span>
+                      </div>
+                    </div>
+                    {/* Back: specs */}
+                    <div className="ph-flip-back">
+                      <div className="ph-flip-back-chips">
+                        {SPECS.map((s) => (
+                          <span key={s} className="ph-flip-back-chip">{s}</span>
+                        ))}
+                      </div>
+                      <span className="ph-flip-back-cta">View Product →</span>
+                    </div>
                   </div>
-                )}
-
-                <motion.div
-                  className="ph-micro-panel"
-                  initial={{ opacity: 0, x: 8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.75, duration: 0.4 }}
-                >
-                  <span className="ph-micro-dot" />
-                  <span className="ph-micro-label">240 Hz · WQXGA</span>
-                </motion.div>
-
-                <motion.div
-                  className="ph-micro-panel ph-micro-panel-br"
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.85, duration: 0.4 }}
-                >
-                  <span className="ph-micro-dot" style={{ background: "#3060C8" }} />
-                  <span className="ph-micro-label">RTX 4070 · 8 GB GDDR6</span>
-                </motion.div>
+                </div>
               </motion.div>
             </div>
           </motion.div>
