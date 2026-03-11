@@ -96,8 +96,7 @@ export default function CheckoutPage() {
             Checkout
           </h1>
           <p className="small" style={{ marginBottom: 32, color: "var(--muted)" }}>
-            Guest checkout — no account required. Your shipping details are used
-            to process your order.
+            Guest checkout — no account required.
           </p>
 
           {/* Shipping Details */}
@@ -190,7 +189,8 @@ export default function CheckoutPage() {
           {/* Contact */}
           <div className="surface" style={{ marginBottom: 20 }}>
             <h2 className="card-title" style={{ marginBottom: 20 }}>
-              Contact
+              Contact{" "}
+              <span style={{ fontSize: "0.75rem", fontWeight: 400, color: "var(--muted)" }}>(used by the transporter)</span>
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <label className="form-label">
