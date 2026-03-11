@@ -83,10 +83,7 @@ export default function CartPage() {
             </div>
           ) : isResolvingProducts ? (
             <div className="surface" style={{ textAlign: "center", padding: 40 }}>
-              <h3 style={{ marginBottom: 8 }}>Loading cart items...</h3>
-              <p className="small">
-                Retrieving product details. If this takes too long, refresh the page.
-              </p>
+              <div style={{ display: "inline-block", width: 32, height: 32, border: "3px solid var(--border)", borderTopColor: "var(--primary)", borderRadius: "50%", animation: "spin 0.75s linear infinite" }} />
             </div>
           ) : (
             <div
@@ -197,31 +194,6 @@ export default function CartPage() {
           <h2 className="card-title" style={{ marginBottom: 20 }}>
             Order Summary
           </h2>
-
-          {/* Currency Toggle */}
-          <div style={{ marginBottom: 20 }}>
-            <div className="caption" style={{ marginBottom: 8 }}>
-              Currency
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                className={`btn btn-sm ${currency === "USD" ? "btn-teal" : "btn-ghost"}`}
-                onClick={() => setCurrency("USD")}
-                style={{ flex: 1 }}
-              >
-                USD
-              </button>
-              <button
-                className={`btn btn-sm ${currency === "EUR" ? "btn-teal" : "btn-ghost"}`}
-                onClick={() => setCurrency("EUR")}
-                style={{ flex: 1 }}
-              >
-                EUR
-              </button>
-            </div>
-          </div>
-
-          <div className="divider" style={{ marginBottom: 20 }} />
 
           {/* Coupon */}
           <div style={{ marginBottom: 20 }}>

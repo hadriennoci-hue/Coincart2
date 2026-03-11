@@ -34,6 +34,8 @@ a { color: inherit; text-decoration: none; }
 img { display: block; max-width: 100%; }
 main { min-height: calc(100vh - var(--navbar-h)); position: relative; z-index: 1; }
 footer { position: relative; z-index: 1; }
+.footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.footer-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
 
 
 .container { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
@@ -715,15 +717,18 @@ footer { position: relative; z-index: 1; }
     grid-template-columns: 1fr;
     padding: 44px 36px;
     gap: 40px;
+    max-height: none;
   }
   .ph-left { padding-right: 0; }
   .ph-right { padding-left: 0; order: -1; }
   .ph-micro-panel, .ph-micro-panel-br { display: none; }
 }
 @media (max-width: 600px) {
-  .ph-card { padding: 32px 24px; border-radius: 14px; }
-  .ph-headline { font-size: 1.75rem; }
-  .ph-price { font-size: 1.875rem; }
+  .ph-card { padding: 24px 16px; border-radius: 14px; gap: 20px; }
+  .ph-headline { font-size: 1.5rem; }
+  .ph-price { font-size: 1.625rem; }
+  .ph-specs { gap: 4px; }
+  .ph-chip { font-size: 0.65rem; padding: 2px 8px; }
 }
 /* ────────────────────────────────────────────────────── */
 
@@ -758,7 +763,7 @@ footer { position: relative; z-index: 1; }
   .trust-divider { display: none; }
 }
 @media (max-width: 480px) {
-  .trust-item { flex: 1 1 100%; }
+  .trust-item { flex: 1 1 40%; }
 }
 
 @media (max-width: 1024px) {
@@ -780,6 +785,42 @@ footer { position: relative; z-index: 1; }
 }
 
 @media (max-width: 480px) {
-  .product-grid { grid-template-columns: 1fr; }
-  .category-grid { grid-template-columns: 1fr; }
+  .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .category-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* ── Mobile header / footer ─────────────────────────── */
+@media (max-width: 600px) {
+  .header-logo-text { display: none; }
+  .header-inner { padding: 0 12px !important; gap: 10px !important; }
+  .footer-logo-text { display: none; }
+  .footer-inner {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 12px;
+    justify-content: flex-start;
+  }
+  .footer-right {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  .footer-links { gap: 8px !important; }
+}
+
+/* ── Flip card: disable on mobile ───────────────────── */
+@media (max-width: 768px) {
+  .flip-card { perspective: none; min-height: 0; display: block; }
+  .flip-card:hover .flip-card-inner { transform: none; }
+  .flip-card-inner { position: static; height: auto; }
+  .flip-card-front { position: static; height: auto; }
+  .flip-card-back { display: none; }
+}
+
+/* ── Spinner ─────────────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

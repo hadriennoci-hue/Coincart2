@@ -73,7 +73,7 @@ export function SiteHeader() {
       display: "flex",
       alignItems: "center",
     }}>
-      <div style={{
+      <div className="header-inner" style={{
         maxWidth: 1200,
         margin: "0 auto",
         padding: "0 32px",
@@ -89,7 +89,7 @@ export function SiteHeader() {
             alt="Coincart"
             style={{ height: 51, width: "auto", display: "block" }}
           />
-          <span style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "0.01em" }}>Coincart</span>
+          <span className="header-logo-text" style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "0.01em" }}>Coincart</span>
         </Link>
 
         {/* Search */}

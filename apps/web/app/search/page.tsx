@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { fetchProducts, type Currency } from "../../lib/api";
 import { FlipCard } from "../../components/ui/FlipCard";
+import { SortSelect } from "../../components/ui/SortSelect";
 
 export const runtime = "edge";
 
@@ -125,17 +126,6 @@ export default async function SearchPage({
             <input className="input" name="ssd_size" defaultValue={ssd_size} placeholder="e.g. 512" />
           </label>
 
-          <label className="form-label" style={{ gap: 6 }}>
-            Sort
-            <select className="select" name="sort" defaultValue={sort}>
-              <option value="default">Default</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="popularity">Popularity</option>
-              <option value="newest">Newest</option>
-            </select>
-          </label>
-
           <div style={{ display: "flex", gap: 8, paddingTop: 4 }}>
             <button className="btn btn-primary btn-sm" type="submit" style={{ flex: 1 }}>Apply</button>
             <Link className="btn btn-ghost btn-sm" href="/search" style={{ flex: 1, textAlign: "center" }}>Reset</Link>
@@ -145,9 +135,22 @@ export default async function SearchPage({
 
       {/* Results */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <h2 className="section-title" style={{ marginBottom: 16, fontSize: "1.25rem" }}>
-          Results <span className="caption">({items.length})</span>
-        </h2>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, gap: 12, flexWrap: "wrap" }}>
+          <h2 className="section-title" style={{ margin: 0, fontSize: "1.25rem" }}>
+            Results <span className="caption">({items.length})</span>
+          </h2>
+          <SortSelect
+            sort={sort}
+            q={q}
+            category={category}
+            keyboard_layout={keyboard_layout}
+            usage={usage}
+            screen_size={screen_size}
+            ram_memory={ram_memory}
+            ssd_size={ssd_size}
+            max_resolution={max_resolution}
+          />
+        </div>
 
         {items.length === 0 ? (
           <div className="surface" style={{ textAlign: "center", padding: 48 }}>

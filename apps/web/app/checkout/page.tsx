@@ -296,33 +296,6 @@ export default function CheckoutPage() {
               Order Summary
             </h2>
 
-            {/* Currency Toggle */}
-            <div style={{ marginBottom: 20 }}>
-              <div className="caption" style={{ marginBottom: 8 }}>
-                Currency
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  className={`btn btn-sm ${currency === "USD" ? "btn-teal" : "btn-ghost"}`}
-                  onClick={() => setCurrency("USD")}
-                  style={{ flex: 1 }}
-                  type="button"
-                >
-                  USD
-                </button>
-                <button
-                  className={`btn btn-sm ${currency === "EUR" ? "btn-teal" : "btn-ghost"}`}
-                  onClick={() => setCurrency("EUR")}
-                  style={{ flex: 1 }}
-                  type="button"
-                >
-                  EUR
-                </button>
-              </div>
-            </div>
-
-            <div className="divider" style={{ marginBottom: 16 }} />
-
             {/* Shipping Info */}
             <div
               style={{
