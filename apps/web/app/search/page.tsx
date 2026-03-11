@@ -71,7 +71,7 @@ export default async function SearchPage({
 
   return (
     <div
-      className="container"
+      className="container search-layout"
       style={{ paddingTop: 24, paddingBottom: 64, display: "flex", gap: 28, alignItems: "flex-start" }}
     >
       {/* Sidebar filters */}
