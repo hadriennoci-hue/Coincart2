@@ -114,40 +114,28 @@ export default async function Home({
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
               </svg>
-              <div>
-                <span className="trust-label">Shipping across Europe</span>
-                <span className="trust-sub">Fast & tracked delivery</span>
-              </div>
+              <span className="trust-label">3-5 days delivery in Europe</span>
             </div>
             <div className="trust-divider" />
             <div className="trust-item">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <circle cx="12" cy="12" r="10"/><path d="M9.5 9a3 3 0 0 1 5 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
               </svg>
-              <div>
-                <span className="trust-label">Pay with Crypto</span>
-                <span className="trust-sub">XMR, BTC via BTCPay</span>
-              </div>
+              <span className="trust-label">Pay with BTC, XMR, ZEC, and stablecoins.</span>
             </div>
             <div className="trust-divider" />
             <div className="trust-item">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
-              <div>
-                <span className="trust-label">Customer Support</span>
-                <span className="trust-sub">Responsive & reliable</span>
-              </div>
+              <span className="trust-label">24/7 support</span>
             </div>
             <div className="trust-divider" />
             <div className="trust-item">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
-              <div>
-                <span className="trust-label">Official Acer Partner</span>
-                <span className="trust-sub">Genuine products only</span>
-              </div>
+              <span className="trust-label">Official Acer reseller</span>
             </div>
           </div>
         </div>
