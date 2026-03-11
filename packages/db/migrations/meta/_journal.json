@@ -57,6 +57,20 @@
       "when": 1773243000000,
       "tag": "0007_tan_variant_model",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1773295200000,
+      "tag": "0008_calm_cleanup_attributes",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1773381600000,
+      "tag": "0009_breezy_displays_cleanup",
+      "breakpoints": true
     }
   ]
 }

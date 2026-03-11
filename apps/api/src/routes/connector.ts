@@ -1,6 +1,12 @@
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { Hono } from "hono";
-import { productPrices, products } from "@coincart/db";
+import {
+  productCollectionAttributes,
+  productCollectionAttributeValues,
+  productCollections,
+  productPrices,
+  products,
+} from "@coincart/db";
 import type { AppContext } from "../types";
 
 const connectorError = (message: string, status = 400) => ({ error: message, status });
@@ -202,6 +208,101 @@ connectorRoutes.use("*", async (c, next) => {
 connectorRoutes.get("/health", async (c) => {
   const [row] = await c.var.db.select({ id: products.id }).from(products).limit(1);
   return c.json({ ok: true, sampleProductId: row?.id ?? null });
+});
+
+connectorRoutes.get("/collections", async (c) => {
+  const rows = await c.var.db
+    .select({
+      id: productCollections.id,
+      key: productCollections.key,
+      label: productCollections.label,
+    })
+    .from(productCollections)
+    .orderBy(asc(productCollections.label));
+
+  return c.json({
+    items: rows.map((row) => ({
+      id: row.id,
+      key: row.key,
+      slug: row.key,
+      name: row.label,
+      label: row.label,
+    })),
+  });
+});
+
+connectorRoutes.get("/collections/:key/attributes", async (c) => {
+  const key = c.req.param("key").trim().toLowerCase();
+  const [collection] = await c.var.db
+    .select({
+      id: productCollections.id,
+      key: productCollections.key,
+      label: productCollections.label,
+    })
+    .from(productCollections)
+    .where(eq(productCollections.key, key))
+    .limit(1);
+
+  if (!collection) return c.json(connectorError("Collection not found", 404), 404);
+
+  const attrs = await c.var.db
+    .select({
+      id: productCollectionAttributes.id,
+      key: productCollectionAttributes.attributeKey,
+      label: productCollectionAttributes.label,
+      dataType: productCollectionAttributes.dataType,
+      unit: productCollectionAttributes.unit,
+      required: productCollectionAttributes.required,
+      multiValue: productCollectionAttributes.multiValue,
+      sortOrder: productCollectionAttributes.sortOrder,
+    })
+    .from(productCollectionAttributes)
+    .where(eq(productCollectionAttributes.collectionId, collection.id))
+    .orderBy(asc(productCollectionAttributes.sortOrder), asc(productCollectionAttributes.label));
+
+  const attrIds = attrs.map((x) => x.id);
+  const valuesByAttrId = new Map<string, string[]>();
+
+  if (attrIds.length > 0) {
+    const values = await c.var.db
+      .select({
+        attributeId: productCollectionAttributeValues.collectionAttributeId,
+        value: productCollectionAttributeValues.value,
+      })
+      .from(productCollectionAttributeValues)
+      .where(inArray(productCollectionAttributeValues.collectionAttributeId, attrIds))
+      .orderBy(
+        asc(productCollectionAttributeValues.sortOrder),
+        asc(productCollectionAttributeValues.value),
+      );
+
+    for (const row of values) {
+      const current = valuesByAttrId.get(row.attributeId) ?? [];
+      current.push(row.value);
+      valuesByAttrId.set(row.attributeId, current);
+    }
+  }
+
+  return c.json({
+    collection: {
+      id: collection.id,
+      key: collection.key,
+      slug: collection.key,
+      name: collection.label,
+      label: collection.label,
+    },
+    items: attrs.map((attr) => ({
+      id: attr.id,
+      key: attr.key,
+      name: attr.label,
+      label: attr.label,
+      type: attr.dataType,
+      unit: attr.unit,
+      required: attr.required,
+      multi_value: attr.multiValue,
+      allowed_values: valuesByAttrId.get(attr.id) ?? [],
+    })),
+  });
 });
 
 connectorRoutes.get("/products/:parentId/variations", async (c) => {
