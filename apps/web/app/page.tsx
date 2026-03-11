@@ -123,9 +123,33 @@ export default async function Home({
     productCount: collectionsMap.get(entry.key) || 0,
     emoji: entry.emoji,
   }));
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://coincart-web.pages.dev";
+  const homeJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Coincart",
+    url: siteUrl,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteUrl}/search?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+  const topJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: topSelling.slice(0, 8).map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${siteUrl}/product/${item.slug}`,
+      name: item.name,
+    })),
+  };
 
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(topJsonLd) }} />
       <PredatorHero
         name={hero?.name || "Featured Product"}
         category={hero?.category}
@@ -293,5 +317,4 @@ export default async function Home({
     </div>
   );
 }
-
 

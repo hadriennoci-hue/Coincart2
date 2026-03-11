@@ -649,7 +649,8 @@
                       "fill": "#9CA3AF",
                       "content": "Intel Core i9 · RTX 4080 · 32GB RAM · 1TB SSD",
                       "fontFamily": "Inter",
-                      "fontSize": 14
+                      "fontSize": 14,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -1291,7 +1292,8 @@
                   "fill": "#9CA3AF",
                   "content": "Intel i9 · RTX 4080 · 32GB",
                   "fontFamily": "Inter",
-                  "fontSize": 12
+                  "fontSize": 12,
+                  "fontWeight": "normal"
                 },
                 {
                   "type": "frame",
@@ -1918,6 +1920,278 @@
               ]
             }
           ]
+        },
+        {
+          "type": "text",
+          "id": "Qdvip",
+          "name": "btnSectionLabel",
+          "fill": "#374151",
+          "content": "INTERACTIVE HOVER BUTTON",
+          "fontFamily": "Inter",
+          "fontSize": 11,
+          "fontWeight": "700",
+          "letterSpacing": 3
+        },
+        {
+          "type": "frame",
+          "id": "jFNqr",
+          "name": "btnRow",
+          "width": "fill_container",
+          "gap": 64,
+          "children": [
+            {
+              "type": "frame",
+              "id": "LZniw",
+              "name": "blueSection",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "gxujW",
+                  "name": "blueLabel",
+                  "fill": "#94A3B8",
+                  "content": "Blue / Primary",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "EJBMh",
+                  "name": "blueStatesRow",
+                  "gap": 32,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "71vJM",
+                      "name": "blueDefaultWrap",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "rOYpF",
+                          "name": "blueDefaultBtn",
+                          "width": 160,
+                          "height": 42,
+                          "cornerRadius": 999,
+                          "stroke": {
+                            "thickness": 1.5,
+                            "fill": "#2D68E8"
+                          },
+                          "gap": 8,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "fFYsq",
+                              "name": "blueDefaultText",
+                              "fill": "#2D68E8",
+                              "content": "Buy Now",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "iyUsm",
+                          "name": "blueDefaultCaption",
+                          "fill": "#475569",
+                          "content": "Default",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "2UVxU",
+                      "name": "blueHoverWrap",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "sXaeB",
+                          "name": "blueHoverBtn",
+                          "width": 160,
+                          "height": 42,
+                          "fill": "#2D68E8",
+                          "cornerRadius": 999,
+                          "gap": 8,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "pNZ29",
+                              "name": "blueHoverText",
+                              "fill": "#FFFFFF",
+                              "content": "Buy Now",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "icon_font",
+                              "id": "mVPb6",
+                              "name": "blueHoverArrow",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "arrow-right",
+                              "iconFontFamily": "lucide",
+                              "fill": "#FFFFFF"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "8j6Pi",
+                          "name": "blueHoverCaption",
+                          "fill": "#475569",
+                          "content": "Hover",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "f3mGm",
+              "name": "darkSection",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "GSeQb",
+                  "name": "darkLabel",
+                  "fill": "#94A3B8",
+                  "content": "Dark / Subtle",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "E0VvK",
+                  "name": "darkStatesRow",
+                  "gap": 32,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "mOv1m",
+                      "name": "darkDefaultWrap",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "HzSYV",
+                          "name": "darkDefaultBtn",
+                          "width": 160,
+                          "height": 42,
+                          "cornerRadius": 999,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#374151"
+                          },
+                          "gap": 8,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Qm3ls",
+                              "name": "darkDefaultText",
+                              "fill": "#F1F5F9",
+                              "content": "Learn More",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "qwN7R",
+                          "name": "darkDefaultCaption",
+                          "fill": "#475569",
+                          "content": "Default",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "SI91A",
+                      "name": "darkHoverWrap",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "XBcaD",
+                          "name": "darkHoverBtn",
+                          "width": 160,
+                          "height": 42,
+                          "fill": "#1F2E44",
+                          "cornerRadius": 999,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#2A4060"
+                          },
+                          "gap": 8,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "XURgi",
+                              "name": "darkHoverText",
+                              "fill": "#FFFFFF",
+                              "content": "Learn More",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "icon_font",
+                              "id": "BwRdQ",
+                              "name": "darkHoverArrow",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "arrow-right",
+                              "iconFontFamily": "lucide",
+                              "fill": "#FFFFFF"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -2076,7 +2350,8 @@
                   "content": "Shop cutting-edge electronics. Pay with crypto. Delivered across the EU.",
                   "lineHeight": 1.6,
                   "fontFamily": "Inter",
-                  "fontSize": 18
+                  "fontSize": 18,
+                  "fontWeight": "normal"
                 },
                 {
                   "type": "frame",

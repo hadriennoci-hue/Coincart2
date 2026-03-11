@@ -21,13 +21,23 @@ export async function generateMetadata({ params, searchParams }: ProductPageProp
     return { title: "Product not found" };
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://coincart-web.pages.dev";
+  const canonical = `${siteUrl}/product/${product.slug}`;
+  const image =
+    Array.isArray(product.imageUrls) && product.imageUrls.length > 0
+      ? product.imageUrls[0]
+      : product.imageUrl || undefined;
+
   return {
     title: product.name,
     description: product.description || `${product.name} - pay with crypto on Coincart.`,
+    alternates: { canonical },
     openGraph: {
       title: product.name,
       description: product.description || `${product.name} - pay with crypto on Coincart.`,
       type: "website",
+      url: canonical,
+      images: image ? [{ url: image, alt: product.name }] : undefined,
     },
   };
 }

@@ -20,14 +20,36 @@ export const metadata: Metadata = {
     template: "%s | Coincart",
   },
   description:
-    "Buy electronics with crypto on Coincart. EU shipping, transparent policies, and secure BTCPay checkout.",
+    "Buy Laptops, PCs, Acer Monitors, Gaming Laptops, GPUs, Desktops & More.",
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  keywords: [
+    "crypto electronics store",
+    "buy electronics with crypto",
+    "EU electronics delivery",
+    "BTC checkout",
+    "Monero checkout",
+    "Coincart",
+  ],
   openGraph: {
     type: "website",
     url: siteUrl,
     title: "Coincart - Crypto Electronics Store",
     description:
-      "Buy electronics with crypto on Coincart. EU shipping, transparent policies, and secure BTCPay checkout.",
+      "Buy Laptops, PCs, Acer Monitors, Gaming Laptops, GPUs, Desktops & More.",
     siteName: "Coincart",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Coincart - Crypto Electronics Store",
+    description:
+      "Buy Laptops, PCs, Acer Monitors, Gaming Laptops, GPUs, Desktops & More.",
   },
   icons: {
     icon: "/favicon.png",
@@ -36,12 +58,25 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Coincart",
+    url: siteUrl,
+    logo: `${siteUrl}/favicon.png`,
+  };
+
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body>
+        <a href="#main-content" className="skip-link">Skip to main content</a>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+        />
         <BackgroundPaths />
         <SiteHeader />
-        <main>{children}</main>
+        <main id="main-content">{children}</main>
         <SiteFooter />
         <ToastProvider />
       </body>

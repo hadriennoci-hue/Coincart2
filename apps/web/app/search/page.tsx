@@ -1,10 +1,20 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { fetchProducts, type Currency } from "../../lib/api";
 import { FlipCard } from "../../components/ui/FlipCard";
 import { SortSelect } from "../../components/ui/SortSelect";
 import { SearchFilters } from "../../components/ui/SearchFilters";
 
 export const runtime = "edge";
+
+export const metadata: Metadata = {
+  title: "Search",
+  description: "Search Coincart products by category, specs, and usage.",
+  robots: {
+    index: false,
+    follow: true,
+  },
+};
 
 export default async function SearchPage({
   searchParams,
@@ -97,6 +107,7 @@ export default async function SearchPage({
 
       {/* Results */}
       <div style={{ flex: 1, minWidth: 0 }}>
+        <h1 style={{ fontSize: "1.5rem", marginBottom: 12 }}>Search Products</h1>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, gap: 12, flexWrap: "wrap" }}>
           <h2 className="section-title" style={{ margin: 0, fontSize: "1.25rem" }}>
             Results <span className="caption">({items.length})</span>
