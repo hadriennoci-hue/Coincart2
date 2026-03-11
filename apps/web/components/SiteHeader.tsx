@@ -83,7 +83,7 @@ export function SiteHeader() {
         gap: 16,
       }}>
         {/* Logo */}
-        <Link href="/" aria-label="Coincart home" style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+        <Link href="/" aria-label="Coincart home" className="header-logo-link" style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
           <img
             src="/coincart-logo-mark.png"
             alt="Coincart"

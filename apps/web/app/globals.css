@@ -808,8 +808,7 @@ footer { position: relative; z-index: 1; }
 
 /* ── Mobile header / footer ─────────────────────────── */
 @media (max-width: 768px) {
-  .header-inner img { height: 48px !important; }
-  .header-logo-text { display: none; }
+  .header-logo-link { display: none !important; }
   .header-inner { padding: 0 12px !important; gap: 10px !important; }
 }
 @media (max-width: 600px) {
