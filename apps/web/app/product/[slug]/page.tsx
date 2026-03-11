@@ -71,23 +71,23 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Two-column layout */}
+      {/* Three-column layout */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "38% 62%",
+          gridTemplateColumns: "38% 1fr 260px",
           gap: 40,
           marginBottom: 40,
           alignItems: "start",
         }}
       >
-        {/* Left: Product Image */}
+        {/* Col 1: Product Image */}
         <div>
           <ProductImageGallery images={imageGallery} alt={product.name} />
         </div>
 
-        {/* Right: Product Info */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* Col 2: Title, SKU, Description */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {product.category && (
             <span className="badge badge-teal" style={{ alignSelf: "flex-start" }}>
               {product.category}
@@ -96,34 +96,15 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
 
           <h1
             style={{
-              fontSize: "2rem",
+              fontSize: "1.75rem",
               fontWeight: 700,
               color: "var(--text)",
               margin: 0,
-              lineHeight: 1.2,
+              lineHeight: 1.25,
             }}
           >
             {product.name}
           </h1>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span
-              style={{
-                fontSize: "2rem",
-                fontWeight: 700,
-                color: "var(--accent)",
-              }}
-            >
-              {product.price.toFixed(2)} {product.currency}
-            </span>
-            <span
-              className={
-                product.stockQty > 0 ? "badge badge-green" : "badge badge-error"
-              }
-            >
-              {product.stockQty > 0 ? "In Stock" : "Out of Stock"}
-            </span>
-          </div>
 
           <div className="caption">SKU: {product.sku}</div>
 
@@ -133,17 +114,43 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
                 color: "var(--muted)",
                 lineHeight: 1.6,
                 margin: 0,
+                fontSize: "0.9rem",
               }}
             >
               {product.description}
             </p>
           )}
+        </div>
+
+        {/* Col 3: Price, Stock, Add to Cart */}
+        <div
+          className="surface"
+          style={{ display: "flex", flexDirection: "column", gap: 16, padding: 20 }}
+        >
+          <div>
+            <span
+              style={{
+                fontSize: "1.75rem",
+                fontWeight: 700,
+                color: "var(--accent)",
+                display: "block",
+              }}
+            >
+              {product.price.toFixed(2)} {product.currency}
+            </span>
+            <span
+              className={
+                product.stockQty > 0 ? "badge badge-green" : "badge badge-error"
+              }
+              style={{ marginTop: 8, display: "inline-block" }}
+            >
+              {product.stockQty > 0 ? "In Stock" : "Out of Stock"}
+            </span>
+          </div>
 
           <div className="divider" />
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <AddToCartButton sku={product.sku} />
-          </div>
+          <AddToCartButton sku={product.sku} />
         </div>
       </div>
 
