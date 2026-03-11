@@ -143,7 +143,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             style={{
               fontSize: "2rem",
               fontWeight: 700,
-              color: "var(--accent)",
+              color: "var(--text)",
             }}
           >
             {fmtPrice(product.price, product.currency)}
