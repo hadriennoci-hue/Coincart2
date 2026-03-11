@@ -43,6 +43,13 @@
       "when": 1773073190772,
       "tag": "0005_naive_vector",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1773200239705,
+      "tag": "0006_fluffy_mathemanic",
+      "breakpoints": true
     }
   ]
 }

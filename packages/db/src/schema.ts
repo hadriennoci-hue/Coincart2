@@ -148,6 +148,58 @@ export const webhookEvents = pgTable("webhook_events", {
   processedAt: timestamp("processed_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const productCategories = pgTable("product_categories", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  key: varchar("key", { length: 80 }).notNull().unique(),
+  label: varchar("label", { length: 120 }).notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => sql`now()`),
+});
+
+export const productCategoryAttributes = pgTable(
+  "product_category_attributes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => productCategories.id, { onDelete: "cascade" }),
+    attributeKey: varchar("attribute_key", { length: 80 }).notNull(),
+    label: varchar("label", { length: 120 }).notNull(),
+    dataType: varchar("data_type", { length: 30 }).notNull().default("text"),
+    unit: varchar("unit", { length: 30 }),
+    multiValue: boolean("multi_value").notNull().default(false),
+    required: boolean("required").notNull().default(false),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => sql`now()`),
+  },
+  (t) => ({
+    uniqCategoryAttributeKey: unique().on(t.categoryId, t.attributeKey),
+  }),
+);
+
+export const productCategoryAttributeValues = pgTable(
+  "product_category_attribute_values",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    categoryAttributeId: uuid("category_attribute_id")
+      .notNull()
+      .references(() => productCategoryAttributes.id, { onDelete: "cascade" }),
+    value: varchar("value", { length: 160 }).notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    uniqCategoryAttributeValue: unique().on(t.categoryAttributeId, t.value),
+  }),
+);
+
 export const productsRelations = relations(products, ({ many }) => ({
   prices: many(productPrices),
 }));
@@ -158,3 +210,28 @@ export const productPricesRelations = relations(productPrices, ({ one }) => ({
     references: [products.id],
   }),
 }));
+
+export const productCategoryAttributesRelations = relations(
+  productCategoryAttributes,
+  ({ one, many }) => ({
+    category: one(productCategories, {
+      fields: [productCategoryAttributes.categoryId],
+      references: [productCategories.id],
+    }),
+    values: many(productCategoryAttributeValues),
+  }),
+);
+
+export const productCategoriesRelations = relations(productCategories, ({ many }) => ({
+  attributes: many(productCategoryAttributes),
+}));
+
+export const productCategoryAttributeValuesRelations = relations(
+  productCategoryAttributeValues,
+  ({ one }) => ({
+    attribute: one(productCategoryAttributes, {
+      fields: [productCategoryAttributeValues.categoryAttributeId],
+      references: [productCategoryAttributes.id],
+    }),
+  }),
+);
