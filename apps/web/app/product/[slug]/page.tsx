@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { AddToCartButton } from "../../../components/AddToCartButton";
 import { ProductImageGallery } from "../../../components/ProductImageGallery";
 import { fetchProductBySlug, type Currency } from "../../../lib/api";
+import { fmtPrice } from "../../../lib/format";
 
 export const runtime = 'edge';
 
@@ -125,7 +126,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
               color: "var(--accent)",
             }}
           >
-            {product.price.toFixed(2)} {product.currency}
+            {fmtPrice(product.price, product.currency)}
           </span>
 
           {product.description && (

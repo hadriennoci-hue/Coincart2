@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { fetchOrder } from "../../../lib/api";
+import { fmtPrice } from "../../../lib/format";
 
 export const runtime = 'edge';
 
@@ -105,7 +106,7 @@ export default async function OrderPage({
                 <div className="caption">Qty: {item.quantity}</div>
               </div>
               <div style={{ fontWeight: 600, color: "var(--text)" }}>
-                {item.unitPrice.toFixed(2)} {order.currency}
+                {fmtPrice(item.unitPrice, order.currency)}
               </div>
             </div>
           ))}
@@ -118,7 +119,7 @@ export default async function OrderPage({
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span className="small" style={{ color: "var(--muted)" }}>Subtotal</span>
             <span>
-              {subtotal.toFixed(2)} {order.currency}
+              {fmtPrice(subtotal, order.currency)}
             </span>
           </div>
           {typeof order.shippingCost === "number" && (
@@ -131,7 +132,7 @@ export default async function OrderPage({
                   : ""}
               </span>
               <span>
-                {order.shippingCost.toFixed(2)} {order.currency}
+                {fmtPrice(order.shippingCost, order.currency)}
               </span>
             </div>
           )}
@@ -151,7 +152,7 @@ export default async function OrderPage({
                 color: "var(--accent)",
               }}
             >
-              {order.totalAmount.toFixed(2)} {order.currency}
+              {fmtPrice(order.totalAmount, order.currency)}
             </span>
           </div>
         </div>

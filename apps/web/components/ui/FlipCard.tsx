@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { fmtPrice } from "../../lib/format";
 
 interface FlipCardProps {
   name: string;
@@ -55,12 +56,12 @@ export function FlipCard({
   const priceBlock = hasPromo ? (
     <>
       <span style={{ textDecoration: "line-through", opacity: 0.55, marginRight: 6 }}>
-        {price.toFixed(2)} {currency}
+        {fmtPrice(price, currency)}
       </span>
-      <span>{displayPrice.toFixed(2)} {currency}</span>
+      <span>{fmtPrice(displayPrice, currency)}</span>
     </>
   ) : (
-    <>{displayPrice.toFixed(2)} {currency}</>
+    <>{fmtPrice(displayPrice, currency)}</>
   );
 
   return (
@@ -97,8 +98,8 @@ export function FlipCard({
 
           {/* Back */}
           <div className="flip-card-back">
-            <p style={{ fontWeight: 700, fontSize: "0.9375rem", color: "var(--text)", lineHeight: 1.3 }}>{name}</p>
-            {sku && <p className="caption" style={{ marginTop: 2 }}>{sku}</p>}
+            <p style={{ fontWeight: 700, fontSize: "0.9375rem", color: "var(--text)", lineHeight: 1.3, margin: 0 }}>{name}</p>
+            {sku && <p className="caption" style={{ margin: "2px 0 0" }}>{sku}</p>}
             {category === "Laptops" ? (
               <div className="flip-card-specs">
                 {screenSize && <div className="flip-spec-row"><span>Screen</span><span>{screenSize}</span></div>}

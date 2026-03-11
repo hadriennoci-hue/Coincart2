@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createCheckoutSession, type Currency } from "../../lib/api";
+import { fmtPrice } from "../../lib/format";
 import { clearCart, getCart } from "../../lib/cart";
 
 const euCountries = [
@@ -319,7 +320,7 @@ export default function CheckoutPage() {
                   <div className="caption">Estimated 5 business days</div>
                 </div>
                 <div style={{ fontWeight: 600, color: "var(--text)" }}>
-                  {shippingCost.toFixed(2)} {currency}
+                  {fmtPrice(shippingCost, currency)}
                 </div>
               </div>
             </div>

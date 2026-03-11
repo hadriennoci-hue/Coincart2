@@ -118,8 +118,8 @@ export default async function Home({
             </div>
             <div className="trust-divider" />
             <div className="trust-item">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <circle cx="12" cy="12" r="10"/><path d="M9.5 9a3 3 0 0 1 5 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <path d="M23.638 14.904c-1.602 6.43-8.113 10.34-14.542 8.736C2.67 22.05-1.244 15.525.362 9.105 1.962 2.67 8.475-1.243 14.9.358c6.43 1.605 10.342 8.115 8.738 14.546zM17.15 10.27c.24-1.6-.977-2.46-2.64-3.03l.54-2.16-1.316-.33-.524 2.1c-.347-.087-.703-.168-1.057-.248l.527-2.115-1.315-.33-.54 2.16c-.287-.066-.57-.13-.843-.198l.001-.007-1.815-.453-.35 1.406s.977.224.956.237c.534.134.63.487.614.767l-.616 2.47c.037.01.085.023.137.044l-.14-.035-.864 3.462c-.065.163-.232.407-.607.314.013.019-.957-.239-.957-.239L7 15.93l1.713.428c.319.08.631.163.939.242l-.546 2.19 1.314.328.54-2.162c.36.098.708.188 1.05.273l-.538 2.154 1.316.33.546-2.187c2.25.426 3.944.254 4.655-1.782.574-1.637-.028-2.582-1.21-3.198.862-.199 1.51-.766 1.682-1.938zm-3.012 4.225c-.408 1.637-3.17.752-4.065.53l.725-2.906c.896.224 3.767.667 3.34 2.376zm.408-4.245c-.372 1.493-2.669.734-3.416.548l.657-2.636c.747.186 3.152.533 2.76 2.088z"/>
               </svg>
               <span className="trust-label">Pay with BTC, XMR, ZEC, and stablecoins.</span>
             </div>
@@ -226,8 +226,8 @@ export default async function Home({
           </div>
         </section>
 
-        <section id="partners" style={{ marginBottom: 24 }}>
-          <div className="divider" style={{ marginBottom: 24 }} />
+        <section id="partners" style={{ marginBottom: 12 }}>
+          <div className="divider" style={{ marginBottom: 12 }} />
           <BrandsGrid
             title="Partners"
             brands={[
@@ -236,7 +236,7 @@ export default async function Home({
               { name: "Jiushark", logo: "/jiushark-logo.png" },
             ]}
           />
-          <div className="divider" style={{ marginTop: 24 }} />
+          <div className="divider" style={{ marginTop: 12 }} />
         </section>
 
         <section id="reviews" style={{ marginBottom: 64 }}>

@@ -13,7 +13,7 @@
   --accent-hover: #16A34A;
   --error: #EF4444;
   --warning: #F59E0B;
-  --navbar-h: 116px;
+  --navbar-h: 58px;
   --font-display: 'Space Grotesk';
 }
 
@@ -181,9 +181,9 @@ footer { position: relative; z-index: 1; }
   transition: border-color 0.15s, transform 0.15s; text-decoration: none; color: inherit;
 }
 .product-card:hover { border-color: var(--primary); transform: translateY(-2px); }
-.product-card-img { width: 100%; aspect-ratio: 16/10; object-fit: cover; background: var(--surface-2); }
+.product-card-img { width: 100%; height: 180px; object-fit: cover; background: var(--surface-2); flex-shrink: 0; }
 .product-card-img-placeholder {
-  width: 100%; aspect-ratio: 16/10; background: var(--surface-2);
+  width: 100%; height: 180px; background: var(--surface-2); flex-shrink: 0;
   display: flex; align-items: center; justify-content: center; color: var(--muted-2); font-size: 0.75rem;
 }
 .product-card-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
@@ -380,10 +380,10 @@ footer { position: relative; z-index: 1; }
   transform: rotateY(180deg);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: space-between;
-  padding: 20px;
-  gap: 10px;
+  padding: 12px 16px;
+  gap: 6px;
 }
 .flip-card-desc {
   color: var(--muted);
@@ -818,8 +818,8 @@ footer { position: relative; z-index: 1; }
   .flip-card-inner { position: static; height: auto; }
   .flip-card-front { position: static; height: auto; }
   .flip-card-back { display: none; }
-  /* Fix portrait images making cards too tall */
-  .product-card-img, .product-card-img-placeholder { max-height: 130px; }
+  /* Fix portrait images on mobile */
+  .product-card-img, .product-card-img-placeholder { height: 120px !important; }
   .product-grid { align-items: start; }
 }
 
@@ -836,11 +836,8 @@ footer { position: relative; z-index: 1; }
 
 /* ── Mobile-only overrides ───────────────────────────── */
 @media (max-width: 768px) {
-  /* Header: not sticky, half height */
+  /* Header: not sticky on mobile */
   .site-header-wrap { position: static !important; }
-  header { height: 58px !important; }
-  .header-inner img { height: 48px !important; }
-  .header-logo-text { display: none; }
 
   /* Hero flip card: disable on mobile */
   .ph-flip-card { perspective: none; }

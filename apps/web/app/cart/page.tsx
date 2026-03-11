@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { fetchProductsBySkus, type Currency, type Product } from "../../lib/api";
+import { fmtPrice } from "../../lib/format";
 import { getCart, removeFromCart } from "../../lib/cart";
 
 export default function CartPage() {
@@ -160,7 +161,7 @@ export default function CartPage() {
                           marginBottom: 4,
                         }}
                       >
-                        {qty} &times; {item.price.toFixed(2)} {currency}
+                        {qty} &times; {fmtPrice(item.price, currency)}
                       </div>
                       <div
                         style={{
@@ -169,7 +170,7 @@ export default function CartPage() {
                           marginBottom: 8,
                         }}
                       >
-                        {(qty * item.price).toFixed(2)} {currency}
+                        {fmtPrice(qty * item.price, currency)}
                       </div>
                       <button
                         className="btn btn-danger btn-sm"
@@ -239,20 +240,20 @@ export default function CartPage() {
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span className="small" style={{ color: "var(--muted)" }}>Subtotal</span>
               <span style={{ fontWeight: 500 }}>
-                {total.toFixed(2)} {currency}
+                {fmtPrice(total, currency)}
               </span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span className="small" style={{ color: "var(--muted)" }}>Shipping</span>
               <span style={{ fontWeight: 500 }}>
-                {shippingCost.toFixed(2)} {currency}
+                {fmtPrice(shippingCost, currency)}
               </span>
             </div>
             {couponDiscount > 0 && (
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span className="small" style={{ color: "var(--accent)" }}>Discount</span>
                 <span style={{ fontWeight: 500, color: "var(--accent)" }}>
-                  -{couponDiscount.toFixed(2)} {currency}
+                  -{fmtPrice(couponDiscount, currency)}
                 </span>
               </div>
             )}
@@ -276,7 +277,7 @@ export default function CartPage() {
                 color: "var(--accent)",
               }}
             >
-              {grandTotal.toFixed(2)} {currency}
+              {fmtPrice(grandTotal, currency)}
             </span>
           </div>
 
