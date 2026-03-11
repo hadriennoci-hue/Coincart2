@@ -407,6 +407,7 @@ footer { position: relative; z-index: 1; }
   overflow: hidden;
   padding: 10px 40px;
   min-height: 0;
+  max-height: 220px;
   transition: border-color 0.45s ease, box-shadow 0.45s ease;
   cursor: pointer;
 }
@@ -441,7 +442,7 @@ footer { position: relative; z-index: 1; }
 .ph-left {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
   position: relative;
   z-index: 1;
   padding-right: 32px;
