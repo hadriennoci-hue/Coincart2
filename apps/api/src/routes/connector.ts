@@ -92,6 +92,15 @@ const parseProductId = (id: string) => {
   return { wooId: null as number | null, uuid: id };
 };
 
+const toIsoString = (value: unknown) => {
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === "string") {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+  }
+  return new Date().toISOString();
+};
+
 const resolveCategory = (payload: Record<string, unknown>) => {
   if (typeof payload.category === "string" && payload.category.trim().length > 0) {
     return payload.category.trim();
@@ -158,9 +167,9 @@ const toWooLikeProduct = (
   stock_quantity: product.stockQty,
   in_stock: product.stockQty > 0,
   prices,
-  date_modified: product.updatedAt.toISOString(),
-  date_modified_gmt: product.updatedAt.toISOString(),
-  date_created: product.createdAt.toISOString(),
+  date_modified: toIsoString(product.updatedAt),
+  date_modified_gmt: toIsoString(product.updatedAt),
+  date_created: toIsoString(product.createdAt),
   image_url: product.imageUrl,
 });
 
@@ -882,6 +891,8 @@ connectorRoutes.post("/products", async (c) => {
   }
   const directVariantOption = parseVariantOption(body, fallbackOptionName);
   const isVariant = Boolean(parentProductId);
+  const shouldPersistVariantFields =
+    isVariant || Boolean(directVariantOption.optionName || directVariantOption.optionValue);
 
   let ean: string | undefined;
   if (Array.isArray(body.meta_data)) {
@@ -893,10 +904,14 @@ connectorRoutes.post("/products", async (c) => {
     .insert(products)
     .values({
       wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : null,
-      parentProductId,
-      isVariant,
-      optionName: directVariantOption.optionName ?? null,
-      optionValue: directVariantOption.optionValue ?? null,
+      ...(shouldPersistVariantFields
+        ? {
+            parentProductId,
+            isVariant,
+            optionName: directVariantOption.optionName ?? null,
+            optionValue: directVariantOption.optionValue ?? null,
+          }
+        : {}),
       sku,
       slug,
       name,
@@ -917,10 +932,14 @@ connectorRoutes.post("/products", async (c) => {
       target: products.sku,
       set: {
         wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : undefined,
-        parentProductId,
-        isVariant,
-        optionName: directVariantOption.optionName ?? null,
-        optionValue: directVariantOption.optionValue ?? null,
+        ...(shouldPersistVariantFields
+          ? {
+              parentProductId,
+              isVariant,
+              optionName: directVariantOption.optionName ?? null,
+              optionValue: directVariantOption.optionValue ?? null,
+            }
+          : {}),
         slug,
         name,
         description: typeof body.description === "string" ? body.description : null,
