@@ -808,12 +808,12 @@ footer { position: relative; z-index: 1; }
 
 /* ── Mobile header / footer ─────────────────────────── */
 @media (max-width: 768px) {
-  .header-search-form { display: none !important; }
   .header-inner img { height: 48px !important; }
-}
-@media (max-width: 600px) {
   .header-logo-text { display: none; }
   .header-inner { padding: 0 12px !important; gap: 10px !important; }
+}
+@media (max-width: 600px) {
+  .header-inner { padding: 0 10px !important; gap: 8px !important; }
   .footer-logo-text { display: none; }
   .footer-inner {
     display: flex;
