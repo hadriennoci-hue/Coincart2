@@ -67,7 +67,10 @@ export default async function Home({
   const { currency = "EUR" } = await searchParams;
   const items = await fetchProducts(currency, false);
   const topSellingFromSales = await fetchTopSellingProducts(currency, 4);
-  const hero = items[0];
+  const hero =
+    items.find((item) => item.slug === "aerobook-14-pro-ryzen7") ??
+    items.find((item) => item.category === "Laptops") ??
+    items[0];
   const promotions = items
     .filter((item) => typeof item.promoPrice === "number" && item.promoPrice > 0 && item.promoPrice < item.price)
     .slice(0, 4);
