@@ -176,6 +176,73 @@ const mapFields = (item: Record<string, unknown>, fields?: string) => {
 
 const euDefaultPrices = { EUR: 0, USD: 0 };
 
+const fallbackCollections = [
+  { key: "cases", label: "Cases" },
+  { key: "desktops", label: "Desktops" },
+  { key: "displays", label: "Displays" },
+  { key: "input-devices", label: "Input Devices" },
+  { key: "laptops", label: "Laptops" },
+  { key: "lifestyle", label: "Lifestyle" },
+  { key: "tablets", label: "Tablets" },
+];
+
+const fallbackCollectionAttributes: Record<
+  string,
+  Array<{ key: string; label: string; type: string; required: boolean; multi_value: boolean; allowed_values: string[] }>
+> = {
+  laptops: [
+    { key: "brand", label: "Brand", type: "enum", required: true, multi_value: false, allowed_values: ["Acer", "Predator"] },
+    { key: "model", label: "Model", type: "enum", required: true, multi_value: false, allowed_values: ["Aspire 3", "Aspire 5", "Swift Go 14", "Swift X 14", "TravelMate P4", "Extensa 15", "Nitro V 15", "Nitro 16", "Predator Helios Neo 16", "Predator Helios 16", "Predator Triton 14"] },
+    { key: "category", label: "Category", type: "enum", required: true, multi_value: false, allowed_values: ["Ultrabook", "Gaming Laptop", "Business Laptop", "Creator Laptop", "Everyday Laptop", "2-in-1 Laptop"] },
+    { key: "series", label: "Series", type: "enum", required: false, multi_value: false, allowed_values: ["Aspire", "Swift", "Nitro", "Predator Helios", "Predator Triton", "TravelMate", "Extensa"] },
+    { key: "screen_size", label: "Screen Size", type: "enum", required: false, multi_value: false, allowed_values: ["13.3", "14", "15.6", "16", "17.3", "18"] },
+    { key: "resolution", label: "Resolution", type: "enum", required: false, multi_value: false, allowed_values: ["1920x1080", "1920x1200", "2560x1600", "2880x1800", "3840x2160"] },
+    { key: "processor", label: "Processor", type: "enum", required: false, multi_value: false, allowed_values: ["Intel Core i5", "Intel Core i7", "Intel Core i9", "Intel Core Ultra 7", "AMD Ryzen 5", "AMD Ryzen 7", "AMD Ryzen 9"] },
+    { key: "screen_type", label: "Screen Type", type: "enum", required: false, multi_value: false, allowed_values: ["IPS", "OLED", "Mini LED"] },
+    { key: "refresh_rate", label: "Refresh Rate", type: "enum", required: false, multi_value: false, allowed_values: ["60", "90", "120", "144", "165", "240"] },
+    { key: "processor_brand", label: "Processor Brand", type: "enum", required: false, multi_value: false, allowed_values: ["Intel", "AMD", "Qualcomm"] },
+    { key: "processor_model", label: "Processor Model", type: "enum", required: false, multi_value: false, allowed_values: ["Intel Core i5", "Intel Core i7", "Intel Core i9", "Intel Core Ultra 5", "Intel Core Ultra 7", "Intel Core Ultra 9", "AMD Ryzen 5", "AMD Ryzen 7", "AMD Ryzen 9", "Snapdragon X Elite"] },
+    { key: "processor_generation", label: "Processor Generation", type: "enum", required: false, multi_value: false, allowed_values: ["12th Gen", "13th Gen", "14th Gen", "Core Ultra Series 1", "Core Ultra Series 2", "Ryzen 7000 Series", "Ryzen 8000 Series", "Ryzen 9000 Series"] },
+    { key: "processor_cores", label: "Processor Cores", type: "enum", required: false, multi_value: false, allowed_values: ["6", "8", "10", "12", "14", "16", "24"] },
+    { key: "gpu_brand", label: "GPU Brand", type: "enum", required: false, multi_value: false, allowed_values: ["NVIDIA", "AMD", "Intel"] },
+    { key: "gpu", label: "GPU", type: "enum", required: false, multi_value: false, allowed_values: ["Intel Arc Graphics", "GeForce RTX 4050", "GeForce RTX 4060", "GeForce RTX 4070", "GeForce RTX 4080", "GeForce RTX 4090"] },
+    { key: "ram", label: "RAM", type: "enum", required: false, multi_value: false, allowed_values: ["8", "16", "32", "64"] },
+    { key: "ram_type", label: "RAM Type", type: "enum", required: false, multi_value: false, allowed_values: ["DDR4", "DDR5", "LPDDR5", "LPDDR5X"] },
+    { key: "ram_max", label: "Max RAM", type: "enum", required: false, multi_value: false, allowed_values: ["16", "32", "64", "96"] },
+    { key: "storage_type", label: "Storage Type", type: "enum", required: false, multi_value: false, allowed_values: ["NVMe SSD", "SATA SSD"] },
+    { key: "storage", label: "Storage", type: "enum", required: false, multi_value: false, allowed_values: ["256GB SSD", "512GB SSD", "1TB SSD", "2TB SSD", "4TB SSD"] },
+    { key: "battery_life", label: "Battery Life", type: "enum", required: false, multi_value: false, allowed_values: ["6", "8", "10", "12", "14"] },
+    { key: "weight", label: "Weight", type: "enum", required: false, multi_value: false, allowed_values: ["<1.4", "1.4-1.8", "1.8-2.3", ">2.3"] },
+    { key: "wifi", label: "Wi-Fi", type: "enum", required: false, multi_value: false, allowed_values: ["Wi-Fi 6", "Wi-Fi 6E", "Wi-Fi 7"] },
+    { key: "bluetooth", label: "Bluetooth", type: "enum", required: false, multi_value: false, allowed_values: ["5.1", "5.2", "5.3", "5.4"] },
+    { key: "ports", label: "Ports", type: "enum", required: false, multi_value: true, allowed_values: ["USB-A", "USB-C", "Thunderbolt 4", "HDMI 2.1", "microSD", "3.5mm Audio Jack", "RJ-45 Ethernet"] },
+    { key: "operating_system", label: "Operating System", type: "enum", required: false, multi_value: false, allowed_values: ["Windows 11 Home", "Windows 11 Pro", "Linux", "No OS"] },
+    { key: "color", label: "Color", type: "enum", required: false, multi_value: false, allowed_values: ["Black", "White", "Silver", "Blue", "Gray"] },
+  ],
+  displays: [
+    { key: "brand", label: "Brand", type: "enum", required: true, multi_value: false, allowed_values: ["Acer", "Predator"] },
+    { key: "model", label: "Model", type: "enum", required: true, multi_value: false, allowed_values: ["Nitro KG241Y", "Nitro XV272U", "Acer CB272", "Predator XB273K", "Predator X34 V", "Predator X45"] },
+    { key: "category", label: "Category", type: "enum", required: true, multi_value: false, allowed_values: ["Gaming Monitor", "Office Monitor", "Creator Monitor", "Ultrawide Monitor"] },
+    { key: "series", label: "Series", type: "enum", required: false, multi_value: false, allowed_values: ["Nitro", "Acer CB", "Predator XB", "Predator X"] },
+    { key: "screen_size", label: "Screen Size", type: "enum", required: false, multi_value: false, allowed_values: ["23.8", "24", "27", "31.5", "34", "45"] },
+    { key: "resolution", label: "Resolution", type: "enum", required: false, multi_value: false, allowed_values: ["1920x1080", "2560x1440", "3440x1440", "3840x2160"] },
+    { key: "panel_type", label: "Panel Type", type: "enum", required: false, multi_value: false, allowed_values: ["IPS", "VA", "OLED", "Mini LED"] },
+    { key: "screen_type", label: "Panel Type", type: "enum", required: false, multi_value: false, allowed_values: ["IPS", "VA", "OLED", "Mini LED"] },
+    { key: "refresh_rate", label: "Refresh Rate", type: "enum", required: false, multi_value: false, allowed_values: ["60", "75", "120", "144", "165", "180", "240"] },
+    { key: "response_time", label: "Response Time", type: "enum", required: false, multi_value: false, allowed_values: ["0.03", "0.5", "1", "2", "4"] },
+    { key: "aspect_ratio", label: "Aspect Ratio", type: "enum", required: false, multi_value: false, allowed_values: ["16:9", "21:9", "32:9"] },
+    { key: "curved", label: "Curved", type: "enum", required: false, multi_value: false, allowed_values: ["No", "1000R", "1500R"] },
+    { key: "brightness", label: "Brightness", type: "enum", required: false, multi_value: false, allowed_values: ["250", "300", "400", "600", "1000"] },
+    { key: "contrast_ratio", label: "Contrast Ratio", type: "enum", required: false, multi_value: false, allowed_values: ["1000:1", "3000:1", "1000000:1"] },
+    { key: "hdr", label: "HDR", type: "enum", required: false, multi_value: false, allowed_values: ["None", "HDR400", "HDR600", "HDR1000"] },
+    { key: "gsync_freesync", label: "G-Sync / FreeSync", type: "enum", required: false, multi_value: false, allowed_values: ["None", "G-SYNC Compatible", "G-SYNC", "FreeSync", "FreeSync Premium", "FreeSync Premium Pro"] },
+    { key: "color_gamut", label: "Color Gamut", type: "enum", required: false, multi_value: false, allowed_values: ["95% sRGB", "99% sRGB", "95% DCI-P3", "99% Adobe RGB"] },
+    { key: "ports", label: "Ports", type: "enum", required: false, multi_value: true, allowed_values: ["HDMI 2.0", "HDMI 2.1", "DisplayPort 1.4", "USB-C", "USB Hub", "3.5mm Audio Out"] },
+    { key: "vesa_mount", label: "VESA Mount", type: "enum", required: false, multi_value: false, allowed_values: ["75x75", "100x100"] },
+    { key: "color", label: "Color", type: "enum", required: false, multi_value: false, allowed_values: ["Black", "White", "Silver"] },
+  ],
+};
+
 const upsertPrice = async (c: { var: AppContext["Variables"] }, productId: string, currency: "EUR" | "USD", amount: number) => {
   await c.var.db
     .insert(productPrices)
@@ -211,98 +278,131 @@ connectorRoutes.get("/health", async (c) => {
 });
 
 connectorRoutes.get("/collections", async (c) => {
-  const rows = await c.var.db
-    .select({
-      id: productCollections.id,
-      key: productCollections.key,
-      label: productCollections.label,
-    })
-    .from(productCollections)
-    .orderBy(asc(productCollections.label));
+  try {
+    const rows = await c.var.db
+      .select({
+        id: productCollections.id,
+        key: productCollections.key,
+        label: productCollections.label,
+      })
+      .from(productCollections)
+      .orderBy(asc(productCollections.label));
 
-  return c.json({
-    items: rows.map((row) => ({
-      id: row.id,
-      key: row.key,
-      slug: row.key,
-      name: row.label,
-      label: row.label,
-    })),
-  });
+    return c.json({
+      items: rows.map((row) => ({
+        id: row.id,
+        key: row.key,
+        slug: row.key,
+        name: row.label,
+        label: row.label,
+      })),
+    });
+  } catch {
+    return c.json({
+      items: fallbackCollections.map((row) => ({
+        id: row.key,
+        key: row.key,
+        slug: row.key,
+        name: row.label,
+        label: row.label,
+        source: "fallback",
+      })),
+    });
+  }
 });
 
 connectorRoutes.get("/collections/:key/attributes", async (c) => {
   const key = c.req.param("key").trim().toLowerCase();
-  const [collection] = await c.var.db
-    .select({
-      id: productCollections.id,
-      key: productCollections.key,
-      label: productCollections.label,
-    })
-    .from(productCollections)
-    .where(eq(productCollections.key, key))
-    .limit(1);
-
-  if (!collection) return c.json(connectorError("Collection not found", 404), 404);
-
-  const attrs = await c.var.db
-    .select({
-      id: productCollectionAttributes.id,
-      key: productCollectionAttributes.attributeKey,
-      label: productCollectionAttributes.label,
-      dataType: productCollectionAttributes.dataType,
-      unit: productCollectionAttributes.unit,
-      required: productCollectionAttributes.required,
-      multiValue: productCollectionAttributes.multiValue,
-      sortOrder: productCollectionAttributes.sortOrder,
-    })
-    .from(productCollectionAttributes)
-    .where(eq(productCollectionAttributes.collectionId, collection.id))
-    .orderBy(asc(productCollectionAttributes.sortOrder), asc(productCollectionAttributes.label));
-
-  const attrIds = attrs.map((x) => x.id);
-  const valuesByAttrId = new Map<string, string[]>();
-
-  if (attrIds.length > 0) {
-    const values = await c.var.db
+  try {
+    const [collection] = await c.var.db
       .select({
-        attributeId: productCollectionAttributeValues.collectionAttributeId,
-        value: productCollectionAttributeValues.value,
+        id: productCollections.id,
+        key: productCollections.key,
+        label: productCollections.label,
       })
-      .from(productCollectionAttributeValues)
-      .where(inArray(productCollectionAttributeValues.collectionAttributeId, attrIds))
-      .orderBy(
-        asc(productCollectionAttributeValues.sortOrder),
-        asc(productCollectionAttributeValues.value),
-      );
+      .from(productCollections)
+      .where(eq(productCollections.key, key))
+      .limit(1);
 
-    for (const row of values) {
-      const current = valuesByAttrId.get(row.attributeId) ?? [];
-      current.push(row.value);
-      valuesByAttrId.set(row.attributeId, current);
+    if (!collection) return c.json(connectorError("Collection not found", 404), 404);
+
+    const attrs = await c.var.db
+      .select({
+        id: productCollectionAttributes.id,
+        key: productCollectionAttributes.attributeKey,
+        label: productCollectionAttributes.label,
+        dataType: productCollectionAttributes.dataType,
+        unit: productCollectionAttributes.unit,
+        required: productCollectionAttributes.required,
+        multiValue: productCollectionAttributes.multiValue,
+        sortOrder: productCollectionAttributes.sortOrder,
+      })
+      .from(productCollectionAttributes)
+      .where(eq(productCollectionAttributes.collectionId, collection.id))
+      .orderBy(asc(productCollectionAttributes.sortOrder), asc(productCollectionAttributes.label));
+
+    const attrIds = attrs.map((x) => x.id);
+    const valuesByAttrId = new Map<string, string[]>();
+
+    if (attrIds.length > 0) {
+      const values = await c.var.db
+        .select({
+          attributeId: productCollectionAttributeValues.collectionAttributeId,
+          value: productCollectionAttributeValues.value,
+        })
+        .from(productCollectionAttributeValues)
+        .where(inArray(productCollectionAttributeValues.collectionAttributeId, attrIds))
+        .orderBy(
+          asc(productCollectionAttributeValues.sortOrder),
+          asc(productCollectionAttributeValues.value),
+        );
+
+      for (const row of values) {
+        const current = valuesByAttrId.get(row.attributeId) ?? [];
+        current.push(row.value);
+        valuesByAttrId.set(row.attributeId, current);
+      }
     }
-  }
 
-  return c.json({
-    collection: {
-      id: collection.id,
-      key: collection.key,
-      slug: collection.key,
-      name: collection.label,
-      label: collection.label,
-    },
-    items: attrs.map((attr) => ({
-      id: attr.id,
-      key: attr.key,
-      name: attr.label,
-      label: attr.label,
-      type: attr.dataType,
-      unit: attr.unit,
-      required: attr.required,
-      multi_value: attr.multiValue,
-      allowed_values: valuesByAttrId.get(attr.id) ?? [],
-    })),
-  });
+    return c.json({
+      collection: {
+        id: collection.id,
+        key: collection.key,
+        slug: collection.key,
+        name: collection.label,
+        label: collection.label,
+      },
+      items: attrs.map((attr) => ({
+        id: attr.id,
+        key: attr.key,
+        name: attr.label,
+        label: attr.label,
+        type: attr.dataType,
+        unit: attr.unit,
+        required: attr.required,
+        multi_value: attr.multiValue,
+        allowed_values: valuesByAttrId.get(attr.id) ?? [],
+      })),
+    });
+  } catch {
+    const fallback = fallbackCollectionAttributes[key];
+    if (!fallback) return c.json(connectorError("Collection not found", 404), 404);
+    return c.json({
+      collection: {
+        id: key,
+        key,
+        slug: key,
+        name: key,
+        label: key,
+        source: "fallback",
+      },
+      items: fallback.map((attr) => ({
+        id: `${key}:${attr.key}`,
+        ...attr,
+        unit: null,
+      })),
+    });
+  }
 });
 
 connectorRoutes.get("/products/:parentId/variations", async (c) => {
