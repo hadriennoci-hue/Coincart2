@@ -3,6 +3,7 @@ import { fetchProducts, fetchTopSellingProducts, type Currency } from "../lib/ap
 import { FlipCard } from "../components/ui/FlipCard";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
 import { PredatorHero } from "../components/ui/PredatorHero";
+import { BrandsGrid } from "../components/ui/BrandsGrid";
 
 const allTestimonials: Testimonial[] = [
   {
@@ -235,6 +236,19 @@ export default async function Home({
               />
             ))}
           </div>
+        </section>
+
+        <section id="partners" style={{ marginBottom: 40 }}>
+          <div className="divider" style={{ marginBottom: 40 }} />
+          <BrandsGrid
+            title="Our Partners"
+            brands={[
+              { name: "Acer", logo: "https://cdn.worldvectorlogo.com/logos/acer-2011.svg" },
+              { name: "Predator", logo: "https://images.seeklogo.com/logo-png/44/3/acer-predator-logo-png_seeklogo-441422.png" },
+              { name: "Jiushark", logo: "https://www.jiushark.com/Upfiles/Base/2025121750863.png" },
+            ]}
+          />
+          <div className="divider" style={{ marginTop: 40 }} />
         </section>
 
         <section id="reviews" style={{ marginBottom: 64 }}>

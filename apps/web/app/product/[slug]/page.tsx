@@ -71,23 +71,23 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Three-column layout */}
+      {/* Two-column layout: image gallery | product info */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "38% 1fr 260px",
-          gap: 40,
+          gridTemplateColumns: "48% 1fr",
+          gap: 48,
           marginBottom: 40,
           alignItems: "start",
         }}
       >
-        {/* Col 1: Product Image */}
+        {/* Left: Product Image Gallery */}
         <div>
           <ProductImageGallery images={imageGallery} alt={product.name} />
         </div>
 
-        {/* Col 2: Title, SKU, Description */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* Right: All product info */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {product.category && (
             <span className="badge badge-teal" style={{ alignSelf: "flex-start" }}>
               {product.category}
@@ -106,7 +106,26 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             {product.name}
           </h1>
 
-          <div className="caption">SKU: {product.sku}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span
+              className={product.stockQty > 0 ? "badge badge-green" : "badge badge-error"}
+            >
+              {product.stockQty > 0 ? "In Stock" : "Out of Stock"}
+            </span>
+            <span className="caption" style={{ color: "var(--muted)" }}>SKU: {product.sku}</span>
+          </div>
+
+          <div className="divider" />
+
+          <span
+            style={{
+              fontSize: "2rem",
+              fontWeight: 700,
+              color: "var(--accent)",
+            }}
+          >
+            {product.price.toFixed(2)} {product.currency}
+          </span>
 
           {product.description && (
             <p
@@ -120,33 +139,6 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
               {product.description}
             </p>
           )}
-        </div>
-
-        {/* Col 3: Price, Stock, Add to Cart */}
-        <div
-          className="surface"
-          style={{ display: "flex", flexDirection: "column", gap: 16, padding: 20 }}
-        >
-          <div>
-            <span
-              style={{
-                fontSize: "1.75rem",
-                fontWeight: 700,
-                color: "var(--accent)",
-                display: "block",
-              }}
-            >
-              {product.price.toFixed(2)} {product.currency}
-            </span>
-            <span
-              className={
-                product.stockQty > 0 ? "badge badge-green" : "badge badge-error"
-              }
-              style={{ marginTop: 8, display: "inline-block" }}
-            >
-              {product.stockQty > 0 ? "In Stock" : "Out of Stock"}
-            </span>
-          </div>
 
           <div className="divider" />
 
