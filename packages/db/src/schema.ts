@@ -14,6 +14,10 @@ import {
 export const products = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
   wooId: integer("woo_id").unique(),
+  parentProductId: uuid("parent_product_id"),
+  isVariant: boolean("is_variant").notNull().default(false),
+  optionName: varchar("option_name", { length: 120 }),
+  optionValue: varchar("option_value", { length: 160 }),
   sku: varchar("sku", { length: 120 }).notNull().unique(),
   slug: varchar("slug", { length: 160 }).notNull().unique(),
   category: varchar("category", { length: 120 }),

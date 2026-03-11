@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { productPrices, products } from "@coincart/db";
 import type { AppContext } from "../types";
@@ -21,6 +21,64 @@ const parsePrice = (value: unknown) => {
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
+};
+
+const parseVariantOptionFromAttributes = (attributes: unknown) => {
+  if (!Array.isArray(attributes)) return { optionName: undefined as string | undefined, optionValue: undefined as string | undefined };
+  for (const raw of attributes as Array<Record<string, unknown>>) {
+    const name = typeof raw?.name === "string" ? raw.name.trim() : "";
+    if (!name || name.toLowerCase() === "brand") continue;
+    const option =
+      typeof raw?.option === "string"
+        ? raw.option.trim()
+        : Array.isArray(raw?.options) && typeof raw.options[0] === "string"
+          ? String(raw.options[0]).trim()
+          : "";
+    if (option) return { optionName: name, optionValue: option };
+  }
+  return { optionName: undefined, optionValue: undefined };
+};
+
+const parseVariantOption = (variant: Record<string, unknown>, fallbackOptionName?: string) => {
+  const fromAttrs = parseVariantOptionFromAttributes(variant.attributes);
+  if (fromAttrs.optionName && fromAttrs.optionValue) return fromAttrs;
+
+  const optionName =
+    (typeof variant.option_name === "string" && variant.option_name.trim()) ||
+    (typeof variant.optionName === "string" && variant.optionName.trim()) ||
+    fallbackOptionName ||
+    undefined;
+  const optionValue =
+    (typeof variant.option_value === "string" && variant.option_value.trim()) ||
+    (typeof variant.optionValue === "string" && variant.optionValue.trim()) ||
+    (typeof variant.option === "string" && variant.option.trim()) ||
+    undefined;
+
+  if (optionName && optionValue) return { optionName, optionValue };
+
+  if (variant.options && typeof variant.options === "object" && !Array.isArray(variant.options)) {
+    const entries = Object.entries(variant.options as Record<string, unknown>);
+    const [first] = entries;
+    if (first && typeof first[0] === "string" && typeof first[1] === "string") {
+      return { optionName: first[0].trim(), optionValue: first[1].trim() };
+    }
+  }
+
+  return { optionName: optionName || undefined, optionValue: optionValue || undefined };
+};
+
+const parseVariantsInput = (body: Record<string, unknown>) => {
+  if (Array.isArray(body.variants)) return body.variants as Array<Record<string, unknown>>;
+  if (Array.isArray(body.variations)) return body.variations as Array<Record<string, unknown>>;
+  return [] as Array<Record<string, unknown>>;
+};
+
+const parseFirstOptionName = (body: Record<string, unknown>) => {
+  if (!Array.isArray(body.options)) return undefined;
+  const first = body.options[0] as Record<string, unknown> | undefined;
+  if (!first) return undefined;
+  if (typeof first.name === "string" && first.name.trim()) return first.name.trim();
+  return undefined;
 };
 
 const parseProductId = (id: string) => {
@@ -54,6 +112,10 @@ const toWooLikeProduct = (
   product: {
     id: string;
     wooId: number | null;
+    parentProductId?: string | null;
+    isVariant?: boolean;
+    optionName?: string | null;
+    optionValue?: string | null;
     sku: string;
     slug: string;
     category: string | null;
@@ -72,6 +134,8 @@ const toWooLikeProduct = (
   id: product.wooId ?? product.id,
   uuid: product.id,
   woo_id: product.wooId,
+  parent_id: product.parentProductId ?? null,
+  type: product.isVariant ? "variation" : "simple",
   sku: product.sku,
   slug: product.slug,
   name: product.name,
@@ -79,7 +143,10 @@ const toWooLikeProduct = (
   description: product.description,
   category: product.category,
   categories: product.category ? [{ name: product.category }] : [],
-  attributes: product.brand ? [{ name: "Brand", options: [product.brand] }] : [],
+  attributes: [
+    ...(product.optionName && product.optionValue ? [{ name: product.optionName, option: product.optionValue }] : []),
+    ...(product.brand ? [{ name: "Brand", options: [product.brand] }] : []),
+  ],
   meta_data: product.ean ? [{ key: "ean", value: product.ean }] : [],
   manage_stock: true,
   stock_quantity: product.stockQty,
@@ -102,6 +169,16 @@ const mapFields = (item: Record<string, unknown>, fields?: string) => {
 };
 
 const euDefaultPrices = { EUR: 0, USD: 0 };
+
+const upsertPrice = async (c: { var: AppContext["Variables"] }, productId: string, currency: "EUR" | "USD", amount: number) => {
+  await c.var.db
+    .insert(productPrices)
+    .values({ productId, currency, amount: amount.toFixed(2) })
+    .onConflictDoUpdate({
+      target: [productPrices.productId, productPrices.currency],
+      set: { amount: amount.toFixed(2) },
+    });
+};
 
 export const connectorRoutes = new Hono<AppContext>();
 
@@ -128,8 +205,54 @@ connectorRoutes.get("/health", async (c) => {
 });
 
 connectorRoutes.get("/products/:parentId/variations", async (c) => {
-  // Compatibility endpoint. Current catalog has no variation model.
-  return c.json([]);
+  const parsedParentId = parseProductId(c.req.param("parentId"));
+  const parent = await resolveByParsedId(c, parsedParentId);
+  if (!parent) return c.json(connectorError("Parent product not found", 404), 404);
+
+  const variants = await c.var.db
+    .select({
+      id: products.id,
+      wooId: products.wooId,
+      parentProductId: products.parentProductId,
+      isVariant: products.isVariant,
+      optionName: products.optionName,
+      optionValue: products.optionValue,
+      sku: products.sku,
+      slug: products.slug,
+      category: products.category,
+      name: products.name,
+      description: products.description,
+      imageUrl: products.imageUrl,
+      visibilityStatus: products.visibilityStatus,
+      brand: products.brand,
+      ean: products.ean,
+      stockQty: products.stockQty,
+      createdAt: products.createdAt,
+      updatedAt: products.updatedAt,
+    })
+    .from(products)
+    .where(and(eq(products.parentProductId, parent.id), eq(products.isVariant, true)))
+    .orderBy(asc(products.name));
+
+  const ids = variants.map((v) => v.id);
+  const pricesById = new Map<string, Record<string, number>>();
+  if (ids.length > 0) {
+    const priceRows = await c.var.db
+      .select({
+        productId: productPrices.productId,
+        currency: productPrices.currency,
+        amount: productPrices.amount,
+      })
+      .from(productPrices)
+      .where(inArray(productPrices.productId, ids));
+    for (const row of priceRows) {
+      const current = pricesById.get(row.productId) ?? { ...euDefaultPrices };
+      current[row.currency] = Number(row.amount);
+      pricesById.set(row.productId, current);
+    }
+  }
+
+  return c.json(variants.map((item) => toWooLikeProduct(item, pricesById.get(item.id) ?? { ...euDefaultPrices })));
 });
 
 connectorRoutes.get("/products/:id", async (c) => {
@@ -309,11 +432,22 @@ connectorRoutes.post("/products/:id", async (c) => {
   const resolvedCategory = resolveCategory(body);
   if (resolvedCategory !== undefined) updatePayload.category = resolvedCategory;
 
+  if (typeof body.parent_id === "string" || typeof body.parent_id === "number") {
+    const parentParsed = parseProductId(String(body.parent_id));
+    const parentResolved = await resolveByParsedId(c, parentParsed);
+    if (!parentResolved) return c.json(connectorError("parent_id not found", 404), 404);
+    updatePayload.parentProductId = parentResolved.id;
+    updatePayload.isVariant = true;
+  }
+
   if (Array.isArray(body.attributes)) {
     const brandAttr = (body.attributes as Array<{ name?: string; options?: string[] }>).find(
       (x) => x.name?.toLowerCase() === "brand",
     );
     if (brandAttr?.options?.[0]) updatePayload.brand = brandAttr.options[0];
+    const variantOption = parseVariantOptionFromAttributes(body.attributes);
+    if (variantOption.optionName) updatePayload.optionName = variantOption.optionName;
+    if (variantOption.optionValue) updatePayload.optionValue = variantOption.optionValue;
   }
 
   if (Array.isArray(body.meta_data)) {
@@ -323,6 +457,25 @@ connectorRoutes.post("/products/:id", async (c) => {
 
   const resolved = await resolveByParsedId(c, parsedId);
   if (!resolved) return c.json(connectorError("Product not found", 404), 404);
+
+  const [resolvedProduct] = await c.var.db
+    .select({
+      id: products.id,
+      wooId: products.wooId,
+      parentProductId: products.parentProductId,
+      isVariant: products.isVariant,
+      name: products.name,
+      slug: products.slug,
+      category: products.category,
+      visibilityStatus: products.visibilityStatus,
+      imageUrl: products.imageUrl,
+      brand: products.brand,
+      description: products.description,
+    })
+    .from(products)
+    .where(eq(products.id, resolved.id))
+    .limit(1);
+  if (!resolvedProduct) return c.json(connectorError("Product not found", 404), 404);
 
   if (Object.keys(updatePayload).length > 0) {
     await c.var.db
@@ -359,6 +512,139 @@ connectorRoutes.post("/products/:id", async (c) => {
       });
   }
 
+  const variantsInput = parseVariantsInput(body);
+  const fallbackOptionName = parseFirstOptionName(body);
+  const replaceVariants = body.replace_variants === true || body.replace_variations === true;
+  if (variantsInput.length > 0) {
+    const parentId = resolvedProduct.id;
+    const keepVariantIds: string[] = [];
+    const variantIds: Array<string | number> = [];
+
+    for (const variant of variantsInput) {
+      const variantSku = typeof variant.sku === "string" ? variant.sku.trim() : "";
+      if (!variantSku) continue;
+
+      const option = parseVariantOption(variant, fallbackOptionName);
+      const variantName =
+        typeof variant.name === "string" && variant.name.trim()
+          ? variant.name.trim()
+          : option.optionValue
+            ? `${resolvedProduct.name} - ${option.optionValue}`
+            : `${resolvedProduct.name} - ${variantSku}`;
+      const variantSlug =
+        typeof variant.slug === "string" && variant.slug.trim()
+          ? variant.slug.trim()
+          : slugify(variantName || variantSku);
+      const variantStockQty =
+        typeof variant.stock_quantity === "number"
+          ? Math.max(0, Math.trunc(variant.stock_quantity))
+          : variant.in_stock === false
+            ? 0
+            : 0;
+      const [saved] = await c.var.db
+        .insert(products)
+        .values({
+          wooId:
+            typeof variant.id === "number"
+              ? variant.id
+              : typeof variant.woo_id === "number"
+                ? variant.woo_id
+                : null,
+          parentProductId: parentId,
+          isVariant: true,
+          optionName: option.optionName ?? null,
+          optionValue: option.optionValue ?? null,
+          sku: variantSku,
+          slug: variantSlug,
+          category: resolvedProduct.category ?? null,
+          name: variantName,
+          description:
+            typeof variant.description === "string"
+              ? variant.description
+              : resolvedProduct.description ?? null,
+          visibilityStatus:
+            typeof variant.status === "string"
+              ? variant.status
+              : resolvedProduct.visibilityStatus,
+          brand:
+            typeof variant.brand === "string" && variant.brand.trim()
+              ? variant.brand.trim()
+              : resolvedProduct.brand ?? null,
+          stockQty: variantStockQty,
+          imageUrl:
+            typeof variant.image_url === "string"
+              ? variant.image_url
+              : resolvedProduct.imageUrl ?? null,
+        })
+        .onConflictDoUpdate({
+          target: products.sku,
+          set: {
+            wooId:
+              typeof variant.id === "number"
+                ? variant.id
+                : typeof variant.woo_id === "number"
+                  ? variant.woo_id
+                  : undefined,
+            parentProductId: parentId,
+            isVariant: true,
+            optionName: option.optionName ?? null,
+            optionValue: option.optionValue ?? null,
+            slug: variantSlug,
+            category: resolvedProduct.category ?? null,
+            name: variantName,
+            description:
+              typeof variant.description === "string"
+                ? variant.description
+                : resolvedProduct.description ?? null,
+            visibilityStatus:
+              typeof variant.status === "string"
+                ? variant.status
+                : resolvedProduct.visibilityStatus,
+            brand:
+              typeof variant.brand === "string" && variant.brand.trim()
+                ? variant.brand.trim()
+                : resolvedProduct.brand ?? null,
+            stockQty: variantStockQty,
+            imageUrl:
+              typeof variant.image_url === "string"
+                ? variant.image_url
+                : resolvedProduct.imageUrl ?? null,
+          },
+        })
+        .returning({ id: products.id, wooId: products.wooId });
+
+      keepVariantIds.push(saved.id);
+      variantIds.push(saved.wooId ?? saved.id);
+
+      const variantEur =
+        parsePrice(variant.regular_price) ??
+        parsePrice(variant.price_eur) ??
+        parsePrice((variant.prices as Record<string, unknown> | undefined)?.EUR);
+      const variantUsd =
+        parsePrice(variant.price_usd) ??
+        parsePrice((variant.prices as Record<string, unknown> | undefined)?.USD);
+      if (variantEur !== null) await upsertPrice(c, saved.id, "EUR", variantEur);
+      if (variantUsd !== null) await upsertPrice(c, saved.id, "USD", variantUsd);
+    }
+
+    if (replaceVariants) {
+      if (keepVariantIds.length === 0) {
+        await c.var.db.delete(products).where(eq(products.parentProductId, parentId));
+      } else {
+        await c.var.db
+          .delete(products)
+          .where(
+            and(
+              eq(products.parentProductId, parentId),
+              sql`${products.id} NOT IN (${sql.join(keepVariantIds.map((id) => sql`${id}`), sql`,`)})`,
+            ),
+          );
+      }
+    }
+
+    return c.json({ updated: true, id: resolved.wooId ?? resolved.id, variant_ids: variantIds });
+  }
+
   return c.json({ updated: true, id: resolved.wooId ?? resolved.id });
 });
 
@@ -374,6 +660,7 @@ connectorRoutes.post("/products", async (c) => {
     typeof body.slug === "string" && body.slug.trim().length > 0 ? body.slug.trim() : slugify(name || sku);
 
   const category = resolveCategory(body);
+  const fallbackOptionName = parseFirstOptionName(body);
 
   let brand: string | undefined;
   if (Array.isArray(body.attributes)) {
@@ -382,6 +669,16 @@ connectorRoutes.post("/products", async (c) => {
     );
     if (brandAttr?.options?.[0]) brand = brandAttr.options[0];
   }
+
+  let parentProductId: string | null = null;
+  if (typeof body.parent_id === "string" || typeof body.parent_id === "number") {
+    const parentParsed = parseProductId(String(body.parent_id));
+    const parentResolved = await resolveByParsedId(c, parentParsed);
+    if (!parentResolved) return c.json(connectorError("parent_id not found", 404), 404);
+    parentProductId = parentResolved.id;
+  }
+  const directVariantOption = parseVariantOption(body, fallbackOptionName);
+  const isVariant = Boolean(parentProductId);
 
   let ean: string | undefined;
   if (Array.isArray(body.meta_data)) {
@@ -393,6 +690,10 @@ connectorRoutes.post("/products", async (c) => {
     .insert(products)
     .values({
       wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : null,
+      parentProductId,
+      isVariant,
+      optionName: directVariantOption.optionName ?? null,
+      optionValue: directVariantOption.optionValue ?? null,
       sku,
       slug,
       name,
@@ -413,6 +714,10 @@ connectorRoutes.post("/products", async (c) => {
       target: products.sku,
       set: {
         wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : undefined,
+        parentProductId,
+        isVariant,
+        optionName: directVariantOption.optionName ?? null,
+        optionValue: directVariantOption.optionValue ?? null,
         slug,
         name,
         description: typeof body.description === "string" ? body.description : null,
@@ -433,23 +738,104 @@ connectorRoutes.post("/products", async (c) => {
     parsePrice((body.prices as Record<string, unknown> | undefined)?.USD);
 
   if (priceEur !== null) {
-    await c.var.db
-      .insert(productPrices)
-      .values({ productId: created.id, currency: "EUR", amount: priceEur.toFixed(2) })
-      .onConflictDoUpdate({
-        target: [productPrices.productId, productPrices.currency],
-        set: { amount: priceEur.toFixed(2) },
-      });
+    await upsertPrice(c, created.id, "EUR", priceEur);
   }
   if (priceUsd !== null) {
-    await c.var.db
-      .insert(productPrices)
-      .values({ productId: created.id, currency: "USD", amount: priceUsd.toFixed(2) })
-      .onConflictDoUpdate({
-        target: [productPrices.productId, productPrices.currency],
-        set: { amount: priceUsd.toFixed(2) },
-      });
+    await upsertPrice(c, created.id, "USD", priceUsd);
+  }
+  const variantsInput = parseVariantsInput(body);
+  if (variantsInput.length === 0) {
+    return c.json({ created: true, id: created.wooId ?? created.id }, 201);
   }
 
-  return c.json({ created: true, id: created.wooId ?? created.id }, 201);
+  const variantIds: Array<string | number> = [];
+  for (const variant of variantsInput) {
+    const variantSku = typeof variant.sku === "string" ? variant.sku.trim() : "";
+    if (!variantSku) continue;
+
+    const option = parseVariantOption(variant, fallbackOptionName);
+    const variantName =
+      typeof variant.name === "string" && variant.name.trim()
+        ? variant.name.trim()
+        : option.optionValue
+          ? `${name} - ${option.optionValue}`
+          : `${name} - ${variantSku}`;
+    const variantSlug =
+      typeof variant.slug === "string" && variant.slug.trim()
+        ? variant.slug.trim()
+        : slugify(variantName || variantSku);
+    const variantStockQty =
+      typeof variant.stock_quantity === "number"
+        ? Math.max(0, Math.trunc(variant.stock_quantity))
+        : variant.in_stock === false
+          ? 0
+          : 0;
+
+    const [savedVariant] = await c.var.db
+      .insert(products)
+      .values({
+        wooId:
+          typeof variant.id === "number"
+            ? variant.id
+            : typeof variant.woo_id === "number"
+              ? variant.woo_id
+              : null,
+        parentProductId: created.id,
+        isVariant: true,
+        optionName: option.optionName ?? null,
+        optionValue: option.optionValue ?? null,
+        sku: variantSku,
+        slug: variantSlug,
+        category: category ?? null,
+        name: variantName,
+        description: typeof variant.description === "string" ? variant.description : null,
+        visibilityStatus: typeof variant.status === "string" ? variant.status : "publish",
+        brand:
+          typeof variant.brand === "string" && variant.brand.trim()
+            ? variant.brand.trim()
+            : brand ?? null,
+        stockQty: variantStockQty,
+        imageUrl: typeof variant.image_url === "string" ? variant.image_url : null,
+      })
+      .onConflictDoUpdate({
+        target: products.sku,
+        set: {
+          wooId:
+            typeof variant.id === "number"
+              ? variant.id
+              : typeof variant.woo_id === "number"
+                ? variant.woo_id
+                : undefined,
+          parentProductId: created.id,
+          isVariant: true,
+          optionName: option.optionName ?? null,
+          optionValue: option.optionValue ?? null,
+          slug: variantSlug,
+          category: category ?? null,
+          name: variantName,
+          description: typeof variant.description === "string" ? variant.description : null,
+          visibilityStatus: typeof variant.status === "string" ? variant.status : "publish",
+          brand:
+            typeof variant.brand === "string" && variant.brand.trim()
+              ? variant.brand.trim()
+              : brand ?? null,
+          stockQty: variantStockQty,
+          imageUrl: typeof variant.image_url === "string" ? variant.image_url : null,
+        },
+      })
+      .returning({ id: products.id, wooId: products.wooId });
+
+    const variantEur =
+      parsePrice(variant.regular_price) ??
+      parsePrice(variant.price_eur) ??
+      parsePrice((variant.prices as Record<string, unknown> | undefined)?.EUR);
+    const variantUsd =
+      parsePrice(variant.price_usd) ??
+      parsePrice((variant.prices as Record<string, unknown> | undefined)?.USD);
+    if (variantEur !== null) await upsertPrice(c, savedVariant.id, "EUR", variantEur);
+    if (variantUsd !== null) await upsertPrice(c, savedVariant.id, "USD", variantUsd);
+    variantIds.push(savedVariant.wooId ?? savedVariant.id);
+  }
+
+  return c.json({ created: true, id: created.wooId ?? created.id, variant_ids: variantIds }, 201);
 });

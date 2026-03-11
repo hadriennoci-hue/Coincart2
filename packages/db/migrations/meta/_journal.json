@@ -50,6 +50,13 @@
       "when": 1773200239705,
       "tag": "0006_fluffy_mathemanic",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1773243000000,
+      "tag": "0007_tan_variant_model",
+      "breakpoints": true
     }
   ]
 }
