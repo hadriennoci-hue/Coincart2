@@ -136,7 +136,7 @@ export default function CheckoutPage() {
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <label className="form-label">
-                Full Name{showMissing("shippingName")}
+                Full Name *
                 <input
                   className="input"
                   value={shippingName}
@@ -169,8 +169,7 @@ export default function CheckoutPage() {
                 </select>
               </label>
               <label className="form-label">
-                Street Address
-                {showMissing("streetAddress")}
+                Street Address *
                 <input
                   className="input"
                   value={streetAddress}
@@ -227,7 +226,7 @@ export default function CheckoutPage() {
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <label className="form-label">
-                Email{showMissing("email")}
+                Email *
                 <input
                   className="input"
                   type="email"
@@ -237,9 +236,8 @@ export default function CheckoutPage() {
                 />
               </label>
               <label className="form-label">
-                Phone{" "}
+                Phone *{" "}
                 <span style={{ color: "var(--muted-2)" }}>(will be communicated to DHL)</span>
-                {showMissing("phone")}
                 <input
                   className="input"
                   type="tel"
