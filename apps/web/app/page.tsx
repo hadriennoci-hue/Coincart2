@@ -166,7 +166,11 @@ export default async function Home({
         </section>
 
         <section id="promotions" style={{ marginBottom: 48 }}>
-          <h2 className="section-title" style={{ marginBottom: 16 }}>Promotions</h2>
+          <div style={{ textAlign: "center", marginBottom: 24 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, border: "1px solid var(--border)", borderRadius: 8, padding: "4px 16px", fontSize: "0.8rem", color: "var(--muted)" }}>
+              Promotions
+            </div>
+          </div>
           <div className="product-grid">
             {(promotions.length > 0 ? promotions : topSellingFallback).map((item) => (
               <FlipCard
@@ -186,7 +190,11 @@ export default async function Home({
         </section>
 
         <section id="top-selling" style={{ marginBottom: 48 }}>
-          <h2 className="section-title" style={{ marginBottom: 16 }}>Top Selling</h2>
+          <div style={{ textAlign: "center", marginBottom: 24 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, border: "1px solid var(--border)", borderRadius: 8, padding: "4px 16px", fontSize: "0.8rem", color: "var(--muted)" }}>
+              Top Selling
+            </div>
+          </div>
           <div className="product-grid">
             {topSelling.map((item) => (
               <FlipCard

@@ -7,7 +7,7 @@ export function SiteFooter() {
     <footer style={{
       background: "var(--surface)",
       borderTop: "1px solid var(--border)",
-      padding: "15px 0",
+      padding: "11px 0",
     }}>
       <div className="container">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
@@ -16,7 +16,7 @@ export function SiteFooter() {
             <img
               src="/coincart-logo-mark.png"
               alt="Coincart"
-              style={{ height: 68, width: "auto", display: "block" }}
+              style={{ height: 51, width: "auto", display: "block" }}
             />
             <span style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "0.01em" }}>Coincart</span>
           </Link>

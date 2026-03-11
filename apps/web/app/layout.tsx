@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/Footer";
 import { ToastProvider } from "../components/ui/ToastProvider";
-import { BeamsBackground } from "../components/ui/beams-background";
+import { BackgroundPaths } from "../components/ui/background-paths";
 
 export const runtime = 'edge';
 
@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body>
-        <BeamsBackground />
+        <BackgroundPaths />
         <SiteHeader />
         <main>{children}</main>
         <SiteFooter />

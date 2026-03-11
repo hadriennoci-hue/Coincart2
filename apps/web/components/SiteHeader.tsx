@@ -87,7 +87,7 @@ export function SiteHeader() {
           <img
             src="/coincart-logo-mark.png"
             alt="Coincart"
-            style={{ height: 68, width: "auto", display: "block" }}
+            style={{ height: 51, width: "auto", display: "block" }}
           />
           <span style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "0.01em" }}>Coincart</span>
         </Link>
@@ -122,7 +122,6 @@ export function SiteHeader() {
               </span>
             )}
           </Link>
-          <Link href="/account" className="btn btn-ghost" style={{ padding: "7px 14px", fontSize: "0.8rem" }}>Account</Link>
         </nav>
       </div>
     </header>

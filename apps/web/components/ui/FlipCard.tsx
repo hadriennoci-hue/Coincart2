@@ -64,7 +64,7 @@ export function FlipCard({
               <div className="card-title" style={{ marginBottom: 0, fontSize: "0.9375rem" }}>{name}</div>
             </div>
             <div className="product-card-footer">
-              <span className="product-card-price">{priceBlock}</span>
+              <span className="product-card-price" style={hasPromo ? { fontSize: "0.78rem", fontWeight: 700 } : undefined}>{priceBlock}</span>
               <span className={stockQty > 0 ? "badge badge-green" : "badge badge-error"}>
                 {stockQty > 0 ? "In Stock" : "Out of Stock"}
               </span>
@@ -78,9 +78,6 @@ export function FlipCard({
             <p className="flip-card-desc">
               {description || "Premium product. View details for full specifications."}
             </p>
-            <span style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--accent)" }}>
-              {priceBlock}
-            </span>
           </div>
         </div>
       </div>
