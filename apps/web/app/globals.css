@@ -858,9 +858,6 @@ footer { position: relative; z-index: 1; }
 
 /* ── Mobile-only overrides ───────────────────────────── */
 @media (max-width: 768px) {
-  /* Header: not sticky on mobile */
-  .site-header-wrap { position: static !important; }
-
   /* Hero flip card: disable on mobile */
   .ph-flip-card { perspective: none; }
   .ph-flip-card:hover .ph-flip-inner { transform: none !important; }
