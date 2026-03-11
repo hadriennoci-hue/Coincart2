@@ -790,6 +790,9 @@ footer { position: relative; z-index: 1; }
 }
 
 /* ── Mobile header / footer ─────────────────────────── */
+@media (max-width: 768px) {
+  .header-search-form { display: none !important; }
+}
 @media (max-width: 600px) {
   .header-logo-text { display: none; }
   .header-inner { padding: 0 12px !important; gap: 10px !important; }
@@ -851,4 +854,69 @@ footer { position: relative; z-index: 1; }
     grid-template-columns: 1fr !important;
     gap: 24px !important;
   }
+}
+
+/* ── Search filter sidebar ───────────────────────────── */
+.search-aside {
+  width: 220px;
+  flex-shrink: 0;
+  position: sticky;
+  top: calc(var(--navbar-h) + 24px);
+}
+.search-filter-toggle { display: none; }
+.search-filter-form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.search-filter-header { display: flex; align-items: center; justify-content: space-between; }
+.search-filter-close { display: none; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; padding: 2px 6px; }
+
+@media (max-width: 768px) {
+  .search-aside {
+    position: static;
+    width: auto;
+    flex-shrink: 0;
+  }
+  /* Toggle button: always visible on mobile */
+  .search-filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+  }
+  .search-filter-dot {
+    width: 6px; height: 6px;
+    background: var(--primary);
+    border-radius: 50%;
+    position: absolute;
+    top: 6px; right: 6px;
+  }
+  /* Panel: hidden by default, shown as overlay when open */
+  .search-filter-form {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 200;
+    border-radius: 0 0 12px 12px;
+    border-top: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .search-filter-form--open { display: flex; }
+  .search-filter-close { display: block; }
 }

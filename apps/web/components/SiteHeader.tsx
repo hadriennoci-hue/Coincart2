@@ -93,7 +93,7 @@ export function SiteHeader() {
         </Link>
 
         {/* Search */}
-        <form action="/search" method="get" style={{ flex: 1, maxWidth: 540 }}>
+        <form action="/search" method="get" className="header-search-form" style={{ flex: 1, maxWidth: 540 }}>
           <input
             name="q"
             placeholder="Search products..."
