@@ -387,7 +387,25 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="divider" style={{ marginBottom: 16 }} />
+            {cartProducts.length > 0 && (() => {
+              const lines = getCart();
+              const subtotal = cartProducts.reduce((acc, p) => {
+                const qty = lines.find((l) => l.sku === p.sku)?.quantity ?? 1;
+                return acc + p.price * qty;
+              }, 0);
+              const grandTotal = subtotal + shippingCost;
+              return (
+                <>
+                  <div className="divider" style={{ margin: "0 0 16px" }} />
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                    <span style={{ fontWeight: 700 }}>Total</span>
+                    <span style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--accent)" }}>
+                      {fmtPrice(grandTotal, currency)}
+                    </span>
+                  </div>
+                </>
+              );
+            })()}
 
             <p className="small" style={{ color: "var(--muted)", marginBottom: 4 }}>
               Shipping is available within the EU only.{" "}

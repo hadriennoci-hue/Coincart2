@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Laptop, Monitor, Package, Keyboard, Sparkles, Tablet, Tv2 } from "lucide-react";
 import { fetchProducts, fetchTopSellingProducts, type Currency } from "../lib/api";
 import { FlipCard } from "../components/ui/FlipCard";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
@@ -52,14 +53,14 @@ export const runtime = "edge";
 const HOME_HERO_SKU = process.env.NEXT_PUBLIC_HERO_SKU || "LT-GRY-14-A14-US";
 
 const collectionMeta = [
-  { key: "cases", label: "Cases", icon: "BOX" },
-  { key: "desktops", label: "Desktops", icon: "PC" },
-  { key: "displays", label: "Displays", icon: "DISP" },
-  { key: "input-devices", label: "Input Devices", icon: "INPUT" },
-  { key: "laptops", label: "Laptops", icon: "LAP" },
-  { key: "lifestyle", label: "Lifestyle", icon: "LIFE" },
-  { key: "tablets", label: "Tablets", icon: "TAB" },
-] as const;
+  { key: "cases", label: "Cases", Icon: Package },
+  { key: "desktops", label: "Desktops", Icon: Monitor },
+  { key: "displays", label: "Displays", Icon: Tv2 },
+  { key: "input-devices", label: "Input Devices", Icon: Keyboard },
+  { key: "laptops", label: "Laptops", Icon: Laptop },
+  { key: "lifestyle", label: "Lifestyle", Icon: Sparkles },
+  { key: "tablets", label: "Tablets", Icon: Tablet },
+];
 
 export default async function Home({
   searchParams,
@@ -121,7 +122,7 @@ export default async function Home({
     key: entry.key,
     name: entry.label,
     productCount: collectionsMap.get(entry.key) || 0,
-    icon: entry.icon,
+    Icon: entry.Icon,
   }));
 
   return (
@@ -177,15 +178,15 @@ export default async function Home({
       <div className="container" style={{ paddingTop: 24 }}>
         <section style={{ marginBottom: 40 }}>
           <div className="category-grid">
-            {collections.map((collection) => (
+            {collections.map(({ key, name, productCount, Icon }) => (
               <Link
-                key={collection.key}
+                key={key}
                 className="category-card"
-                href={`/search?currency=${currency}&collection=${encodeURIComponent(collection.key)}`}
+                href={`/search?currency=${currency}&collection=${encodeURIComponent(key)}`}
               >
-                <div className="category-icon">{collection.icon}</div>
-                <div className="category-label">{collection.name}</div>
-                <div className="caption">{collection.productCount} products</div>
+                <div className="category-icon"><Icon size={22} strokeWidth={1.7} /></div>
+                <div className="category-label">{name}</div>
+                <div className="caption">{productCount} products</div>
               </Link>
             ))}
           </div>

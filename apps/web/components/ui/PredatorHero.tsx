@@ -113,15 +113,17 @@ export function PredatorHero({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.4 }}
               >
-                <div className="ph-price-stack">
-                  <span className="ph-price-meta">Price</span>
-                  <span className="ph-price ph-price-old">{fmtPrice(price, currency)}</span>
-                </div>
-                <div className="ph-price-stack">
-                  <span className="ph-price-meta">Promo</span>
-                  <span className="ph-price">{fmtPrice(promoPrice ?? price, currency)}</span>
-                </div>
-                <span className="ph-price-meta">{stockQty > 0 ? "In Stock" : "Out of Stock"}</span>
+                {promoPrice && promoPrice < price ? (
+                  <>
+                    <span className="ph-price ph-price-old">{fmtPrice(price, currency)}</span>
+                    <span className="ph-price">{fmtPrice(promoPrice, currency)}</span>
+                  </>
+                ) : (
+                  <span className="ph-price">{fmtPrice(price, currency)}</span>
+                )}
+                <span className={stockQty > 0 ? "badge badge-green" : "badge badge-error"}>
+                  {stockQty > 0 ? "In Stock" : "Out of Stock"}
+                </span>
               </motion.div>
             </motion.div>
 
