@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { createCheckoutSession, type Currency } from "../../lib/api";
+import { createCheckoutSession, fetchProductsBySkus, type Currency, type Product } from "../../lib/api";
 import { fmtPrice } from "../../lib/format";
 import { clearCart, getCart } from "../../lib/cart";
 
@@ -51,6 +51,8 @@ export default function CheckoutPage() {
   const [currency, setCurrency] = useState<Currency>("EUR");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [cartProducts, setCartProducts] = useState<Product[]>([]);
   const shippingCost = currency === "EUR" ? 10 : 11;
 
   useEffect(() => {
@@ -59,15 +61,42 @@ export default function CheckoutPage() {
     if (c === "USD" || c === "EUR") setCurrency(c);
   }, []);
 
+  useEffect(() => {
+    const lines = getCart();
+    if (lines.length === 0) return;
+    fetchProductsBySkus(lines.map((l) => l.sku), currency).then(setCartProducts);
+  }, [currency]);
+
+  const missingRequired = {
+    shippingName: shippingName.trim().length === 0,
+    streetAddress: streetAddress.trim().length === 0,
+    city: city.trim().length === 0,
+    postcode: postcode.trim().length === 0,
+    email: email.trim().length === 0,
+    phone: phone.trim().length === 0,
+  };
+  const hasMissingRequired = Object.values(missingRequired).some(Boolean);
+  const showMissing = (key: keyof typeof missingRequired) =>
+    attemptedSubmit && missingRequired[key] ? (
+      <span style={{ color: "var(--error)", marginLeft: 4 }}>*</span>
+    ) : null;
+
   const submit = async () => {
     try {
+      setAttemptedSubmit(true);
       setLoading(true);
       setError("");
+      if (hasMissingRequired) throw new Error("Please fill all required fields.");
+      if (!agreeTerms) throw new Error("Please accept the Terms of Sale and Privacy Policy.");
       const lines = getCart();
       if (lines.length === 0) throw new Error("Cart is empty");
       const session = await createCheckoutSession({
         email,
-        phone: phone || undefined,
+        phone,
+        shippingName,
+        streetAddress,
+        city,
+        postcode,
         shippingCountry: country,
         currency,
         lines,
@@ -107,7 +136,7 @@ export default function CheckoutPage() {
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <label className="form-label">
-                Full Name *
+                Full Name{showMissing("shippingName")}
                 <input
                   className="input"
                   value={shippingName}
@@ -140,7 +169,8 @@ export default function CheckoutPage() {
                 </select>
               </label>
               <label className="form-label">
-                Street Address *
+                Street Address
+                {showMissing("streetAddress")}
                 <input
                   className="input"
                   value={streetAddress}
@@ -166,7 +196,8 @@ export default function CheckoutPage() {
                 }}
               >
                 <label className="form-label">
-                  City *
+                  City
+                  {showMissing("city")}
                   <input
                     className="input"
                     value={city}
@@ -175,7 +206,8 @@ export default function CheckoutPage() {
                   />
                 </label>
                 <label className="form-label">
-                  Postcode *
+                  Postcode
+                  {showMissing("postcode")}
                   <input
                     className="input"
                     value={postcode}
@@ -195,7 +227,7 @@ export default function CheckoutPage() {
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <label className="form-label">
-                Email *
+                Email{showMissing("email")}
                 <input
                   className="input"
                   type="email"
@@ -206,7 +238,8 @@ export default function CheckoutPage() {
               </label>
               <label className="form-label">
                 Phone{" "}
-                <span style={{ color: "var(--muted-2)" }}>(optional)</span>
+                <span style={{ color: "var(--muted-2)" }}>(will be communicated to DHL)</span>
+                {showMissing("phone")}
                 <input
                   className="input"
                   type="tel"
@@ -297,6 +330,35 @@ export default function CheckoutPage() {
               Order Summary
             </h2>
 
+            {/* Cart Items */}
+            {cartProducts.length > 0 && (() => {
+              const lines = getCart();
+              return (
+                <>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
+                    {cartProducts.map((product) => {
+                      const line = lines.find((l) => l.sku === product.sku);
+                      const qty = line?.quantity ?? 1;
+                      return (
+                        <div key={product.sku} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+                            <span style={{ fontSize: "0.75rem", color: "var(--muted)", flexShrink: 0 }}>×{qty}</span>
+                            <span style={{ fontSize: "0.8rem", color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {product.name.length > 28 ? product.name.slice(0, 27) + "…" : product.name}
+                            </span>
+                          </div>
+                          <span style={{ fontSize: "0.8rem", fontWeight: 600, flexShrink: 0, color: "var(--muted)" }}>
+                            {fmtPrice(product.price * qty, currency)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="divider" style={{ marginBottom: 16 }} />
+                </>
+              );
+            })()}
+
             {/* Shipping Info */}
             <div
               style={{
@@ -337,23 +399,19 @@ export default function CheckoutPage() {
               </Link>
               .
             </p>
-            <p className="small" style={{ color: "var(--muted)", marginBottom: 0 }}>
-              Taxes and duties are handled according to destination-country and
-              supplier rules.
-            </p>
           </div>
 
           <button
             className="btn btn-primary btn-full btn-lg"
             onClick={submit}
-            disabled={loading || !email || !agreeTerms}
+            disabled={loading || hasMissingRequired || !agreeTerms}
             type="button"
           >
-            {loading ? "Creating session..." : "Create BTCPay Session"}
+            {loading ? "Creating session..." : "Pay with crypto"}
           </button>
 
           <div className="caption" style={{ marginTop: 10, textAlign: "center" }}>
-            🔒 You will be redirected to BTCPay Server to complete payment
+            🔒 You will be redirected to BTCPay Server
           </div>
         </div>
       </div>
