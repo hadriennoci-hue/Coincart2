@@ -35,19 +35,21 @@ export function ProductImageGallery({ images, alt }: ProductImageGalleryProps) {
         }}
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))", gap: 8 }}>
-        {gallery.map((url, index) => (
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8 }}>
+        {gallery.slice(0, 4).map((url, index) => (
           <button
             key={`${url}-${index}`}
             type="button"
             onClick={() => setActiveIndex(index)}
             style={{
               border: index === activeIndex ? "2px solid var(--primary)" : "1px solid var(--border)",
-              borderRadius: 10,
+              borderRadius: 8,
               padding: 0,
               background: "transparent",
               overflow: "hidden",
               cursor: "pointer",
+              height: 56,
+              display: "block",
             }}
             aria-label={`Show image ${index + 1}`}
           >
@@ -58,7 +60,7 @@ export function ProductImageGallery({ images, alt }: ProductImageGalleryProps) {
               height={200}
               loading="lazy"
               decoding="async"
-              style={{ width: "100%", aspectRatio: "16/6", objectFit: "cover", display: "block" }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
           </button>
         ))}
