@@ -73,6 +73,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
 
       {/* Two-column layout: image gallery | product info */}
       <div
+        className="pdp-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "48% 1fr",

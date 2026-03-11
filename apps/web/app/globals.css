@@ -833,3 +833,25 @@ footer { position: relative; z-index: 1; }
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ── Mobile-only overrides ───────────────────────────── */
+@media (max-width: 768px) {
+  /* Header: not sticky, half height */
+  .site-header-wrap { position: static !important; }
+  header { height: 58px !important; }
+  .header-inner img { height: 48px !important; }
+  .header-logo-text { display: none; }
+
+  /* Hero flip card: disable on mobile */
+  .ph-flip-card { perspective: none; }
+  .ph-flip-card:hover .ph-flip-inner { transform: none !important; }
+  .ph-flip-inner { transition: none !important; }
+  .ph-flip-back { display: none; }
+  .ph-flip-front { position: relative; backface-visibility: visible; }
+
+  /* PDP: single column, image first */
+  .pdp-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
