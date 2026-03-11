@@ -26,7 +26,7 @@ export function SiteHeader() {
   const cartLabel = useMemo(() => (cartCount > 0 ? `Cart (${cartCount})` : "Cart"), [cartCount]);
 
   return (
-    <div className="site-header-wrap" style={{ position: "sticky", top: 0, zIndex: 100 }}>
+    <div className="site-header-wrap" style={{ position: "relative", zIndex: 10 }}>
       {showBar && (
         <div style={{
           background: "var(--primary)",
