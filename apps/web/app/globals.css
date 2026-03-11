@@ -811,7 +811,6 @@ footer { position: relative; z-index: 1; }
   .site-header-wrap header { height: 64px !important; }
   .header-inner img { height: 44px !important; }
   .header-logo-text { display: none !important; }
-  .header-search-form { display: none !important; }
   .header-inner { padding: 0 16px !important; gap: 12px !important; }
 }
 @media (max-width: 600px) {
