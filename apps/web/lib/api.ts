@@ -130,6 +130,7 @@ const applyDummyFilters = (
   filters?: {
     q?: string;
     category?: string;
+    collection?: string;
     keyboard_layout?: string;
     usage?: string;
     screen_size?: string;
@@ -151,6 +152,7 @@ const applyDummyFilters = (
     );
   }
   if (filters?.category) out = out.filter((item) => item.category === filters.category);
+  if (filters?.collection) out = out.filter((item) => item.collection === filters.collection);
   if (filters?.keyboard_layout) out = out.filter((item) => item.keyboardLayout === filters.keyboard_layout);
   if (filters?.usage) out = out.filter((item) => item.usage === filters.usage);
   if (filters?.screen_size) out = out.filter((item) => item.screenSize === filters.screen_size);
@@ -173,6 +175,7 @@ export const fetchProducts = async (
   filters?: {
     q?: string;
     category?: string;
+    collection?: string;
     keyboard_layout?: string;
     usage?: string;
     screen_size?: string;
@@ -196,6 +199,7 @@ export const fetchProducts = async (
   });
   if (filters?.q) params.set("q", filters.q);
   if (filters?.category) params.set("category", filters.category);
+  if (filters?.collection) params.set("collection", filters.collection);
   if (filters?.keyboard_layout) params.set("keyboard_layout", filters.keyboard_layout);
   if (filters?.usage) params.set("usage", filters.usage);
   if (filters?.screen_size) params.set("screen_size", filters.screen_size);

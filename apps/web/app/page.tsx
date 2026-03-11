@@ -51,16 +51,15 @@ export const runtime = "edge";
 
 const HOME_HERO_SKU = process.env.NEXT_PUBLIC_HERO_SKU || "LT-GRY-14-A14-US";
 
-const categoryIcons: Record<string, string> = {
-  Laptops: "💻",
-  "Air Fryers": "🍟",
-  "Electric Bikes": "🚲",
-  Headphones: "🎧",
-  Monitors: "🖥️",
-  Accessories: "⌨️",
-  Cameras: "📷",
-  Audio: "🔊",
-};
+const collectionMeta = [
+  { key: "cases", label: "Cases", icon: "BOX" },
+  { key: "desktops", label: "Desktops", icon: "PC" },
+  { key: "displays", label: "Displays", icon: "DISP" },
+  { key: "input-devices", label: "Input Devices", icon: "INPUT" },
+  { key: "laptops", label: "Laptops", icon: "LAP" },
+  { key: "lifestyle", label: "Lifestyle", icon: "LIFE" },
+  { key: "tablets", label: "Tablets", icon: "TAB" },
+] as const;
 
 export default async function Home({
   searchParams,
@@ -112,16 +111,17 @@ export default async function Home({
         ? topSellingFromSales
         : topSellingFallback;
 
-  const categoriesMap = new Map<string, number>();
+  const collectionsMap = new Map<string, number>();
   for (const item of items) {
-    const key = item.category || "Uncategorized";
-    categoriesMap.set(key, (categoriesMap.get(key) || 0) + 1);
+    const key = (item.collection || "").trim();
+    if (!key) continue;
+    collectionsMap.set(key, (collectionsMap.get(key) || 0) + 1);
   }
-  const categories = Array.from(categoriesMap.entries()).map(([name, productCount]) => ({
-    slug: name.toLowerCase().replace(/\s+/g, "-"),
-    name,
-    productCount,
-    icon: categoryIcons[name] || "📦",
+  const collections = collectionMeta.map((entry) => ({
+    key: entry.key,
+    name: entry.label,
+    productCount: collectionsMap.get(entry.key) || 0,
+    icon: entry.icon,
   }));
 
   return (
@@ -177,11 +177,15 @@ export default async function Home({
       <div className="container" style={{ paddingTop: 24 }}>
         <section style={{ marginBottom: 40 }}>
           <div className="category-grid">
-            {categories.map((cat) => (
-              <Link key={cat.slug} className="category-card" href={`/search?currency=${currency}&category=${encodeURIComponent(cat.name)}`}>
-                <div className="category-icon">{cat.icon}</div>
-                <div className="category-label">{cat.name}</div>
-                <div className="caption">{cat.productCount} products</div>
+            {collections.map((collection) => (
+              <Link
+                key={collection.key}
+                className="category-card"
+                href={`/search?currency=${currency}&collection=${encodeURIComponent(collection.key)}`}
+              >
+                <div className="category-icon">{collection.icon}</div>
+                <div className="category-label">{collection.name}</div>
+                <div className="caption">{collection.productCount} products</div>
               </Link>
             ))}
           </div>
@@ -289,3 +293,6 @@ export default async function Home({
     </div>
   );
 }
+
+
+

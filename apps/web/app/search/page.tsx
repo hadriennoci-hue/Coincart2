@@ -12,6 +12,7 @@ export default async function SearchPage({
   searchParams: Promise<{
     q?: string;
     category?: string;
+    collection?: string;
     keyboard_layout?: string;
     usage?: string;
     screen_size?: string;
@@ -24,6 +25,7 @@ export default async function SearchPage({
   const {
     q = "",
     category = "",
+    collection = "",
     keyboard_layout = "",
     usage = "",
     screen_size = "",
@@ -35,7 +37,7 @@ export default async function SearchPage({
   const currency: Currency = "EUR";
 
   // Fetch all products (no category filter) to populate category dropdown
-  const allItems = await fetchProducts(currency, false, { q });
+  const allItems = await fetchProducts(currency, false, { q, collection });
   const categoriesMap = new Map<string, number>();
   for (const item of allItems) {
     const key = item.category || "Uncategorized";
@@ -47,6 +49,7 @@ export default async function SearchPage({
   const items = await fetchProducts(currency, false, {
     q,
     category,
+    collection,
     keyboard_layout,
     usage,
     screen_size,
@@ -65,6 +68,7 @@ export default async function SearchPage({
       <aside className="search-aside">
         <SearchFilters
           category={category}
+          collection={collection}
           keyboard_layout={keyboard_layout}
           usage={usage}
           screen_size={screen_size}
@@ -86,6 +90,7 @@ export default async function SearchPage({
             sort={sort}
             q={q}
             category={category}
+            collection={collection}
             keyboard_layout={keyboard_layout}
             usage={usage}
             screen_size={screen_size}

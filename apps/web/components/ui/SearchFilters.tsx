@@ -5,6 +5,7 @@ import Link from "next/link";
 
 interface SearchFiltersProps {
   category: string;
+  collection: string;
   keyboard_layout: string;
   usage: string;
   screen_size: string;
@@ -17,6 +18,7 @@ interface SearchFiltersProps {
 
 export function SearchFilters({
   category,
+  collection,
   keyboard_layout,
   usage,
   screen_size,
@@ -28,7 +30,8 @@ export function SearchFilters({
 }: SearchFiltersProps) {
   const [open, setOpen] = useState(false);
 
-  const hasActiveFilters = category || keyboard_layout || usage || screen_size || ram_memory || ssd_size || max_resolution;
+  const hasActiveFilters =
+    collection || category || keyboard_layout || usage || screen_size || ram_memory || ssd_size || max_resolution;
 
   return (
     <>
@@ -53,6 +56,7 @@ export function SearchFilters({
         className={`search-filter-form${open ? " search-filter-form--open" : ""}`}
       >
         {q && <input type="hidden" name="q" value={q} />}
+        {collection && <input type="hidden" name="collection" value={collection} />}
 
         <div className="search-filter-header">
           <span style={{ fontWeight: 700, fontSize: "0.875rem", display: "flex", alignItems: "center", gap: 8 }}>
