@@ -322,7 +322,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Right: Order Summary */}
-        <div style={{ position: "sticky", top: 24 }}>
+        <div style={{ position: "sticky", top: 24, paddingTop: 104 }}>
           <div className="surface" style={{ marginBottom: 16 }}>
             <h2 className="card-title" style={{ marginBottom: 20 }}>
               Order Summary
