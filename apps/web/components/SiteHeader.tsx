@@ -87,7 +87,7 @@ export function SiteHeader() {
           <img
             src="/coincart-logo-mark.png"
             alt="Coincart"
-            style={{ height: 48, width: "auto", display: "block" }}
+            style={{ height: 96, width: "auto", display: "block" }}
           />
           <span className="header-logo-text" style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "0.01em" }}>Coincart</span>
         </Link>
