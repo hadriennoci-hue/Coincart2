@@ -26,7 +26,7 @@ export function ProductImageGallery({ images, alt }: ProductImageGalleryProps) {
         sizes="(max-width: 768px) 100vw, 55vw"
         style={{
           width: "100%",
-          maxHeight: 400,
+          maxHeight: 280,
           aspectRatio: "16/10",
           objectFit: "cover",
           borderRadius: 16,
@@ -58,7 +58,7 @@ export function ProductImageGallery({ images, alt }: ProductImageGalleryProps) {
               height={200}
               loading="lazy"
               decoding="async"
-              style={{ width: "100%", aspectRatio: "16/10", objectFit: "cover", display: "block" }}
+              style={{ width: "100%", aspectRatio: "16/6", objectFit: "cover", display: "block" }}
             />
           </button>
         ))}

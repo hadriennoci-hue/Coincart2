@@ -75,7 +75,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "55% 45%",
+          gridTemplateColumns: "38% 62%",
           gap: 40,
           marginBottom: 40,
           alignItems: "start",
