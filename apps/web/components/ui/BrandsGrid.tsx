@@ -6,6 +6,7 @@ interface Brand {
   name: string;
   logo: string;
   height?: number;
+  noFilter?: boolean;
 }
 
 interface BrandsGridProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -68,7 +69,7 @@ export const BrandsGrid = React.forwardRef<HTMLDivElement, BrandsGridProps>(
                   width: "auto",
                   maxWidth: 200,
                   objectFit: "contain",
-                  filter: "brightness(0) invert(1)",
+                  filter: brand.noFilter ? "none" : "brightness(0) invert(1)",
                   opacity: 0.65,
                   transition: "opacity 0.2s",
                 }}

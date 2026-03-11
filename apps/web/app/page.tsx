@@ -233,7 +233,7 @@ export default async function Home({
             brands={[
               { name: "Acer", logo: "https://cdn.worldvectorlogo.com/logos/acer-2011.svg" },
               { name: "Predator", logo: "https://images.seeklogo.com/logo-png/44/3/acer-predator-logo-png_seeklogo-441422.png", height: 72 },
-              { name: "Jiushark", logo: "/jiushark-logo.png" },
+              { name: "Jiushark", logo: "/jiushark_nobg.png", noFilter: true },
             ]}
           />
           <div className="divider" style={{ marginTop: 12 }} />
