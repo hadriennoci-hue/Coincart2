@@ -14,6 +14,11 @@ interface SearchFiltersProps {
   max_resolution: string;
   q: string;
   categories: [string, number][];
+  keyboardLayouts: string[];
+  usages: string[];
+  screenSizes: string[];
+  ramOptions: number[];
+  ssdOptions: number[];
 }
 
 export function SearchFilters({
@@ -27,6 +32,11 @@ export function SearchFilters({
   max_resolution,
   q,
   categories,
+  keyboardLayouts,
+  usages,
+  screenSizes,
+  ramOptions,
+  ssdOptions,
 }: SearchFiltersProps) {
   const [open, setOpen] = useState(false);
 
@@ -88,30 +98,65 @@ export function SearchFilters({
           </select>
         </label>
 
-        <label className="form-label" style={{ gap: 6 }}>
-          Keyboard Layout
-          <input className="input" name="keyboard_layout" defaultValue={keyboard_layout} placeholder="e.g. AZERTY" />
-        </label>
+        {keyboardLayouts.length > 0 && (
+          <label className="form-label" style={{ gap: 6 }}>
+            Keyboard Layout
+            <select className="select" name="keyboard_layout" defaultValue={keyboard_layout}>
+              <option value="">All layouts</option>
+              {keyboardLayouts.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+          </label>
+        )}
 
-        <label className="form-label" style={{ gap: 6 }}>
-          Usage
-          <input className="input" name="usage" defaultValue={usage} placeholder="e.g. Gaming" />
-        </label>
+        {usages.length > 0 && (
+          <label className="form-label" style={{ gap: 6 }}>
+            Usage
+            <select className="select" name="usage" defaultValue={usage}>
+              <option value="">All usages</option>
+              {usages.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+          </label>
+        )}
 
-        <label className="form-label" style={{ gap: 6 }}>
-          Screen Size
-          <input className="input" name="screen_size" defaultValue={screen_size} placeholder='e.g. 15.6"' />
-        </label>
+        {screenSizes.length > 0 && (
+          <label className="form-label" style={{ gap: 6 }}>
+            Screen Size
+            <select className="select" name="screen_size" defaultValue={screen_size}>
+              <option value="">All sizes</option>
+              {screenSizes.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+          </label>
+        )}
 
-        <label className="form-label" style={{ gap: 6 }}>
-          RAM (GB)
-          <input className="input" name="ram_memory" defaultValue={ram_memory} placeholder="e.g. 16" />
-        </label>
+        {ramOptions.length > 0 && (
+          <label className="form-label" style={{ gap: 6 }}>
+            RAM (GB)
+            <select className="select" name="ram_memory" defaultValue={ram_memory}>
+              <option value="">All RAM</option>
+              {ramOptions.map((v) => (
+                <option key={v} value={String(v)}>{v} GB</option>
+              ))}
+            </select>
+          </label>
+        )}
 
-        <label className="form-label" style={{ gap: 6 }}>
-          SSD (GB)
-          <input className="input" name="ssd_size" defaultValue={ssd_size} placeholder="e.g. 512" />
-        </label>
+        {ssdOptions.length > 0 && (
+          <label className="form-label" style={{ gap: 6 }}>
+            SSD (GB)
+            <select className="select" name="ssd_size" defaultValue={ssd_size}>
+              <option value="">All SSD</option>
+              {ssdOptions.map((v) => (
+                <option key={v} value={String(v)}>{v} GB</option>
+              ))}
+            </select>
+          </label>
+        )}
 
         <div style={{ display: "flex", gap: 8, paddingTop: 4 }}>
           <button className="btn btn-primary btn-sm" type="submit" style={{ flex: 1 }}>Apply</button>

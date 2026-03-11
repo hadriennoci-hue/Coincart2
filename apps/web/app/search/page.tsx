@@ -36,14 +36,24 @@ export default async function SearchPage({
   } = await searchParams;
   const currency: Currency = "EUR";
 
-  // Fetch all products (no category filter) to populate category dropdown
+  // Fetch all products (no category filter) to populate filter dropdowns
   const allItems = await fetchProducts(currency, false, { q, collection });
+
   const categoriesMap = new Map<string, number>();
   for (const item of allItems) {
     const key = item.category || "Uncategorized";
     categoriesMap.set(key, (categoriesMap.get(key) || 0) + 1);
   }
   const categories = Array.from(categoriesMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+  const uniq = <T,>(vals: (T | null | undefined)[]): T[] =>
+    [...new Set(vals.filter((v): v is T => v != null && String(v).trim() !== ""))];
+
+  const keyboardLayouts = uniq(allItems.map((i) => i.keyboardLayout)).sort();
+  const usages = uniq(allItems.map((i) => i.usage)).sort();
+  const screenSizes = uniq(allItems.map((i) => i.screenSize)).sort((a, b) => parseFloat(a) - parseFloat(b));
+  const ramOptions = uniq(allItems.map((i) => i.ramMemory)).sort((a, b) => a - b);
+  const ssdOptions = uniq(allItems.map((i) => i.ssdSize)).sort((a, b) => a - b);
 
   // Fetch filtered results
   const items = await fetchProducts(currency, false, {
@@ -77,6 +87,11 @@ export default async function SearchPage({
           max_resolution={max_resolution}
           q={q}
           categories={categories}
+          keyboardLayouts={keyboardLayouts}
+          usages={usages}
+          screenSizes={screenSizes}
+          ramOptions={ramOptions}
+          ssdOptions={ssdOptions}
         />
       </aside>
 
