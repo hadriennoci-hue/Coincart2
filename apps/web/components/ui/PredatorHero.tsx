@@ -3,22 +3,33 @@
 import { useRef } from "react";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
-
-const SPECS = [
-  "Intel Core i9-14900HX",
-  "RTX 4070",
-  "32 GB DDR5",
-  "1 TB SSD",
-  '16" WQXGA IPS',
-  "240 Hz",
-];
+import { fmtPrice } from "../../lib/format";
 
 interface PredatorHeroProps {
+  name: string;
+  category?: string | null;
+  description?: string | null;
+  specs: string[];
+  price: number;
+  promoPrice?: number | null;
+  currency: "EUR" | "USD";
+  stockQty: number;
   imageUrl?: string | null;
   href?: string;
 }
 
-export function PredatorHero({ imageUrl, href = "/search?category=Laptops" }: PredatorHeroProps) {
+export function PredatorHero({
+  name,
+  category,
+  description,
+  specs,
+  price,
+  promoPrice,
+  currency,
+  stockQty,
+  imageUrl,
+  href = "/search?category=Laptops",
+}: PredatorHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -44,16 +55,12 @@ export function PredatorHero({ imageUrl, href = "/search?category=Laptops" }: Pr
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* Ambient inner glow */}
             <div className="ph-ambient" />
-
-            {/* Corner accents */}
             <span className="ph-corner ph-corner-tl" />
             <span className="ph-corner ph-corner-tr" />
             <span className="ph-corner ph-corner-bl" />
             <span className="ph-corner ph-corner-br" />
 
-            {/* ── Left content ── */}
             <motion.div className="ph-left" style={{ y: textY }}>
               <motion.span
                 className="ph-eyebrow"
@@ -64,7 +71,7 @@ export function PredatorHero({ imageUrl, href = "/search?category=Laptops" }: Pr
                 <svg width="7" height="7" viewBox="0 0 7 7" fill="none" aria-hidden>
                   <circle cx="3.5" cy="3.5" r="3.5" fill="#22C55E" />
                 </svg>
-                Predator × Solary
+                {category || "Featured Product"}
               </motion.span>
 
               <motion.h1
@@ -73,20 +80,32 @@ export function PredatorHero({ imageUrl, href = "/search?category=Laptops" }: Pr
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.22, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               >
-                Competitive power,{" "}
-                <span style={{ color: "#22C55E" }}>refined.</span>
+                {name}
               </motion.h1>
 
-              <motion.div
-                className="ph-specs"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.32, duration: 0.4 }}
-              >
-                {SPECS.map((s) => (
-                  <span key={s} className="ph-chip">{s}</span>
-                ))}
-              </motion.div>
+              {specs.length > 0 ? (
+                <motion.div
+                  className="ph-specs"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.32, duration: 0.4 }}
+                >
+                  {specs.map((spec) => (
+                    <span key={spec} className="ph-chip">
+                      {spec}
+                    </span>
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.p
+                  className="ph-body"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.32, duration: 0.4 }}
+                >
+                  {description || "Discover this product and pay securely with crypto."}
+                </motion.p>
+              )}
 
               <motion.div
                 className="ph-price-row"
@@ -94,12 +113,18 @@ export function PredatorHero({ imageUrl, href = "/search?category=Laptops" }: Pr
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.4 }}
               >
-                <span className="ph-price">€2&thinsp;496</span>
-                <span className="ph-price-meta">TTC&ensp;·&ensp;In Stock</span>
+                <div className="ph-price-stack">
+                  <span className="ph-price-meta">Price</span>
+                  <span className="ph-price ph-price-old">{fmtPrice(price, currency)}</span>
+                </div>
+                <div className="ph-price-stack">
+                  <span className="ph-price-meta">Promo</span>
+                  <span className="ph-price">{fmtPrice(promoPrice ?? price, currency)}</span>
+                </div>
+                <span className="ph-price-meta">{stockQty > 0 ? "In Stock" : "Out of Stock"}</span>
               </motion.div>
             </motion.div>
 
-            {/* ── Right visual ── */}
             <div className="ph-right">
               <div className="ph-right-glow" />
               <div className="ph-grid-lines" aria-hidden />
@@ -110,46 +135,22 @@ export function PredatorHero({ imageUrl, href = "/search?category=Laptops" }: Pr
                 transition={{ delay: 0.28, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                 className="ph-visual-wrap"
               >
-                <div className="ph-flip-card">
-                  <div className="ph-flip-inner">
-                    {/* Front: product image */}
-                    <div className="ph-flip-front">
-                      {imageUrl ? (
-                        <img
-                          src={imageUrl}
-                          alt="Acer Predator Helios Neo 16"
-                          className="ph-img"
-                          width={960}
-                          height={600}
-                          loading="eager"
-                          fetchPriority="high"
-                          decoding="async"
-                        />
-                      ) : (
-                        <div className="ph-img-placeholder">
-                          <span>Acer Predator Helios Neo 16</span>
-                        </div>
-                      )}
-                      <div className="ph-micro-panel">
-                        <span className="ph-micro-dot" />
-                        <span className="ph-micro-label">240 Hz · WQXGA</span>
-                      </div>
-                      <div className="ph-micro-panel ph-micro-panel-br">
-                        <span className="ph-micro-dot" style={{ background: "#3060C8" }} />
-                        <span className="ph-micro-label">RTX 4070 · 8 GB GDDR6</span>
-                      </div>
-                    </div>
-                    {/* Back: specs */}
-                    <div className="ph-flip-back">
-                      <div className="ph-flip-back-chips">
-                        {SPECS.map((s) => (
-                          <span key={s} className="ph-flip-back-chip">{s}</span>
-                        ))}
-                      </div>
-                      <span className="ph-flip-back-cta">View Product →</span>
-                    </div>
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt={name}
+                    className="ph-img"
+                    width={960}
+                    height={600}
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
+                  />
+                ) : (
+                  <div className="ph-img-placeholder">
+                    <span>{name}</span>
                   </div>
-                </div>
+                )}
               </motion.div>
             </div>
           </motion.div>

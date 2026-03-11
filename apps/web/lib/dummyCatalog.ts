@@ -1,10 +1,19 @@
 export type Currency = "USD" | "EUR";
+export type ProductCollectionKey =
+  | "cases"
+  | "desktops"
+  | "displays"
+  | "input-devices"
+  | "laptops"
+  | "lifestyle"
+  | "tablets";
 
 export type DummyCatalogProduct = {
   id: string;
   sku: string;
   slug: string;
   category?: string | null;
+  collection?: ProductCollectionKey;
   name: string;
   description?: string | null;
   imageUrl?: string | null;
@@ -27,6 +36,7 @@ export type DummyCatalogProduct = {
   price: number;
   promoPrice?: number | null;
   currency: Currency;
+  gallerySlug?: string;
 };
 
 type ProductSeed = Omit<DummyCatalogProduct, "currency" | "price"> & {
@@ -54,10 +64,26 @@ const buildGalleryImages = (slug: string, id: string) => {
   return Array.from({ length: count }, (_, i) => productImage(slug, i + 1));
 };
 
+const productCollections: ProductCollectionKey[] = [
+  "cases",
+  "desktops",
+  "displays",
+  "input-devices",
+  "laptops",
+  "lifestyle",
+  "tablets",
+];
+
+const collectionForProductId = (id: string): ProductCollectionKey => {
+  const n = Number.parseInt(id.replace("dummy-", ""), 10);
+  if (!Number.isFinite(n) || n < 1) return productCollections[0];
+  return productCollections[(n - 1) % productCollections.length];
+};
+
 const seeds: ProductSeed[] = [
   {
     id: "dummy-001",
-    sku: "LT-GRY-14-A14",
+    sku: "LT-GRY-14-A14-US",
     slug: "aerobook-14-pro-ryzen7",
     category: "Laptops",
     name: "AeroBook 14 Pro Ryzen 7",
@@ -65,7 +91,7 @@ const seeds: ProductSeed[] = [
     imageUrl: productImage("aerobook-14-pro", 0),
     cpu: "AMD Ryzen 7 8845HS",
     gpu: "NVIDIA RTX 4060",
-    keyboardLayout: "QWERTY",
+    keyboardLayout: "US QWERTY",
     usage: "Creator",
     screenSize: '14.0"',
     displayType: "OLED",
@@ -80,6 +106,60 @@ const seeds: ProductSeed[] = [
     stockQty: 18,
     usdPrice: 1499,
     promoUsdPrice: 1399,
+  },
+  {
+    id: "dummy-019",
+    sku: "LT-GRY-14-A14-FR",
+    slug: "aerobook-14-pro-ryzen7-fra-azerty",
+    gallerySlug: "aerobook-14-pro-ryzen7",
+    category: "Laptops",
+    name: "AeroBook 14 Pro Ryzen 7",
+    description: "Thin performance laptop with all-day battery and dedicated RTX graphics.",
+    imageUrl: productImage("aerobook-14-pro", 0),
+    cpu: "AMD Ryzen 7 8845HS",
+    gpu: "NVIDIA RTX 4060",
+    keyboardLayout: "FRA AZERTY",
+    usage: "Creator",
+    screenSize: '14.0"',
+    displayType: "OLED",
+    resolution: "2880x1800",
+    maxResolution: "2880x1800",
+    refreshRate: 120,
+    ramMemory: 32,
+    ssdSize: 1000,
+    storage: "1TB NVMe",
+    featured: true,
+    bestSeller: true,
+    stockQty: 10,
+    usdPrice: 1529,
+    promoUsdPrice: 1429,
+  },
+  {
+    id: "dummy-020",
+    sku: "LT-GRY-14-A14-DE",
+    slug: "aerobook-14-pro-ryzen7-ger-qwertz",
+    gallerySlug: "aerobook-14-pro-ryzen7",
+    category: "Laptops",
+    name: "AeroBook 14 Pro Ryzen 7",
+    description: "Thin performance laptop with all-day battery and dedicated RTX graphics.",
+    imageUrl: productImage("aerobook-14-pro", 0),
+    cpu: "AMD Ryzen 7 8845HS",
+    gpu: "NVIDIA RTX 4060",
+    keyboardLayout: "GER QWERTZ",
+    usage: "Creator",
+    screenSize: '14.0"',
+    displayType: "OLED",
+    resolution: "2880x1800",
+    maxResolution: "2880x1800",
+    refreshRate: 120,
+    ramMemory: 32,
+    ssdSize: 1000,
+    storage: "1TB NVMe",
+    featured: true,
+    bestSeller: false,
+    stockQty: 6,
+    usdPrice: 1549,
+    promoUsdPrice: 1469,
   },
   {
     id: "dummy-002",
@@ -365,9 +445,11 @@ const toCurrencyPrice = (usdPrice: number, currency: Currency) =>
   currency === "USD" ? usdPrice : Number((usdPrice * EUR_RATE).toFixed(2));
 
 const withCurrency = (seed: ProductSeed, currency: Currency): DummyCatalogProduct => {
-  const imageUrls = buildGalleryImages(seed.slug, seed.id);
+  const imageSlug = seed.gallerySlug || seed.slug;
+  const imageUrls = buildGalleryImages(imageSlug, seed.id);
   return {
     ...seed,
+    collection: seed.collection ?? collectionForProductId(seed.id),
     imageUrls,
     imageUrl: imageUrls[0] ?? seed.imageUrl ?? null,
     price: toCurrencyPrice(seed.usdPrice, currency),

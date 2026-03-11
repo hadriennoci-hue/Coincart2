@@ -24,6 +24,7 @@ export type Product = {
   sku: string;
   slug: string;
   category?: string | null;
+  collection?: string | null;
   brand?: string | null;
   name: string;
   description?: string | null;
@@ -93,6 +94,7 @@ const normalizeProduct = (raw: Partial<Product>): Product => ({
   sku: String(raw.sku || ""),
   slug: String(raw.slug || ""),
   category: raw.category ?? null,
+  collection: (raw as Product).collection ?? null,
   brand: (raw as Product).brand ?? null,
   name: String(raw.name || ""),
   description: raw.description ?? null,
@@ -279,7 +281,11 @@ export const fetchTopSellingProducts = async (currency: Currency, limit = 4) => 
 
 export const createCheckoutSession = async (payload: {
   email: string;
-  phone?: string;
+  phone: string;
+  shippingName: string;
+  streetAddress: string;
+  city: string;
+  postcode: string;
   shippingCountry: string;
   currency: Currency;
   lines: Array<{ sku: string; quantity: number }>;

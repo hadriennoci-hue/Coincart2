@@ -148,7 +148,7 @@ export const webhookEvents = pgTable("webhook_events", {
   processedAt: timestamp("processed_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const productCategories = pgTable("product_categories", {
+export const productCollections = pgTable("product_collections", {
   id: uuid("id").defaultRandom().primaryKey(),
   key: varchar("key", { length: 80 }).notNull().unique(),
   label: varchar("label", { length: 120 }).notNull().unique(),
@@ -159,13 +159,13 @@ export const productCategories = pgTable("product_categories", {
     .$onUpdate(() => sql`now()`),
 });
 
-export const productCategoryAttributes = pgTable(
-  "product_category_attributes",
+export const productCollectionAttributes = pgTable(
+  "product_collection_attributes",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    categoryId: uuid("category_id")
+    collectionId: uuid("collection_id")
       .notNull()
-      .references(() => productCategories.id, { onDelete: "cascade" }),
+      .references(() => productCollections.id, { onDelete: "cascade" }),
     attributeKey: varchar("attribute_key", { length: 80 }).notNull(),
     label: varchar("label", { length: 120 }).notNull(),
     dataType: varchar("data_type", { length: 30 }).notNull().default("text"),
@@ -180,23 +180,23 @@ export const productCategoryAttributes = pgTable(
       .$onUpdate(() => sql`now()`),
   },
   (t) => ({
-    uniqCategoryAttributeKey: unique().on(t.categoryId, t.attributeKey),
+    uniqCollectionAttributeKey: unique().on(t.collectionId, t.attributeKey),
   }),
 );
 
-export const productCategoryAttributeValues = pgTable(
-  "product_category_attribute_values",
+export const productCollectionAttributeValues = pgTable(
+  "product_collection_attribute_values",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    categoryAttributeId: uuid("category_attribute_id")
+    collectionAttributeId: uuid("collection_attribute_id")
       .notNull()
-      .references(() => productCategoryAttributes.id, { onDelete: "cascade" }),
+      .references(() => productCollectionAttributes.id, { onDelete: "cascade" }),
     value: varchar("value", { length: 160 }).notNull(),
     sortOrder: integer("sort_order").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
-    uniqCategoryAttributeValue: unique().on(t.categoryAttributeId, t.value),
+    uniqCollectionAttributeValue: unique().on(t.collectionAttributeId, t.value),
   }),
 );
 
@@ -211,27 +211,27 @@ export const productPricesRelations = relations(productPrices, ({ one }) => ({
   }),
 }));
 
-export const productCategoryAttributesRelations = relations(
-  productCategoryAttributes,
+export const productCollectionAttributesRelations = relations(
+  productCollectionAttributes,
   ({ one, many }) => ({
-    category: one(productCategories, {
-      fields: [productCategoryAttributes.categoryId],
-      references: [productCategories.id],
+    collection: one(productCollections, {
+      fields: [productCollectionAttributes.collectionId],
+      references: [productCollections.id],
     }),
-    values: many(productCategoryAttributeValues),
+    values: many(productCollectionAttributeValues),
   }),
 );
 
-export const productCategoriesRelations = relations(productCategories, ({ many }) => ({
-  attributes: many(productCategoryAttributes),
+export const productCollectionsRelations = relations(productCollections, ({ many }) => ({
+  attributes: many(productCollectionAttributes),
 }));
 
-export const productCategoryAttributeValuesRelations = relations(
-  productCategoryAttributeValues,
+export const productCollectionAttributeValuesRelations = relations(
+  productCollectionAttributeValues,
   ({ one }) => ({
-    attribute: one(productCategoryAttributes, {
-      fields: [productCategoryAttributeValues.categoryAttributeId],
-      references: [productCategoryAttributes.id],
+    attribute: one(productCollectionAttributes, {
+      fields: [productCollectionAttributeValues.collectionAttributeId],
+      references: [productCollectionAttributes.id],
     }),
   }),
 );

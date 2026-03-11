@@ -49,6 +49,8 @@ const allTestimonials: Testimonial[] = [
 
 export const runtime = "edge";
 
+const HOME_HERO_SKU = process.env.NEXT_PUBLIC_HERO_SKU || "LT-GRY-14-A14-US";
+
 const categoryIcons: Record<string, string> = {
   Laptops: "💻",
   "Air Fryers": "🍟",
@@ -69,9 +71,32 @@ export default async function Home({
   const items = await fetchProducts(currency, false);
   const topSellingFromSales = await fetchTopSellingProducts(currency, 4);
   const hero =
-    items.find((item) => item.slug === "aerobook-14-pro-ryzen7") ??
+    items.find((item) => item.sku === HOME_HERO_SKU) ??
     items.find((item) => item.category === "Laptops") ??
     items[0];
+  const heroCategory = (hero?.category || "").toLowerCase();
+  const heroIsLaptop = heroCategory.includes("laptop");
+  const heroIsMonitor = heroCategory.includes("monitor") || heroCategory.includes("display");
+  const heroSpecs = !hero
+    ? []
+    : heroIsLaptop
+      ? [
+          hero.screenSize ? `Screen: ${hero.screenSize}` : null,
+          hero.resolution ? `Resolution: ${hero.resolution}` : null,
+          hero.cpu ? `Processor: ${hero.cpu}` : null,
+          hero.ramMemory ? `RAM: ${hero.ramMemory} GB` : null,
+          hero.storage || (hero.ssdSize ? `Storage: ${hero.ssdSize} GB` : null),
+          hero.gpu ? `GPU: ${hero.gpu}` : null,
+          hero.brand ? `Brand: ${hero.brand}` : null,
+        ].filter((value): value is string => Boolean(value))
+      : heroIsMonitor
+        ? [
+            hero.screenSize ? `Screen: ${hero.screenSize}` : null,
+            hero.resolution ? `Resolution: ${hero.resolution}` : null,
+            hero.refreshRate ? `Refresh: ${hero.refreshRate} Hz` : null,
+            hero.displayType ? `Panel: ${hero.displayType}` : null,
+          ].filter((value): value is string => Boolean(value))
+        : [];
   const promotions = items
     .filter((item) => typeof item.promoPrice === "number" && item.promoPrice > 0 && item.promoPrice < item.price)
     .slice(0, 4);
@@ -102,6 +127,14 @@ export default async function Home({
   return (
     <div>
       <PredatorHero
+        name={hero?.name || "Featured Product"}
+        category={hero?.category}
+        description={hero?.description}
+        specs={heroSpecs}
+        price={hero?.price || 0}
+        promoPrice={hero?.promoPrice}
+        currency={hero?.currency || currency}
+        stockQty={hero?.stockQty || 0}
         imageUrl={hero?.imageUrl}
         href={hero ? `/product/${hero.slug}?currency=${currency}` : `/search?currency=${currency}&category=Laptops`}
       />

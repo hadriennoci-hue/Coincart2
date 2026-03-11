@@ -64,7 +64,11 @@ export const checkoutLineSchema = z.object({
 
 export const checkoutSessionCreateSchema = z.object({
   email: z.string().email(),
-  phone: z.string().max(30).optional(),
+  phone: z.string().min(1).max(30),
+  shippingName: z.string().min(1).max(120),
+  streetAddress: z.string().min(1).max(200),
+  city: z.string().min(1).max(120),
+  postcode: z.string().min(1).max(30),
   shippingCountry: z.string().min(2).max(100),
   currency: currencySchema,
   lines: z.array(checkoutLineSchema).min(1).max(100),

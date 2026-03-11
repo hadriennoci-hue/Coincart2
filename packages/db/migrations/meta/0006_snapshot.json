@@ -290,8 +290,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.product_categories": {
-      "name": "product_categories",
+    "public.product_collections": {
+      "name": "product_collections",
       "schema": "",
       "columns": {
         "id": {
@@ -332,15 +332,15 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "product_categories_key_unique": {
-          "name": "product_categories_key_unique",
+        "product_collections_key_unique": {
+          "name": "product_collections_key_unique",
           "nullsNotDistinct": false,
           "columns": [
             "key"
           ]
         },
-        "product_categories_label_unique": {
-          "name": "product_categories_label_unique",
+        "product_collections_label_unique": {
+          "name": "product_collections_label_unique",
           "nullsNotDistinct": false,
           "columns": [
             "label"
@@ -351,8 +351,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.product_category_attribute_values": {
-      "name": "product_category_attribute_values",
+    "public.product_collection_attribute_values": {
+      "name": "product_collection_attribute_values",
       "schema": "",
       "columns": {
         "id": {
@@ -362,8 +362,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "category_attribute_id": {
-          "name": "category_attribute_id",
+        "collection_attribute_id": {
+          "name": "collection_attribute_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -391,12 +391,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "product_category_attribute_values_category_attribute_id_product_category_attributes_id_fk": {
-          "name": "product_category_attribute_values_category_attribute_id_product_category_attributes_id_fk",
-          "tableFrom": "product_category_attribute_values",
-          "tableTo": "product_category_attributes",
+        "product_collection_attribute_values_collection_attribute_id_product_collection_attributes_id_fk": {
+          "name": "product_collection_attribute_values_collection_attribute_id_product_collection_attributes_id_fk",
+          "tableFrom": "product_collection_attribute_values",
+          "tableTo": "product_collection_attributes",
           "columnsFrom": [
-            "category_attribute_id"
+            "collection_attribute_id"
           ],
           "columnsTo": [
             "id"
@@ -407,11 +407,11 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "product_category_attribute_values_category_attribute_id_value_unique": {
-          "name": "product_category_attribute_values_category_attribute_id_value_unique",
+        "product_collection_attribute_values_collection_attribute_id_value_unique": {
+          "name": "product_collection_attribute_values_collection_attribute_id_value_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "category_attribute_id",
+            "collection_attribute_id",
             "value"
           ]
         }
@@ -420,8 +420,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.product_category_attributes": {
-      "name": "product_category_attributes",
+    "public.product_collection_attributes": {
+      "name": "product_collection_attributes",
       "schema": "",
       "columns": {
         "id": {
@@ -431,8 +431,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "category_id": {
-          "name": "category_id",
+        "collection_id": {
+          "name": "collection_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -500,12 +500,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "product_category_attributes_category_id_product_categories_id_fk": {
-          "name": "product_category_attributes_category_id_product_categories_id_fk",
-          "tableFrom": "product_category_attributes",
-          "tableTo": "product_categories",
+        "product_collection_attributes_collection_id_product_collections_id_fk": {
+          "name": "product_collection_attributes_collection_id_product_collections_id_fk",
+          "tableFrom": "product_collection_attributes",
+          "tableTo": "product_collections",
           "columnsFrom": [
-            "category_id"
+            "collection_id"
           ],
           "columnsTo": [
             "id"
@@ -516,11 +516,11 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "product_category_attributes_category_id_attribute_key_unique": {
-          "name": "product_category_attributes_category_id_attribute_key_unique",
+        "product_collection_attributes_collection_id_attribute_key_unique": {
+          "name": "product_collection_attributes_collection_id_attribute_key_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "category_id",
+            "collection_id",
             "attribute_key"
           ]
         }
@@ -999,3 +999,4 @@
     "tables": {}
   }
 }
+

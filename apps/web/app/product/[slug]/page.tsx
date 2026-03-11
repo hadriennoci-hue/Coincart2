@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { AddToCartButton } from "../../../components/AddToCartButton";
+import { ProductVariantSelect } from "../../../components/ProductVariantSelect";
 import { ProductImageGallery } from "../../../components/ProductImageGallery";
-import { fetchProductBySlug, type Currency } from "../../../lib/api";
+import { fetchProductBySlug, fetchProducts, type Currency } from "../../../lib/api";
 import { fmtPrice } from "../../../lib/format";
 
 export const runtime = 'edge';
@@ -36,6 +37,25 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   const { currency = "EUR" } = await searchParams;
   const product = await fetchProductBySlug(slug, currency);
   if (!product) return notFound();
+
+  const allProducts = await fetchProducts(currency, false);
+  const productNameKey = product.name.trim().toLowerCase();
+  const productCategoryKey = (product.category || "").trim().toLowerCase();
+  const variantOptions = allProducts
+    .filter((item) => {
+      if (!item.keyboardLayout) return false;
+      const itemNameKey = item.name.trim().toLowerCase();
+      const itemCategoryKey = (item.category || "").trim().toLowerCase();
+      return itemNameKey === productNameKey && itemCategoryKey === productCategoryKey;
+    })
+    .map((item) => ({
+      slug: item.slug,
+      keyboardLayout: item.keyboardLayout as string,
+      sku: item.sku,
+    }))
+    .sort((a, b) => a.keyboardLayout.localeCompare(b.keyboardLayout));
+  const hasVariants = variantOptions.length > 1;
+
   const imageGallery =
     Array.isArray(product.imageUrls) && product.imageUrls.length > 0
       ? product.imageUrls
@@ -143,6 +163,14 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
           )}
 
           <div className="divider" style={{ margin: "4px 0" }} />
+
+          {hasVariants && (
+            <ProductVariantSelect
+              currency={currency}
+              currentSlug={product.slug}
+              options={variantOptions}
+            />
+          )}
 
           <AddToCartButton sku={product.sku} />
         </div>
