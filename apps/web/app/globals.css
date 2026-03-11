@@ -749,11 +749,7 @@ footer { position: relative; z-index: 1; }
 /* ────────────────────────────────────────────────────── */
 
 /* Trust strip */
-.trust-strip {
-  border-bottom: 1px solid var(--border);
-  background: rgba(20,32,53,0.35);
-  padding: 0;
-}
+.trust-strip { padding: 0; }
 .trust-strip-inner {
   display: flex;
   align-items: stretch;
