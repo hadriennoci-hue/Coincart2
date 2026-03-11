@@ -818,6 +818,15 @@ footer { position: relative; z-index: 1; }
   .flip-card-inner { position: static; height: auto; }
   .flip-card-front { position: static; height: auto; }
   .flip-card-back { display: none; }
+  /* Fix portrait images making cards too tall */
+  .product-card-img, .product-card-img-placeholder { max-height: 130px; }
+  .product-grid { align-items: start; }
+}
+
+/* ── Partners: 3-col on mobile ───────────────────────── */
+@media (max-width: 768px) {
+  .brands-grid-logos { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; }
+  .brands-grid-logos img { height: 36px !important; max-width: 100% !important; }
 }
 
 /* ── Spinner ─────────────────────────────────────────── */

@@ -5,6 +5,7 @@ import * as React from "react";
 interface Brand {
   name: string;
   logo: string;
+  height?: number;
 }
 
 interface BrandsGridProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -40,6 +41,7 @@ export const BrandsGrid = React.forwardRef<HTMLDivElement, BrandsGridProps>(
         )}
 
         <div
+          className="brands-grid-logos"
           style={{
             display: "flex",
             flexWrap: "wrap",
@@ -62,9 +64,9 @@ export const BrandsGrid = React.forwardRef<HTMLDivElement, BrandsGridProps>(
                 src={brand.logo}
                 alt={`${brand.name} logo`}
                 style={{
-                  height: 48,
+                  height: brand.height ?? 48,
                   width: "auto",
-                  maxWidth: 160,
+                  maxWidth: 200,
                   objectFit: "contain",
                   filter: "brightness(0) invert(1)",
                   opacity: 0.65,

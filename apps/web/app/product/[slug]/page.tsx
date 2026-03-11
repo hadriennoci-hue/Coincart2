@@ -87,7 +87,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
         </div>
 
         {/* Right: All product info */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {product.category && (
             <span className="badge badge-teal" style={{ alignSelf: "flex-start" }}>
               {product.category}
@@ -115,7 +115,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             <span className="caption" style={{ color: "var(--muted)" }}>SKU: {product.sku}</span>
           </div>
 
-          <div className="divider" />
+          <div className="divider" style={{ margin: "4px 0" }} />
 
           <span
             style={{
@@ -140,7 +140,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             </p>
           )}
 
-          <div className="divider" />
+          <div className="divider" style={{ margin: "4px 0" }} />
 
           <AddToCartButton sku={product.sku} />
         </div>

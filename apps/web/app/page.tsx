@@ -238,17 +238,17 @@ export default async function Home({
           </div>
         </section>
 
-        <section id="partners" style={{ marginBottom: 40 }}>
-          <div className="divider" style={{ marginBottom: 40 }} />
+        <section id="partners" style={{ marginBottom: 24 }}>
+          <div className="divider" style={{ marginBottom: 24 }} />
           <BrandsGrid
-            title="Our Partners"
+            title="Partners"
             brands={[
               { name: "Acer", logo: "https://cdn.worldvectorlogo.com/logos/acer-2011.svg" },
-              { name: "Predator", logo: "https://images.seeklogo.com/logo-png/44/3/acer-predator-logo-png_seeklogo-441422.png" },
-              { name: "Jiushark", logo: "https://www.jiushark.com/Upfiles/Base/2025121750863.png" },
+              { name: "Predator", logo: "https://images.seeklogo.com/logo-png/44/3/acer-predator-logo-png_seeklogo-441422.png", height: 72 },
+              { name: "Jiushark", logo: "/jiushark-logo.png" },
             ]}
           />
-          <div className="divider" style={{ marginTop: 40 }} />
+          <div className="divider" style={{ marginTop: 24 }} />
         </section>
 
         <section id="reviews" style={{ marginBottom: 64 }}>
