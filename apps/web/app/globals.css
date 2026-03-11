@@ -166,10 +166,9 @@ footer { position: relative; z-index: 1; }
 .category-icon {
   display: flex; align-items: center; justify-content: center;
   width: 44px; height: 44px; border-radius: 10px;
-  background: rgba(45,104,232,0.12); color: var(--primary);
-  transition: background 0.15s;
+  transition: filter 0.15s;
 }
-.category-card:hover .category-icon { background: rgba(45,104,232,0.22); }
+.category-card:hover .category-icon { filter: brightness(1.2); }
 .category-label { font-weight: 700; font-size: 0.8rem; }
 
 .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }

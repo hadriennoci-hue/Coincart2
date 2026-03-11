@@ -53,13 +53,13 @@ export const runtime = "edge";
 const HOME_HERO_SKU = process.env.NEXT_PUBLIC_HERO_SKU || "LT-GRY-14-A14-US";
 
 const collectionMeta = [
-  { key: "cases", label: "Cases", Icon: Package },
-  { key: "desktops", label: "Desktops", Icon: Monitor },
-  { key: "displays", label: "Displays", Icon: Tv2 },
-  { key: "input-devices", label: "Input Devices", Icon: Keyboard },
-  { key: "laptops", label: "Laptops", Icon: Laptop },
-  { key: "lifestyle", label: "Lifestyle", Icon: Sparkles },
-  { key: "tablets", label: "Tablets", Icon: Tablet },
+  { key: "cases",        label: "Cases",         Icon: Package,  bg: "rgba(245,158,11,0.15)",  color: "#F59E0B" },
+  { key: "desktops",     label: "Desktops",       Icon: Monitor,  bg: "rgba(59,130,246,0.15)",  color: "#60A5FA" },
+  { key: "displays",     label: "Displays",       Icon: Tv2,      bg: "rgba(6,182,212,0.15)",   color: "#22D3EE" },
+  { key: "input-devices",label: "Input Devices",  Icon: Keyboard, bg: "rgba(16,185,129,0.15)",  color: "#34D399" },
+  { key: "laptops",      label: "Laptops",        Icon: Laptop,   bg: "rgba(139,92,246,0.15)",  color: "#A78BFA" },
+  { key: "lifestyle",    label: "Lifestyle",      Icon: Sparkles, bg: "rgba(244,63,94,0.15)",   color: "#FB7185" },
+  { key: "tablets",      label: "Tablets",        Icon: Tablet,   bg: "rgba(99,102,241,0.15)",  color: "#818CF8" },
 ];
 
 export default async function Home({
@@ -123,6 +123,8 @@ export default async function Home({
     name: entry.label,
     productCount: collectionsMap.get(entry.key) || 0,
     Icon: entry.Icon,
+    bg: entry.bg,
+    color: entry.color,
   }));
 
   return (
@@ -178,13 +180,13 @@ export default async function Home({
       <div className="container" style={{ paddingTop: 24 }}>
         <section style={{ marginBottom: 40 }}>
           <div className="category-grid">
-            {collections.map(({ key, name, productCount, Icon }) => (
+            {collections.map(({ key, name, productCount, Icon, bg, color }) => (
               <Link
                 key={key}
                 className="category-card"
                 href={`/search?currency=${currency}&collection=${encodeURIComponent(key)}`}
               >
-                <div className="category-icon"><Icon size={22} strokeWidth={1.7} /></div>
+                <div className="category-icon" style={{ background: bg, color }}><Icon size={22} strokeWidth={1.7} /></div>
                 <div className="category-label">{name}</div>
                 <div className="caption">{productCount} products</div>
               </Link>
