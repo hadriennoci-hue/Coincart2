@@ -86,7 +86,7 @@ export function FlipCard({
               <div className="product-card-img-placeholder" />
             )}
             <div className="product-card-body">
-              <div className="card-title" style={{ marginBottom: 0, fontSize: "0.9375rem" }}>{name}</div>
+              <div className="card-title" style={{ marginBottom: 0, fontSize: "0.875rem" }}>{name}</div>
             </div>
             <div className="product-card-footer">
               <span className="product-card-price" style={hasPromo ? { fontSize: "0.78rem", fontWeight: 700 } : undefined}>{priceBlock}</span>
