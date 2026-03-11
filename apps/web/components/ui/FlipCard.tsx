@@ -12,6 +12,18 @@ interface FlipCardProps {
   description?: string | null;
   sku?: string;
   href: string;
+  category?: string | null;
+  brand?: string | null;
+  cpu?: string | null;
+  gpu?: string | null;
+  screenSize?: string | null;
+  resolution?: string | null;
+  maxResolution?: string | null;
+  refreshRate?: number | null;
+  ramMemory?: number | null;
+  ssdSize?: number | null;
+  storage?: string | null;
+  displayType?: string | null;
 }
 
 export function FlipCard({
@@ -24,6 +36,18 @@ export function FlipCard({
   description,
   sku,
   href,
+  category,
+  brand,
+  cpu,
+  gpu,
+  screenSize,
+  resolution,
+  maxResolution,
+  refreshRate,
+  ramMemory,
+  ssdSize,
+  storage,
+  displayType,
 }: FlipCardProps) {
   const hasPromo = typeof promoPrice === "number" && promoPrice > 0 && promoPrice < price;
   const displayPrice = hasPromo ? promoPrice : price;
@@ -75,9 +99,28 @@ export function FlipCard({
           <div className="flip-card-back">
             <p style={{ fontWeight: 700, fontSize: "0.9375rem", color: "var(--text)", lineHeight: 1.3 }}>{name}</p>
             {sku && <p className="caption" style={{ marginTop: 2 }}>{sku}</p>}
-            <p className="flip-card-desc">
-              {description || "Premium product. View details for full specifications."}
-            </p>
+            {category === "Laptops" ? (
+              <div className="flip-card-specs">
+                {screenSize && <div className="flip-spec-row"><span>Screen</span><span>{screenSize}</span></div>}
+                {(resolution || maxResolution) && <div className="flip-spec-row"><span>Resolution</span><span>{resolution || maxResolution}</span></div>}
+                {cpu && <div className="flip-spec-row"><span>CPU</span><span>{cpu}</span></div>}
+                {ramMemory && <div className="flip-spec-row"><span>RAM</span><span>{ramMemory} GB</span></div>}
+                {(ssdSize || storage) && <div className="flip-spec-row"><span>Storage</span><span>{ssdSize ? `${ssdSize} GB SSD` : storage}</span></div>}
+                {gpu && <div className="flip-spec-row"><span>GPU</span><span>{gpu}</span></div>}
+                {brand && <div className="flip-spec-row"><span>Brand</span><span>{brand}</span></div>}
+              </div>
+            ) : category === "Monitors" ? (
+              <div className="flip-card-specs">
+                {screenSize && <div className="flip-spec-row"><span>Screen</span><span>{screenSize}</span></div>}
+                {(resolution || maxResolution) && <div className="flip-spec-row"><span>Resolution</span><span>{resolution || maxResolution}</span></div>}
+                {refreshRate && <div className="flip-spec-row"><span>Refresh</span><span>{refreshRate} Hz</span></div>}
+                {displayType && <div className="flip-spec-row"><span>Panel</span><span>{displayType}</span></div>}
+              </div>
+            ) : (
+              <p className="flip-card-desc">
+                {description || "Premium product. View details for full specifications."}
+              </p>
+            )}
           </div>
         </div>
       </div>

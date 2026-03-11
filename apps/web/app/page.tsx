@@ -184,6 +184,18 @@ export default async function Home({
                 description={item.description}
                 sku={item.sku}
                 href={`/product/${item.slug}?currency=${currency}`}
+                category={item.category}
+                brand={item.brand}
+                cpu={item.cpu}
+                gpu={item.gpu}
+                screenSize={item.screenSize}
+                resolution={item.resolution}
+                maxResolution={item.maxResolution}
+                refreshRate={item.refreshRate}
+                ramMemory={item.ramMemory}
+                ssdSize={item.ssdSize}
+                storage={item.storage}
+                displayType={item.displayType}
               />
             ))}
           </div>
@@ -205,6 +217,18 @@ export default async function Home({
                 promoPrice={item.promoPrice}
                 currency={item.currency}
                 stockQty={item.stockQty}
+                category={item.category}
+                brand={item.brand}
+                cpu={item.cpu}
+                gpu={item.gpu}
+                screenSize={item.screenSize}
+                resolution={item.resolution}
+                maxResolution={item.maxResolution}
+                refreshRate={item.refreshRate}
+                ramMemory={item.ramMemory}
+                ssdSize={item.ssdSize}
+                storage={item.storage}
+                displayType={item.displayType}
                 description={item.description}
                 sku={item.sku}
                 href={`/product/${item.slug}?currency=${currency}`}

@@ -24,6 +24,7 @@ export type Product = {
   sku: string;
   slug: string;
   category?: string | null;
+  brand?: string | null;
   name: string;
   description?: string | null;
   imageUrl?: string | null;
@@ -92,6 +93,7 @@ const normalizeProduct = (raw: Partial<Product>): Product => ({
   sku: String(raw.sku || ""),
   slug: String(raw.slug || ""),
   category: raw.category ?? null,
+  brand: (raw as Product).brand ?? null,
   name: String(raw.name || ""),
   description: raw.description ?? null,
   imageUrl: raw.imageUrl ?? null,

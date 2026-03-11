@@ -394,6 +394,35 @@ footer { position: relative; z-index: 1; }
   -webkit-box-orient: vertical;
   margin: 0;
 }
+.flip-card-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  overflow: hidden;
+}
+.flip-spec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+.flip-spec-row > span:first-child {
+  color: var(--muted-2);
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.flip-spec-row > span:last-child {
+  color: var(--text);
+  font-weight: 600;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* ── Predator Hero ────────────────────────────────────── */
 .ph-card {
