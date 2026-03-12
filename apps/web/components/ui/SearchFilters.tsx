@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import type { FormEventHandler } from "react";
 
 interface SearchFiltersProps {
   category: string;
@@ -13,7 +14,7 @@ interface SearchFiltersProps {
   ssd_size: string;
   max_resolution: string;
   q: string;
-  collections: [string, number][];
+  collections: Array<{ key: string; label: string; count: number }>;
   keyboardLayouts: string[];
   usages: string[];
   screenSizes: string[];
@@ -42,6 +43,22 @@ export function SearchFilters({
 
   const hasActiveFilters =
     collection || category || keyboard_layout || usage || screen_size || ram_memory || ssd_size || max_resolution;
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const params = new URLSearchParams();
+    const formData = new FormData(form);
+
+    for (const [key, rawValue] of formData.entries()) {
+      if (typeof rawValue !== "string") continue;
+      const value = rawValue.trim();
+      if (!value) continue;
+      params.set(key, value);
+    }
+
+    const query = params.toString();
+    window.location.href = query ? `/search?${query}` : "/search";
+  };
 
   return (
     <>
@@ -63,6 +80,7 @@ export function SearchFilters({
       <form
         method="get"
         action="/search"
+        onSubmit={handleSubmit}
         className={`search-filter-form${open ? " search-filter-form--open" : ""}`}
       >
         {q && <input type="hidden" name="q" value={q} />}
@@ -88,9 +106,9 @@ export function SearchFilters({
           Collection
           <select className="select" name="collection" defaultValue={collection || category}>
             <option value="">All collections</option>
-            {collections.map(([name, count]) => (
-              <option key={name} value={name}>
-                {name} ({count})
+            {collections.map(({ key, label, count }) => (
+              <option key={key} value={key}>
+                {label} ({count})
               </option>
             ))}
           </select>

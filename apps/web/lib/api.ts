@@ -122,6 +122,54 @@ const toCollectionKey = (value?: string | null) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+const applyClientFilters = (
+  items: Product[],
+  filters?: {
+    q?: string;
+    category?: string;
+    collection?: string;
+    keyboard_layout?: string;
+    usage?: string;
+    screen_size?: string;
+    ram_memory?: string;
+    ssd_size?: string;
+    max_resolution?: string;
+    sort?: "default" | "price_asc" | "price_desc" | "popularity" | "newest";
+  },
+) => {
+  if (!filters) return items;
+  let out = [...items];
+
+  if (filters.q) {
+    const q = filters.q.toLowerCase().trim();
+    out = out.filter(
+      (item) =>
+        item.name.toLowerCase().includes(q) ||
+        item.sku.toLowerCase().includes(q) ||
+        (item.category || "").toLowerCase().includes(q),
+    );
+  }
+  if (filters.category) out = out.filter((item) => (item.category || "") === filters.category);
+  if (filters.collection) {
+    const expected = toCollectionKey(filters.collection);
+    out = out.filter((item) => toCollectionKey(item.collection || item.category) === expected);
+  }
+  if (filters.keyboard_layout) out = out.filter((item) => item.keyboardLayout === filters.keyboard_layout);
+  if (filters.usage) out = out.filter((item) => item.usage === filters.usage);
+  if (filters.screen_size) out = out.filter((item) => item.screenSize === filters.screen_size);
+  if (filters.ram_memory) out = out.filter((item) => String(item.ramMemory || "") === filters.ram_memory);
+  if (filters.ssd_size) out = out.filter((item) => String(item.ssdSize || "") === filters.ssd_size);
+  if (filters.max_resolution) out = out.filter((item) => item.maxResolution === filters.max_resolution);
+
+  if (filters.sort === "price_asc") out.sort((a, b) => a.price - b.price);
+  if (filters.sort === "price_desc") out.sort((a, b) => b.price - a.price);
+  if (filters.sort === "popularity") out.sort((a, b) => b.stockQty - a.stockQty);
+  if (filters.sort === "newest") out.sort((a, b) => Number(b.id.localeCompare(a.id)));
+  if (!filters.sort || filters.sort === "default") out.sort((a, b) => a.name.localeCompare(b.name));
+
+  return out;
+};
+
 const normalizeProduct = (raw: Partial<Product>): Product => ({
   ...(raw as Product),
   id: String(raw.id || ""),
@@ -248,7 +296,10 @@ export const fetchProducts = async (
     });
     if (!res.ok) throw new Error(`fetchProducts failed: ${res.status}`);
     const data = await res.json();
-    const apiItems = ((data.items || []) as Partial<Product>[]).map(normalizeProduct);
+    const apiItems = applyClientFilters(
+      ((data.items || []) as Partial<Product>[]).map(normalizeProduct),
+      filters,
+    );
     if (apiItems.length === 0) return dummyList();
     return apiItems;
   } catch {

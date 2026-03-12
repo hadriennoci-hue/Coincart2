@@ -4,6 +4,7 @@ import { fetchProducts, type Currency } from "../../lib/api";
 import { FlipCard } from "../../components/ui/FlipCard";
 import { SortSelect } from "../../components/ui/SortSelect";
 import { SearchFilters } from "../../components/ui/SearchFilters";
+import { collectionMeta } from "../../lib/collections";
 
 export const runtime = "edge";
 
@@ -32,6 +33,13 @@ export default async function SearchPage({
     sort?: "default" | "price_asc" | "price_desc" | "popularity" | "newest";
   }>;
 }) {
+  const toCollectionKey = (value?: string | null) =>
+    (value ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
   const {
     q = "",
     category = "",
@@ -51,10 +59,17 @@ export default async function SearchPage({
 
   const collectionsMap = new Map<string, number>();
   for (const item of allItems) {
-    const key = item.collection || item.category || "Uncategorized";
+    const key = toCollectionKey(item.collection || item.category);
+    if (!key) continue;
     collectionsMap.set(key, (collectionsMap.get(key) || 0) + 1);
   }
-  const collections = Array.from(collectionsMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  const collections = collectionMeta
+    .map((entry) => ({
+      key: entry.key,
+      label: entry.label,
+      count: collectionsMap.get(entry.key) || 0,
+    }))
+    .filter((entry) => entry.count > 0 || entry.key === collection);
 
   const uniq = <T,>(vals: (T | null | undefined)[]): T[] =>
     [...new Set(vals.filter((v): v is T => v != null && String(v).trim() !== ""))];
