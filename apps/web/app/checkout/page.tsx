@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createCheckoutSession, fetchProductsBySkus, type Currency, type Product } from "../../lib/api";
 import { fmtPrice } from "../../lib/format";
 import { clearCart, getCart, type CartLine } from "../../lib/cart";
+import { computeCouponDiscount, getStoredCoupon, isSupportedCoupon, setStoredCoupon } from "../../lib/coupon";
 
 const euCountries = [
   { code: "AT", name: "Austria" },
@@ -54,6 +55,8 @@ export default function CheckoutPage() {
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const [cartProducts, setCartProducts] = useState<Product[]>([]);
   const [cartLines, setCartLines] = useState<CartLine[]>([]);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const shippingCost = currency === "EUR" ? 10 : 11;
 
   useEffect(() => {
@@ -80,6 +83,17 @@ export default function CheckoutPage() {
     return () => window.removeEventListener("cartupdate", loadCart);
   }, [currency]);
 
+  useEffect(() => {
+    const syncCoupon = () => {
+      const stored = getStoredCoupon();
+      setAppliedCoupon(stored);
+      setCouponCode(stored || "");
+    };
+    syncCoupon();
+    window.addEventListener("couponupdate", syncCoupon);
+    return () => window.removeEventListener("couponupdate", syncCoupon);
+  }, []);
+
   const normalizeSku = (value: string) => value.trim().toUpperCase();
   const productBySku = new Map(cartProducts.map((product) => [normalizeSku(product.sku), product]));
   const summaryRows = cartLines.map((line) => {
@@ -99,7 +113,8 @@ export default function CheckoutPage() {
     };
   });
   const subtotal = summaryRows.reduce((acc, line) => acc + line.lineTotal, 0);
-  const grandTotal = subtotal + shippingCost;
+  const couponDiscount = computeCouponDiscount(subtotal, appliedCoupon);
+  const grandTotal = Math.max(0, subtotal - couponDiscount) + shippingCost;
 
   const missingRequired = {
     shippingName: shippingName.trim().length === 0,
@@ -395,6 +410,41 @@ export default function CheckoutPage() {
               </>
             )}
 
+            {/* Coupon */}
+            <div style={{ marginBottom: 20 }}>
+              <label className="form-label">
+                Coupon Code
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input
+                    className="input"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    placeholder="Enter coupon code"
+                    style={{ flex: 1 }}
+                  />
+                  <button
+                    className="btn btn-ghost"
+                    onClick={() => setStoredCoupon(couponCode)}
+                    type="button"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </label>
+              {isSupportedCoupon(appliedCoupon) && (
+                <div className="small text-success" style={{ marginTop: 6 }}>
+                  Coupon COINCART10 applied - 10% off
+                </div>
+              )}
+              {appliedCoupon && !isSupportedCoupon(appliedCoupon) && (
+                <div className="small text-error" style={{ marginTop: 6 }}>
+                  Invalid coupon code
+                </div>
+              )}
+            </div>
+
+            <div className="divider" style={{ marginBottom: 16 }} />
+
             {/* Shipping Info */}
             <div
               style={{
@@ -424,6 +474,14 @@ export default function CheckoutPage() {
             {summaryRows.length > 0 && (
               <>
                 <div className="divider" style={{ margin: "0 0 16px" }} />
+                {couponDiscount > 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <span className="small" style={{ color: "var(--accent)" }}>Discount</span>
+                    <span style={{ fontWeight: 600, color: "var(--accent)" }}>
+                      -{fmtPrice(couponDiscount, currency)}
+                    </span>
+                  </div>
+                )}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                   <span style={{ fontWeight: 700 }}>Total</span>
                   <span style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--accent)" }}>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { fetchProductsBySkus, type Currency, type Product } from "../../lib/api";
 import { fmtPrice } from "../../lib/format";
 import { decrementFromCart, getCart, type CartLine } from "../../lib/cart";
+import { computeCouponDiscount, getStoredCoupon, isSupportedCoupon, setStoredCoupon } from "../../lib/coupon";
 import { buildImageFallback } from "../../lib/imageFallback";
 
 const normalizeSku = (value: string) => value.trim().toUpperCase();
@@ -20,6 +21,17 @@ export default function CartPage() {
   useEffect(() => {
     const initial = getCart();
     setLines(initial);
+  }, []);
+
+  useEffect(() => {
+    const syncCoupon = () => {
+      const stored = getStoredCoupon();
+      setAppliedCoupon(stored);
+      setCouponCode(stored || "");
+    };
+    syncCoupon();
+    window.addEventListener("couponupdate", syncCoupon);
+    return () => window.removeEventListener("couponupdate", syncCoupon);
   }, []);
 
   useEffect(() => {
@@ -86,8 +98,7 @@ export default function CartPage() {
   );
 
   const couponDiscount = useMemo(() => {
-    if (appliedCoupon === "COINCART10") return total * 0.1;
-    return 0;
+    return computeCouponDiscount(total, appliedCoupon);
   }, [appliedCoupon, total]);
 
   const shippingCost = useMemo(
@@ -120,7 +131,7 @@ export default function CartPage() {
               className="surface"
               style={{ textAlign: "center", padding: 48 }}
             >
-              <div style={{ fontSize: "3rem", marginBottom: 16 }}>🛒</div>
+              <div style={{ fontSize: "3rem", marginBottom: 16 }}>Cart</div>
               <h3 style={{ marginBottom: 8 }}>Your cart is empty</h3>
               <p className="small" style={{ marginBottom: 20 }}>
                 Browse our catalog and add items to get started.
@@ -260,23 +271,19 @@ export default function CartPage() {
                 />
                 <button
                   className="btn btn-ghost"
-                  onClick={() =>
-                    setAppliedCoupon(
-                      couponCode.trim().toUpperCase() || null,
-                    )
-                  }
+                  onClick={() => setStoredCoupon(couponCode)}
                   type="button"
                 >
                   Apply
                 </button>
               </div>
             </label>
-            {appliedCoupon === "COINCART10" && (
+            {isSupportedCoupon(appliedCoupon) && (
               <div className="small text-success" style={{ marginTop: 6 }}>
-                ✓ Coupon COINCART10 applied — 10% off
+                Coupon COINCART10 applied - 10% off
               </div>
             )}
-            {appliedCoupon && appliedCoupon !== "COINCART10" && (
+            {appliedCoupon && !isSupportedCoupon(appliedCoupon) && (
               <div className="small text-error" style={{ marginTop: 6 }}>
                 Invalid coupon code
               </div>
@@ -339,10 +346,11 @@ export default function CartPage() {
           </Link>
 
           <div className="caption" style={{ marginTop: 12, textAlign: "center" }}>
-            🚚 DHL Standard · 5 business days · 10 EUR flat rate
+            DHL Standard | 5 business days | 10 EUR flat rate
           </div>
         </div>
       </div>
     </div>
   );
 }
+
