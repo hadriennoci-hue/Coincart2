@@ -41,7 +41,23 @@ const getApp = (env: Env) => {
 };
 
 export default {
-  fetch(request: Request, env: Env, ctx: ExecutionContext) {
-    return getApp(env).fetch(request, env, ctx);
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    try {
+      return await getApp(env).fetch(request, env, ctx);
+    } catch (error) {
+      // Recover from stale runtime/db state by rebuilding app bindings once.
+      console.error("Worker fetch failed, retrying with fresh app instance:", error);
+      cachedApp = null;
+      cachedKey = "";
+      try {
+        return await getApp(env).fetch(request, env, ctx);
+      } catch (retryError) {
+        console.error("Worker fetch retry failed:", retryError);
+        return new Response(JSON.stringify({ error: "Internal Server Error" }), {
+          status: 500,
+          headers: { "content-type": "application/json; charset=utf-8" },
+        });
+      }
+    }
   },
 };

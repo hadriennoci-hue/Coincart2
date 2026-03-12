@@ -73,6 +73,31 @@ const parseVariantOption = (variant: Record<string, unknown>, fallbackOptionName
   return { optionName: optionName || undefined, optionValue: optionValue || undefined };
 };
 
+const parseDirectOptionFields = (payload: Record<string, unknown>, fallbackOptionName?: string) => {
+  const optionName =
+    (typeof payload.option_name === "string" && payload.option_name.trim()) ||
+    (typeof payload.optionName === "string" && payload.optionName.trim()) ||
+    fallbackOptionName ||
+    undefined;
+  const optionValue =
+    (typeof payload.option_value === "string" && payload.option_value.trim()) ||
+    (typeof payload.optionValue === "string" && payload.optionValue.trim()) ||
+    (typeof payload.option === "string" && payload.option.trim()) ||
+    undefined;
+
+  if (optionName && optionValue) return { optionName, optionValue };
+
+  if (payload.options && typeof payload.options === "object" && !Array.isArray(payload.options)) {
+    const entries = Object.entries(payload.options as Record<string, unknown>);
+    const [first] = entries;
+    if (first && typeof first[0] === "string" && typeof first[1] === "string") {
+      return { optionName: first[0].trim(), optionValue: first[1].trim() };
+    }
+  }
+
+  return { optionName: optionName || undefined, optionValue: optionValue || undefined };
+};
+
 const parseVariantsInput = (body: Record<string, unknown>) => {
   if (Array.isArray(body.variants)) return body.variants as Array<Record<string, unknown>>;
   if (Array.isArray(body.variations)) return body.variations as Array<Record<string, unknown>>;
@@ -132,6 +157,8 @@ const extractMappedProductFieldsFromAttributes = (attributes: unknown) => {
   if (!Array.isArray(attributes)) return mapped;
 
   for (const raw of attributes as Array<Record<string, unknown>>) {
+    const isVariation = raw?.variation === true || raw?.is_variation === true;
+    if (isVariation) continue;
     const rawName = typeof raw?.name === "string" ? raw.name : "";
     const key = normalizeAttrKey(rawName);
     if (!key) continue;
@@ -279,6 +306,7 @@ const toWooLikeProduct = (
     salePriceEur?: string | number | null;
     salePriceUsd?: string | number | null;
     extraAttributes?: Array<{ name?: unknown; options?: unknown; option?: unknown; value?: unknown }> | null;
+    hasVariants?: boolean;
     stockQty: number;
     createdAt: Date;
     updatedAt: Date;
@@ -332,7 +360,7 @@ const toWooLikeProduct = (
     uuid: product.id,
     woo_id: product.wooId,
     parent_id: product.parentProductId ?? null,
-    type: product.isVariant ? "variation" : "simple",
+    type: product.isVariant ? "variation" : product.hasVariants ? "variable" : "simple",
     sku: product.sku,
     slug: product.slug,
     name: product.name,
@@ -711,6 +739,10 @@ connectorRoutes.get("/products/:id", async (c) => {
     .select({
       id: products.id,
       wooId: products.wooId,
+      parentProductId: products.parentProductId,
+      isVariant: products.isVariant,
+      optionName: products.optionName,
+      optionValue: products.optionValue,
       sku: products.sku,
       slug: products.slug,
       category: products.category,
@@ -753,7 +785,13 @@ connectorRoutes.get("/products/:id", async (c) => {
   const prices = { ...euDefaultPrices };
   for (const row of priceRows) prices[row.currency as "EUR" | "USD"] = Number(row.amount);
 
-  return c.json(toWooLikeProduct(product, prices));
+  const [variantCountRow] = await c.var.db
+    .select({ count: sql<number>`count(*)` })
+    .from(products)
+    .where(and(eq(products.parentProductId, product.id), eq(products.isVariant, true)));
+  const hasVariants = Number(variantCountRow?.count ?? 0) > 0;
+
+  return c.json(toWooLikeProduct({ ...product, hasVariants }, prices));
 });
 
 connectorRoutes.get("/products", async (c) => {
@@ -776,6 +814,10 @@ connectorRoutes.get("/products", async (c) => {
     .select({
       id: products.id,
       wooId: products.wooId,
+      parentProductId: products.parentProductId,
+      isVariant: products.isVariant,
+      optionName: products.optionName,
+      optionValue: products.optionValue,
       sku: products.sku,
       slug: products.slug,
       category: products.category,
@@ -812,6 +854,7 @@ connectorRoutes.get("/products", async (c) => {
 
   const ids = items.map((x) => x.id);
   const pricesById = new Map<string, Record<string, number>>();
+  const parentIdsWithVariants = new Set<string>();
   if (ids.length > 0) {
     const priceRows = await c.var.db
       .select({
@@ -827,10 +870,21 @@ connectorRoutes.get("/products", async (c) => {
       current[row.currency] = Number(row.amount);
       pricesById.set(row.productId, current);
     }
+
+    const variantParentRows = await c.var.db
+      .select({ parentId: products.parentProductId })
+      .from(products)
+      .where(and(inArray(products.parentProductId, ids), eq(products.isVariant, true)));
+    for (const row of variantParentRows) {
+      if (row.parentId) parentIdsWithVariants.add(row.parentId);
+    }
   }
 
   const formatted = items.map((item) =>
-    mapFields(toWooLikeProduct(item, pricesById.get(item.id) ?? { ...euDefaultPrices }), fields),
+    mapFields(
+      toWooLikeProduct({ ...item, hasVariants: parentIdsWithVariants.has(item.id) }, pricesById.get(item.id) ?? { ...euDefaultPrices }),
+      fields,
+    ),
   );
 
   return c.json(formatted);
@@ -929,10 +983,10 @@ connectorRoutes.post("/products/:id", async (c) => {
       (x) => x.name?.toLowerCase() === "brand",
     );
     if (brandAttr?.options?.[0]) updatePayload.brand = brandAttr.options[0];
-    const variantOption = parseVariantOptionFromAttributes(body.attributes);
-    if (variantOption.optionName) updatePayload.optionName = variantOption.optionName;
-    if (variantOption.optionValue) updatePayload.optionValue = variantOption.optionValue;
   }
+  const directOption = parseDirectOptionFields(body);
+  if (directOption.optionName) updatePayload.optionName = directOption.optionName;
+  if (directOption.optionValue) updatePayload.optionValue = directOption.optionValue;
 
   if (Array.isArray(body.meta_data)) {
     const eanMeta = (body.meta_data as Array<{ key?: string; value?: string }>).find((x) => x.key === "ean");
@@ -1185,7 +1239,7 @@ connectorRoutes.post("/products", async (c) => {
     if (!parentResolved) return c.json(connectorError("parent_id not found", 404), 404);
     parentProductId = parentResolved.id;
   }
-  const directVariantOption = parseVariantOption(body, fallbackOptionName);
+  const directVariantOption = parseDirectOptionFields(body, fallbackOptionName);
   const isVariant = Boolean(parentProductId);
   const shouldPersistVariantFields =
     isVariant || Boolean(directVariantOption.optionName || directVariantOption.optionValue);
