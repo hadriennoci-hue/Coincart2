@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createCheckoutSession, fetchProductsBySkus, type Currency, type Product } from "../../lib/api";
 import { fmtPrice } from "../../lib/format";
-import { clearCart, getCart } from "../../lib/cart";
+import { clearCart, getCart, type CartLine } from "../../lib/cart";
 
 const euCountries = [
   { code: "AT", name: "Austria" },
@@ -53,6 +53,7 @@ export default function CheckoutPage() {
   const [error, setError] = useState("");
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const [cartProducts, setCartProducts] = useState<Product[]>([]);
+  const [cartLines, setCartLines] = useState<CartLine[]>([]);
   const shippingCost = currency === "EUR" ? 10 : 11;
 
   useEffect(() => {
@@ -62,10 +63,43 @@ export default function CheckoutPage() {
   }, []);
 
   useEffect(() => {
-    const lines = getCart();
-    if (lines.length === 0) return;
-    fetchProductsBySkus(lines.map((l) => l.sku), currency).then(setCartProducts);
+    const loadCart = () => {
+      const lines = getCart();
+      setCartLines(lines);
+      if (lines.length === 0) {
+        setCartProducts([]);
+        return;
+      }
+      fetchProductsBySkus(lines.map((l) => l.sku), currency)
+        .then(setCartProducts)
+        .catch(() => setCartProducts([]));
+    };
+
+    loadCart();
+    window.addEventListener("cartupdate", loadCart);
+    return () => window.removeEventListener("cartupdate", loadCart);
   }, [currency]);
+
+  const normalizeSku = (value: string) => value.trim().toUpperCase();
+  const productBySku = new Map(cartProducts.map((product) => [normalizeSku(product.sku), product]));
+  const summaryRows = cartLines.map((line) => {
+    const product = productBySku.get(normalizeSku(line.sku));
+    const unitPrice =
+      typeof product?.price === "number"
+        ? product.price
+        : typeof line.snapshot?.price === "number"
+          ? line.snapshot.price
+          : 0;
+    const name = product?.name || line.snapshot?.name || line.sku;
+    return {
+      sku: line.sku,
+      quantity: line.quantity,
+      name,
+      lineTotal: unitPrice * line.quantity,
+    };
+  });
+  const subtotal = summaryRows.reduce((acc, line) => acc + line.lineTotal, 0);
+  const grandTotal = subtotal + shippingCost;
 
   const missingRequired = {
     shippingName: shippingName.trim().length === 0,
@@ -126,7 +160,7 @@ export default function CheckoutPage() {
             Checkout
           </h1>
           <p className="small" style={{ marginBottom: 32, color: "var(--muted)" }}>
-            Guest checkout — no account required.
+            Guest checkout - no account required.
           </p>
 
           {/* Shipping Details */}
@@ -329,33 +363,37 @@ export default function CheckoutPage() {
             </h2>
 
             {/* Cart Items */}
-            {cartProducts.length > 0 && (() => {
-              const lines = getCart();
-              return (
-                <>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
-                    {cartProducts.map((product) => {
-                      const line = lines.find((l) => l.sku === product.sku);
-                      const qty = line?.quantity ?? 1;
-                      return (
-                        <div key={product.sku} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-                            <span style={{ fontSize: "0.75rem", color: "var(--muted)", flexShrink: 0 }}>×{qty}</span>
-                            <span style={{ fontSize: "0.8rem", color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                              {product.name.length > 28 ? product.name.slice(0, 27) + "…" : product.name}
-                            </span>
-                          </div>
-                          <span style={{ fontSize: "0.8rem", fontWeight: 600, flexShrink: 0, color: "var(--muted)" }}>
-                            {fmtPrice(product.price * qty, currency)}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="divider" style={{ marginBottom: 16 }} />
-                </>
-              );
-            })()}
+            {summaryRows.length > 0 && (
+              <>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
+                  {summaryRows.map((line) => (
+                    <div
+                      key={line.sku}
+                      style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+                        <span style={{ fontSize: "0.75rem", color: "var(--muted)", flexShrink: 0 }}>x{line.quantity}</span>
+                        <span
+                          style={{
+                            fontSize: "0.8rem",
+                            color: "var(--text)",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {line.name.length > 28 ? line.name.slice(0, 27) + "..." : line.name}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: "0.8rem", fontWeight: 600, flexShrink: 0, color: "var(--muted)" }}>
+                        {fmtPrice(line.lineTotal, currency)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="divider" style={{ marginBottom: 16 }} />
+              </>
+            )}
 
             {/* Shipping Info */}
             <div
@@ -374,9 +412,7 @@ export default function CheckoutPage() {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>
-                    🚚 DHL Standard
-                  </div>
+                  <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>DHL Standard</div>
                   <div className="caption">Estimated 5 business days</div>
                 </div>
                 <div style={{ fontWeight: 600, color: "var(--text)" }}>
@@ -385,25 +421,17 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {cartProducts.length > 0 && (() => {
-              const lines = getCart();
-              const subtotal = cartProducts.reduce((acc, p) => {
-                const qty = lines.find((l) => l.sku === p.sku)?.quantity ?? 1;
-                return acc + p.price * qty;
-              }, 0);
-              const grandTotal = subtotal + shippingCost;
-              return (
-                <>
-                  <div className="divider" style={{ margin: "0 0 16px" }} />
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                    <span style={{ fontWeight: 700 }}>Total</span>
-                    <span style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--accent)" }}>
-                      {fmtPrice(grandTotal, currency)}
-                    </span>
-                  </div>
-                </>
-              );
-            })()}
+            {summaryRows.length > 0 && (
+              <>
+                <div className="divider" style={{ margin: "0 0 16px" }} />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <span style={{ fontWeight: 700 }}>Total</span>
+                  <span style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--accent)" }}>
+                    {fmtPrice(grandTotal, currency)}
+                  </span>
+                </div>
+              </>
+            )}
 
             <p className="small" style={{ color: "var(--muted)", marginBottom: 4 }}>
               Shipping is available within the EU only.{" "}
@@ -427,10 +455,11 @@ export default function CheckoutPage() {
           </button>
 
           <div className="caption" style={{ marginTop: 10, textAlign: "center" }}>
-            🔒 You will be redirected to BTCPay Server
+            Secure: You will be redirected to BTCPay Server
           </div>
         </div>
       </div>
     </div>
   );
 }
+
