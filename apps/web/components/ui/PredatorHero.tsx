@@ -136,22 +136,14 @@ export function PredatorHero({
                 transition={{ delay: 0.28, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                 className="ph-visual-wrap"
               >
-                {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt={name}
-                    className="ph-img"
-                    width={960}
-                    height={600}
-                    loading="eager"
-                    fetchPriority="high"
-                    decoding="async"
-                  />
-                ) : (
-                  <div className="ph-img-placeholder">
-                    <span>{name}</span>
-                  </div>
-                )}
+                <video
+                  src="/acer_predator.webm"
+                  className="ph-img"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                />
               </motion.div>
             </div>
           </motion.div>
