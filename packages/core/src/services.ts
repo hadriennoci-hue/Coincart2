@@ -73,6 +73,8 @@ const SHIPPING_METHOD = "DHL Standard";
 const ESTIMATED_DELIVERY_DAYS = 5;
 const SHIPPING_FEE_EUR = 10;
 const EUR_TO_USD = 1.1;
+const SUPPORTED_COUPON = "COINCART10";
+const COUPON_DISCOUNT_RATE = 0.1;
 
 const shippingFeeForCurrency = (currency: Currency) =>
   currency === "EUR" ? SHIPPING_FEE_EUR : Number((SHIPPING_FEE_EUR * EUR_TO_USD).toFixed(2));
@@ -238,7 +240,14 @@ export const createCheckoutSession = async (
   }
 
   const shippingCost = shippingFeeForCurrency(input.currency);
-  const totalAmount = subtotal + shippingCost;
+  const normalizedCoupon = String(input.couponCode || "").trim().toUpperCase();
+  if (normalizedCoupon && normalizedCoupon !== SUPPORTED_COUPON) {
+    throw new Error("Invalid coupon code");
+  }
+  const couponDiscount =
+    normalizedCoupon === SUPPORTED_COUPON ? Number((subtotal * COUPON_DISCOUNT_RATE).toFixed(2)) : 0;
+  const discountedSubtotal = Math.max(0, Number((subtotal - couponDiscount).toFixed(2)));
+  const totalAmount = Number((discountedSubtotal + shippingCost).toFixed(2));
 
   const [order] = await db
     .insert(orders)
@@ -250,7 +259,7 @@ export const createCheckoutSession = async (
       estimatedDeliveryDays: ESTIMATED_DELIVERY_DAYS,
       shippingCost: shippingCost.toFixed(2),
       currency: input.currency,
-      subtotalAmount: subtotal.toFixed(2),
+      subtotalAmount: discountedSubtotal.toFixed(2),
       totalAmount: totalAmount.toFixed(2),
       status: "pending_payment",
     })
@@ -273,6 +282,7 @@ export const createCheckoutSession = async (
     currency: input.currency,
     orderId: order.id,
     buyerEmail: input.email,
+    metadata: normalizedCoupon ? { couponCode: normalizedCoupon, couponDiscount } : undefined,
   });
 
   const [updated] = await db
@@ -319,13 +329,20 @@ export const applyBtcPayWebhook = async (db: Db, input: { deliveryId: string; ev
     const [updated] = await db
       .update(orders)
       .set({ status: "paid", paidAt: sql`now()`, updatedAt: sql`now()` })
-      .where(eq(orders.btcpayInvoiceId, input.invoiceId))
+      .where(
+        and(
+          eq(orders.btcpayInvoiceId, input.invoiceId),
+          ne(orders.status, "paid"),
+          ne(orders.status, "confirmed"),
+          ne(orders.status, "fulfilled"),
+        ),
+      )
       .returning({ id: orders.id });
 
-    return { duplicate: false, orderUpdated: Boolean(updated) };
+    return { duplicate: false, orderUpdated: Boolean(updated), orderId: updated?.id ?? null };
   }
 
-  return { duplicate: false, orderUpdated: false };
+  return { duplicate: false, orderUpdated: false, orderId: null };
 };
 
 export const listProducts = async (db: Db, currency: Currency, featuredOnly = false) => {
@@ -709,4 +726,14 @@ export const getOrderById = async (db: Db, orderId: string) => {
       lineTotal: Number(x.lineTotal),
     })),
   };
+};
+
+export const getOrderByInvoiceId = async (db: Db, invoiceId: string) => {
+  const rows = await db
+    .select({ id: orders.id })
+    .from(orders)
+    .where(eq(orders.btcpayInvoiceId, invoiceId))
+    .limit(1);
+  if (!rows[0]) return null;
+  return getOrderById(db, rows[0].id);
 };

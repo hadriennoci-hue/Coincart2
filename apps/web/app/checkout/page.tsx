@@ -148,10 +148,11 @@ export default function CheckoutPage() {
         postcode,
         shippingCountry: country,
         currency,
+        couponCode: isSupportedCoupon(appliedCoupon) ? appliedCoupon || undefined : undefined,
         lines,
       });
       clearCart();
-      window.location.href = `/order/${session.orderId}`;
+      window.location.href = session.checkoutUrl || `/order/${session.orderId}`;
     } catch (err) {
       setError((err as Error).message);
     } finally {

@@ -493,6 +493,7 @@ export const createCheckoutSession = async (payload: {
   postcode: string;
   shippingCountry: string;
   currency: Currency;
+  couponCode?: string;
   lines: Array<{ sku: string; quantity: number }>;
 }) => {
   if (forceDummyCatalog) {

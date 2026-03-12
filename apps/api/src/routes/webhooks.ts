@@ -1,24 +1,130 @@
 import { Hono } from "hono";
 import { btcpayWebhookSchema } from "@coincart/types";
-import { applyBtcPayWebhook } from "@coincart/core";
+import { applyBtcPayWebhook, getOrderById, getOrderByInvoiceId } from "@coincart/core";
 import type { AppContext } from "../types";
 
 export const webhookRoutes = new Hono<AppContext>();
+
+const ADMIN_ORDER_EMAIL = "coincartstore@proton.me";
+
+const sendOrderConfirmationEmails = async (
+  resendApiKey: string,
+  from: string,
+  order: NonNullable<Awaited<ReturnType<typeof getOrderById>>>,
+) => {
+  const itemsText = order.items
+    .map((item) => `- ${item.productName} (${item.sku}) x${item.quantity}: ${item.lineTotal.toFixed(2)} ${order.currency}`)
+    .join("\n");
+
+  const shippingLine =
+    typeof order.shippingCost === "number"
+      ? `Shipping${order.shippingMethod ? ` (${order.shippingMethod})` : ""}: ${order.shippingCost.toFixed(2)} ${order.currency}`
+      : "Shipping: N/A";
+
+  const subject = `Coincart order paid - ${order.id}`;
+  const text = [
+    `Order ${order.id} has been paid.`,
+    "",
+    `Customer: ${order.customerEmail}`,
+    `Currency: ${order.currency}`,
+    `Subtotal: ${order.items.reduce((acc, item) => acc + item.lineTotal, 0).toFixed(2)} ${order.currency}`,
+    shippingLine,
+    `Total: ${order.totalAmount.toFixed(2)} ${order.currency}`,
+    "",
+    "Items:",
+    itemsText || "-",
+    "",
+    `Invoice: ${order.btcpayInvoiceId || "N/A"}`,
+  ].join("\n");
+
+  const htmlItems = order.items
+    .map(
+      (item) =>
+        `<li>${item.productName} (${item.sku}) x${item.quantity} - ${item.lineTotal.toFixed(2)} ${order.currency}</li>`,
+    )
+    .join("");
+
+  const html = `
+    <h2>Order Paid</h2>
+    <p><strong>Order ID:</strong> ${order.id}</p>
+    <p><strong>Customer:</strong> ${order.customerEmail}</p>
+    <p><strong>Currency:</strong> ${order.currency}</p>
+    <p><strong>Total:</strong> ${order.totalAmount.toFixed(2)} ${order.currency}</p>
+    <p><strong>${shippingLine}</strong></p>
+    <p><strong>Items:</strong></p>
+    <ul>${htmlItems || "<li>-</li>"}</ul>
+    <p><strong>Invoice:</strong> ${order.btcpayInvoiceId || "N/A"}</p>
+  `;
+
+  const to = Array.from(new Set([order.customerEmail, ADMIN_ORDER_EMAIL]));
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from,
+      to,
+      subject,
+      text,
+      html,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text().catch(() => "");
+    throw new Error(`Failed to send order confirmation email (${response.status}) ${errorBody}`);
+  }
+};
 
 webhookRoutes.post("/btcpay", async (c) => {
   try {
     const body = await c.req.json();
     const parsed = btcpayWebhookSchema.safeParse(body);
-    if (!parsed.success) {
-      return c.json({ error: parsed.error.issues }, 400);
+
+    const deliveryId =
+      c.req.header("btcpay-sig") ||
+      c.req.header("x-delivery-id") ||
+      (parsed.success ? parsed.data.deliveryId : undefined) ||
+      (body?.deliveryId as string | undefined) ||
+      crypto.randomUUID();
+
+    const event =
+      (parsed.success ? parsed.data.event : undefined) ||
+      (body?.event as string | undefined) ||
+      (body?.type as string | undefined) ||
+      "";
+
+    const invoiceId =
+      (parsed.success ? parsed.data.invoiceId : undefined) ||
+      (body?.invoiceId as string | undefined) ||
+      (body?.invoice?.id as string | undefined) ||
+      "";
+
+    if (!event || !invoiceId) {
+      return c.json({ error: "Missing BTCPay event or invoiceId" }, 400);
     }
 
     const result = await applyBtcPayWebhook(c.var.db, {
-      deliveryId: parsed.data.deliveryId,
-      event: parsed.data.event,
-      invoiceId: parsed.data.invoiceId,
-      raw: parsed.data.raw,
+      deliveryId,
+      event,
+      invoiceId,
+      raw: parsed.success ? parsed.data.raw : body,
     });
+
+    if (result.orderUpdated) {
+      const { resendApiKey, contactFromEmail } = c.var.contact;
+      if (resendApiKey) {
+        const order =
+          (result.orderId ? await getOrderById(c.var.db, result.orderId) : null) ||
+          (await getOrderByInvoiceId(c.var.db, invoiceId));
+        if (order) {
+          await sendOrderConfirmationEmails(resendApiKey, contactFromEmail, order);
+        }
+      }
+    }
 
     return c.json(result);
   } catch (error) {

@@ -3,6 +3,7 @@ export type BtcPayInvoiceRequest = {
   currency: "USD" | "EUR";
   orderId: string;
   buyerEmail: string;
+  metadata?: Record<string, unknown>;
 };
 
 export type BtcPayInvoiceResponse = {
@@ -64,11 +65,12 @@ export class GreenfieldBtcPayClient implements BtcPayClient {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            amount: input.amount.toFixed(2),
+            amount: Number(input.amount.toFixed(2)),
             currency: input.currency,
             metadata: {
               orderId: input.orderId,
               buyerEmail: input.buyerEmail,
+              ...(input.metadata ?? {}),
             },
           }),
           signal: abort.signal,

@@ -71,6 +71,7 @@ export const checkoutSessionCreateSchema = z.object({
   postcode: z.string().min(1).max(30),
   shippingCountry: z.string().min(2).max(100),
   currency: currencySchema,
+  couponCode: z.string().trim().min(1).max(40).optional(),
   lines: z.array(checkoutLineSchema).min(1).max(100),
 });
 
