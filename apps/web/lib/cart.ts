@@ -24,14 +24,17 @@ export const getCart = (): CartLine[] => {
         const quantity = Number(entry.quantity);
         if (!sku || !Number.isFinite(quantity) || quantity < 1) continue;
         const snapshotRaw = entry.snapshot as Record<string, unknown> | undefined;
+        const parsedSnapshotPrice =
+          typeof snapshotRaw?.price === "number" && Number.isFinite(snapshotRaw.price)
+            ? snapshotRaw.price
+            : typeof snapshotRaw?.price === "string" && Number.isFinite(Number(snapshotRaw.price))
+              ? Number(snapshotRaw.price)
+              : undefined;
         const snapshot: CartSnapshot | undefined = snapshotRaw
           ? {
               name: typeof snapshotRaw.name === "string" ? snapshotRaw.name : undefined,
               imageUrl: typeof snapshotRaw.imageUrl === "string" ? snapshotRaw.imageUrl : null,
-              price:
-                typeof snapshotRaw.price === "number" && Number.isFinite(snapshotRaw.price)
-                  ? snapshotRaw.price
-                  : undefined,
+              price: parsedSnapshotPrice,
               currency: snapshotRaw.currency === "USD" ? "USD" : snapshotRaw.currency === "EUR" ? "EUR" : undefined,
             }
           : undefined;

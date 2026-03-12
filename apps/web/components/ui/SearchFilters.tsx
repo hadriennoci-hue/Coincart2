@@ -7,6 +7,11 @@ import type { FormEventHandler } from "react";
 interface SearchFiltersProps {
   category: string;
   collection: string;
+  cpu: string;
+  gpu: string;
+  resolution: string;
+  refresh_rate: string;
+  storage: string;
   keyboard_layout: string;
   usage: string;
   screen_size: string;
@@ -15,6 +20,12 @@ interface SearchFiltersProps {
   max_resolution: string;
   q: string;
   collections: Array<{ key: string; label: string; count: number }>;
+  cpuOptions: string[];
+  gpuOptions: string[];
+  laptopResolutionOptions: string[];
+  displayResolutionOptions: string[];
+  refreshRateOptions: number[];
+  storageOptions: string[];
   keyboardLayouts: string[];
   usages: string[];
   screenSizes: string[];
@@ -25,6 +36,11 @@ interface SearchFiltersProps {
 export function SearchFilters({
   category,
   collection,
+  cpu,
+  gpu,
+  resolution,
+  refresh_rate,
+  storage,
   keyboard_layout,
   usage,
   screen_size,
@@ -33,6 +49,12 @@ export function SearchFilters({
   max_resolution,
   q,
   collections,
+  cpuOptions,
+  gpuOptions,
+  laptopResolutionOptions,
+  displayResolutionOptions,
+  refreshRateOptions,
+  storageOptions,
   keyboardLayouts,
   usages,
   screenSizes,
@@ -40,9 +62,12 @@ export function SearchFilters({
   ssdOptions,
 }: SearchFiltersProps) {
   const [open, setOpen] = useState(false);
+  const normalizedCollection = (collection || category || "").trim().toLowerCase();
+  const isLaptopCollection = normalizedCollection === "laptops";
+  const isDisplayCollection = normalizedCollection === "displays";
 
   const hasActiveFilters =
-    collection || category || keyboard_layout || usage || screen_size || ram_memory || ssd_size || max_resolution;
+    collection || category || cpu || gpu || resolution || refresh_rate || storage || keyboard_layout || usage || screen_size || ram_memory || ssd_size || max_resolution;
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -114,7 +139,103 @@ export function SearchFilters({
           </select>
         </label>
 
-        {keyboardLayouts.length > 0 && (
+        {isLaptopCollection && cpuOptions.length > 0 && (
+          <label className="form-label" style={{ gap: 6 }}>
+            CPU
+            <select className="select" name="cpu" defaultValue={cpu}>
+              <option value="">All CPUs</option>
+              {cpuOptions.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        {isLaptopCollection && gpuOptions.length > 0 && (
+          <label className="form-label" style={{ gap: 6 }}>
+            GPU
+            <select className="select" name="gpu" defaultValue={gpu}>
+              <option value="">All GPUs</option>
+              {gpuOptions.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        {isLaptopCollection && screenSizes.length > 0 && (
+          <label className="form-label" style={{ gap: 6 }}>
+            Screen Size
+            <select className="select" name="screen_size" defaultValue={screen_size}>
+              <option value="">All sizes</option>
+              {screenSizes.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        {isLaptopCollection && laptopResolutionOptions.length > 0 && (
+          <label className="form-label" style={{ gap: 6 }}>
+            Resolution
+            <select className="select" name="resolution" defaultValue={resolution}>
+              <option value="">All resolutions</option>
+              {laptopResolutionOptions.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        {isLaptopCollection && ramOptions.length > 0 && (
+          <label className="form-label" style={{ gap: 6 }}>
+            RAM (GB)
+            <select className="select" name="ram_memory" defaultValue={ram_memory}>
+              <option value="">All RAM</option>
+              {ramOptions.map((v) => (
+                <option key={v} value={String(v)}>{v} GB</option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        {isLaptopCollection && storageOptions.length > 0 && (
+          <label className="form-label" style={{ gap: 6 }}>
+            Storage
+            <select className="select" name="storage" defaultValue={storage}>
+              <option value="">All storage</option>
+              {storageOptions.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        {isDisplayCollection && displayResolutionOptions.length > 0 && (
+          <label className="form-label" style={{ gap: 6 }}>
+            Resolution
+            <select className="select" name="resolution" defaultValue={resolution}>
+              <option value="">All resolutions</option>
+              {displayResolutionOptions.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        {isDisplayCollection && refreshRateOptions.length > 0 && (
+          <label className="form-label" style={{ gap: 6 }}>
+            Refresh Rate
+            <select className="select" name="refresh_rate" defaultValue={refresh_rate}>
+              <option value="">All refresh rates</option>
+              {refreshRateOptions.map((v) => (
+                <option key={v} value={String(v)}>{v} Hz</option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        {!isLaptopCollection && keyboardLayouts.length > 0 && (
           <label className="form-label" style={{ gap: 6 }}>
             Keyboard Layout
             <select className="select" name="keyboard_layout" defaultValue={keyboard_layout}>
@@ -138,7 +259,7 @@ export function SearchFilters({
           </label>
         )}
 
-        {screenSizes.length > 0 && (
+        {!isLaptopCollection && screenSizes.length > 0 && (
           <label className="form-label" style={{ gap: 6 }}>
             Screen Size
             <select className="select" name="screen_size" defaultValue={screen_size}>
@@ -150,7 +271,7 @@ export function SearchFilters({
           </label>
         )}
 
-        {ramOptions.length > 0 && (
+        {!isLaptopCollection && ramOptions.length > 0 && (
           <label className="form-label" style={{ gap: 6 }}>
             RAM (GB)
             <select className="select" name="ram_memory" defaultValue={ram_memory}>

@@ -24,6 +24,11 @@ export default async function SearchPage({
     q?: string;
     category?: string;
     collection?: string;
+    cpu?: string;
+    gpu?: string;
+    resolution?: string;
+    refresh_rate?: string;
+    storage?: string;
     keyboard_layout?: string;
     usage?: string;
     screen_size?: string;
@@ -44,6 +49,11 @@ export default async function SearchPage({
     q = "",
     category = "",
     collection = "",
+    cpu = "",
+    gpu = "",
+    resolution = "",
+    refresh_rate = "",
+    storage = "",
     keyboard_layout = "",
     usage = "",
     screen_size = "",
@@ -80,6 +90,14 @@ export default async function SearchPage({
   const uniq = <T,>(vals: (T | null | undefined)[]): T[] =>
     [...new Set(vals.filter((v): v is T => v != null && String(v).trim() !== ""))];
 
+  const laptopItems = allItems.filter((item) => toCollectionKey(item.collection || item.category) === "laptops");
+  const displayItems = allItems.filter((item) => toCollectionKey(item.collection || item.category) === "displays");
+  const cpuOptions = uniq(laptopItems.map((i) => i.cpu)).sort();
+  const gpuOptions = uniq(laptopItems.map((i) => i.gpu)).sort();
+  const laptopResolutionOptions = uniq(laptopItems.map((i) => i.resolution || i.maxResolution)).sort();
+  const displayResolutionOptions = uniq(displayItems.map((i) => i.resolution || i.maxResolution)).sort();
+  const refreshRateOptions = uniq(displayItems.map((i) => i.refreshRate)).sort((a, b) => a - b);
+  const storageOptions = uniq(laptopItems.map((i) => i.storage)).sort();
   const keyboardLayouts = uniq(allItems.map((i) => i.keyboardLayout)).sort();
   const usages = uniq(allItems.map((i) => i.usage)).sort();
   const screenSizes = uniq(allItems.map((i) => i.screenSize)).sort((a, b) => parseFloat(a) - parseFloat(b));
@@ -91,6 +109,11 @@ export default async function SearchPage({
     q,
     category,
     collection,
+    cpu,
+    gpu,
+    resolution,
+    refresh_rate,
+    storage,
     keyboard_layout,
     usage,
     screen_size,
@@ -110,6 +133,11 @@ export default async function SearchPage({
         <SearchFilters
           category={category}
           collection={collection}
+          cpu={cpu}
+          gpu={gpu}
+          resolution={resolution}
+          refresh_rate={refresh_rate}
+          storage={storage}
           keyboard_layout={keyboard_layout}
           usage={usage}
           screen_size={screen_size}
@@ -118,6 +146,12 @@ export default async function SearchPage({
           max_resolution={max_resolution}
           q={q}
           collections={collections}
+          cpuOptions={cpuOptions}
+          gpuOptions={gpuOptions}
+          laptopResolutionOptions={laptopResolutionOptions}
+          displayResolutionOptions={displayResolutionOptions}
+          refreshRateOptions={refreshRateOptions}
+          storageOptions={storageOptions}
           keyboardLayouts={keyboardLayouts}
           usages={usages}
           screenSizes={screenSizes}
@@ -138,6 +172,11 @@ export default async function SearchPage({
             q={q}
             category={category}
             collection={collection}
+            cpu={cpu}
+            gpu={gpu}
+            resolution={resolution}
+            refresh_rate={refresh_rate}
+            storage={storage}
             keyboard_layout={keyboard_layout}
             usage={usage}
             screen_size={screen_size}

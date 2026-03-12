@@ -7,6 +7,11 @@ interface SortSelectProps {
   q: string;
   category: string;
   collection: string;
+  cpu: string;
+  gpu: string;
+  resolution: string;
+  refresh_rate: string;
+  storage: string;
   keyboard_layout: string;
   usage: string;
   screen_size: string;
@@ -20,6 +25,11 @@ export function SortSelect({
   q,
   category,
   collection,
+  cpu,
+  gpu,
+  resolution,
+  refresh_rate,
+  storage,
   keyboard_layout,
   usage,
   screen_size,
@@ -34,6 +44,11 @@ export function SortSelect({
       {q && <input type="hidden" name="q" value={q} />}
       {category && <input type="hidden" name="category" value={category} />}
       {collection && <input type="hidden" name="collection" value={collection} />}
+      {cpu && <input type="hidden" name="cpu" value={cpu} />}
+      {gpu && <input type="hidden" name="gpu" value={gpu} />}
+      {resolution && <input type="hidden" name="resolution" value={resolution} />}
+      {refresh_rate && <input type="hidden" name="refresh_rate" value={refresh_rate} />}
+      {storage && <input type="hidden" name="storage" value={storage} />}
       {keyboard_layout && <input type="hidden" name="keyboard_layout" value={keyboard_layout} />}
       {usage && <input type="hidden" name="usage" value={usage} />}
       {screen_size && <input type="hidden" name="screen_size" value={screen_size} />}

@@ -54,7 +54,17 @@ export default function CartPage() {
     () =>
       lines.map((line) => {
         const product = itemBySku.get(line.sku);
-        const unitPrice = product?.price ?? line.snapshot?.price ?? 0;
+        const livePrice =
+          typeof product?.price === "number" && Number.isFinite(product.price) && product.price > 0
+            ? product.price
+            : null;
+        const snapshotPrice =
+          typeof line.snapshot?.price === "number" &&
+          Number.isFinite(line.snapshot.price) &&
+          line.snapshot.price > 0
+            ? line.snapshot.price
+            : null;
+        const unitPrice = livePrice ?? snapshotPrice ?? 0;
         return {
           sku: line.sku,
           quantity: line.quantity,
