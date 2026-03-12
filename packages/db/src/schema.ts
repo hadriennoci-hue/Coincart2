@@ -2,6 +2,7 @@ import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   integer,
+  jsonb,
   numeric,
   pgTable,
   text,
@@ -41,6 +42,7 @@ export const products = pgTable("products", {
   storage: varchar("storage", { length: 120 }),
   salePriceEur: numeric("sale_price_eur", { precision: 12, scale: 2 }),
   salePriceUsd: numeric("sale_price_usd", { precision: 12, scale: 2 }),
+  extraAttributes: jsonb("extra_attributes").$type<Array<{ name: string; options: string[] }>>(),
   featured: boolean("featured").notNull().default(false),
   stockQty: integer("stock_qty").notNull().default(0),
   lastSeenSyncJobId: uuid("last_seen_sync_job_id"),

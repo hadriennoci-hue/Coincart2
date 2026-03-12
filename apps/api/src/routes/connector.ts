@@ -172,6 +172,57 @@ const extractMappedProductFieldsFromAttributes = (attributes: unknown) => {
   return mapped;
 };
 
+const extractExtraAttributesFromAttributes = (
+  attributes: unknown,
+  mappedFields: Partial<typeof products.$inferInsert>,
+): Array<{ name: string; options: string[] }> => {
+  if (!Array.isArray(attributes)) return [];
+  const mappedKeys = new Set(
+    [
+      mappedFields.cpu ? "cpu" : null,
+      mappedFields.gpu ? "gpu" : null,
+      mappedFields.keyboardLayout ? "keyboard_layout" : null,
+      mappedFields.usage ? "usage" : null,
+      mappedFields.screenSize ? "screen_size" : null,
+      mappedFields.displayType ? "display_type" : null,
+      mappedFields.resolution ? "resolution" : null,
+      mappedFields.maxResolution ? "max_resolution" : null,
+      mappedFields.refreshRate !== undefined ? "refresh_rate" : null,
+      mappedFields.ramMemory !== undefined ? "ram" : null,
+      mappedFields.ssdSize !== undefined ? "ssd_size" : null,
+      mappedFields.storage ? "storage" : null,
+    ].filter((x): x is string => Boolean(x)),
+  );
+
+  const dedupe = new Set<string>();
+  const out: Array<{ name: string; options: string[] }> = [];
+  for (const raw of attributes as Array<Record<string, unknown>>) {
+    const name = typeof raw?.name === "string" ? raw.name.trim() : "";
+    if (!name) continue;
+    const key = normalizeAttrKey(name);
+    if (key === "brand") continue;
+    if (mappedKeys.has(key) || (key === "ram_memory" && mappedKeys.has("ram")) || (key === "display_size" && mappedKeys.has("screen_size")) || (key === "screen_type" && mappedKeys.has("display_type")) || (key === "panel_type" && mappedKeys.has("display_type")) || (key === "screen_resolution" && mappedKeys.has("resolution")) || (key === "storage_capacity" && mappedKeys.has("storage"))) {
+      continue;
+    }
+
+    const options =
+      Array.isArray(raw?.options)
+        ? (raw.options.filter((x): x is string => typeof x === "string" && x.trim().length > 0).map((x) => x.trim()) as string[])
+        : typeof raw?.option === "string" && raw.option.trim()
+          ? [raw.option.trim()]
+          : typeof raw?.value === "string" && raw.value.trim()
+            ? [raw.value.trim()]
+            : [];
+    if (options.length === 0) continue;
+
+    const dedupeKey = `${name.toLowerCase()}::${options.join("|").toLowerCase()}`;
+    if (dedupe.has(dedupeKey)) continue;
+    dedupe.add(dedupeKey);
+    out.push({ name, options });
+  }
+  return out;
+};
+
 const resolveImageUrl = (payload: Record<string, unknown>) => {
   if (typeof payload.image_url === "string" && payload.image_url.trim()) return payload.image_url.trim();
   if (!Array.isArray(payload.images)) return null;
@@ -227,6 +278,7 @@ const toWooLikeProduct = (
     storage?: string | null;
     salePriceEur?: string | number | null;
     salePriceUsd?: string | number | null;
+    extraAttributes?: Array<{ name?: unknown; options?: unknown; option?: unknown; value?: unknown }> | null;
     stockQty: number;
     createdAt: Date;
     updatedAt: Date;
@@ -253,6 +305,22 @@ const toWooLikeProduct = (
   attrFromColumn("RAM", product.ramMemory);
   attrFromColumn("SSD Size", product.ssdSize);
   attrFromColumn("Storage", product.storage);
+  if (Array.isArray(product.extraAttributes)) {
+    for (const raw of product.extraAttributes) {
+      const name = typeof raw?.name === "string" ? raw.name.trim() : "";
+      if (!name) continue;
+      const options =
+        Array.isArray(raw?.options)
+          ? raw.options.filter((x): x is string => typeof x === "string" && x.trim().length > 0).map((x) => x.trim())
+          : typeof raw?.option === "string" && raw.option.trim()
+            ? [raw.option.trim()]
+            : typeof raw?.value === "string" && raw.value.trim()
+              ? [raw.value.trim()]
+              : [];
+      if (options.length === 0) continue;
+      attributes.push({ name, options });
+    }
+  }
 
   const regular = Number.isFinite(prices.EUR) ? prices.EUR.toFixed(2) : "0.00";
   const saleEurNumber = product.salePriceEur === null || product.salePriceEur === undefined ? null : Number(product.salePriceEur);
@@ -605,6 +673,7 @@ connectorRoutes.get("/products/:parentId/variations", async (c) => {
       storage: products.storage,
       salePriceEur: products.salePriceEur,
       salePriceUsd: products.salePriceUsd,
+      extraAttributes: products.extraAttributes,
       stockQty: products.stockQty,
       createdAt: products.createdAt,
       updatedAt: products.updatedAt,
@@ -665,6 +734,7 @@ connectorRoutes.get("/products/:id", async (c) => {
       storage: products.storage,
       salePriceEur: products.salePriceEur,
       salePriceUsd: products.salePriceUsd,
+      extraAttributes: products.extraAttributes,
       stockQty: products.stockQty,
       createdAt: products.createdAt,
       updatedAt: products.updatedAt,
@@ -729,6 +799,7 @@ connectorRoutes.get("/products", async (c) => {
       storage: products.storage,
       salePriceEur: products.salePriceEur,
       salePriceUsd: products.salePriceUsd,
+      extraAttributes: products.extraAttributes,
       stockQty: products.stockQty,
       createdAt: products.createdAt,
       updatedAt: products.updatedAt,
@@ -840,7 +911,10 @@ connectorRoutes.post("/products/:id", async (c) => {
   if (resolvedCategory !== undefined) updatePayload.category = resolvedCategory;
   const resolvedImageUrl = resolveImageUrl(body);
   if (resolvedImageUrl !== null) updatePayload.imageUrl = resolvedImageUrl;
-  Object.assign(updatePayload, extractMappedProductFieldsFromAttributes(body.attributes));
+  const mappedFromAttributes = extractMappedProductFieldsFromAttributes(body.attributes);
+  const extraFromAttributes = extractExtraAttributesFromAttributes(body.attributes, mappedFromAttributes);
+  Object.assign(updatePayload, mappedFromAttributes);
+  if (extraFromAttributes.length > 0) updatePayload.extraAttributes = extraFromAttributes;
 
   if (typeof body.parent_id === "string" || typeof body.parent_id === "number") {
     const parentParsed = parseProductId(String(body.parent_id));
@@ -895,6 +969,7 @@ connectorRoutes.post("/products/:id", async (c) => {
       storage: products.storage,
       salePriceEur: products.salePriceEur,
       salePriceUsd: products.salePriceUsd,
+      extraAttributes: products.extraAttributes,
     })
     .from(products)
     .where(eq(products.id, resolved.id))
@@ -965,6 +1040,7 @@ connectorRoutes.post("/products/:id", async (c) => {
             : 0;
       const variantImageUrl = resolveImageUrl(variant);
       const variantMappedAttrs = extractMappedProductFieldsFromAttributes(variant.attributes);
+      const variantExtraAttrs = extractExtraAttributesFromAttributes(variant.attributes, variantMappedAttrs);
       const variantSaleEur =
         parsePrice(variant.sale_price) ??
         parsePrice(variant.sale_price_eur) ??
@@ -1002,6 +1078,7 @@ connectorRoutes.post("/products/:id", async (c) => {
         ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
         ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
         ...variantMappedAttrs,
+        ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
         stockQty: variantStockQty,
         imageUrl: variantImageUrl ?? resolvedProduct.imageUrl ?? null,
       };
@@ -1034,6 +1111,7 @@ connectorRoutes.post("/products/:id", async (c) => {
         ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
         ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
         ...variantMappedAttrs,
+        ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
         stockQty: variantStockQty,
         ...(variantImageUrl !== null ? { imageUrl: variantImageUrl } : {}),
       };
@@ -1090,6 +1168,7 @@ connectorRoutes.post("/products", async (c) => {
   const fallbackOptionName = parseFirstOptionName(body);
   const resolvedImageUrl = resolveImageUrl(body);
   const mappedFromAttributes = extractMappedProductFieldsFromAttributes(body.attributes);
+  const extraFromAttributes = extractExtraAttributesFromAttributes(body.attributes, mappedFromAttributes);
 
   let brand: string | undefined;
   if (Array.isArray(body.attributes)) {
@@ -1145,6 +1224,7 @@ connectorRoutes.post("/products", async (c) => {
     ...(salePriceEur !== null ? { salePriceEur: salePriceEur.toFixed(2) } : {}),
     ...(salePriceUsd !== null ? { salePriceUsd: salePriceUsd.toFixed(2) } : {}),
     ...mappedFromAttributes,
+    ...(extraFromAttributes.length > 0 ? { extraAttributes: extraFromAttributes } : {}),
     stockQty:
       typeof body.stock_quantity === "number"
         ? Math.max(0, Math.trunc(body.stock_quantity))
@@ -1173,6 +1253,7 @@ connectorRoutes.post("/products", async (c) => {
     ...(salePriceEur !== null ? { salePriceEur: salePriceEur.toFixed(2) } : {}),
     ...(salePriceUsd !== null ? { salePriceUsd: salePriceUsd.toFixed(2) } : {}),
     ...mappedFromAttributes,
+    ...(extraFromAttributes.length > 0 ? { extraAttributes: extraFromAttributes } : {}),
     ...(resolvedImageUrl !== null ? { imageUrl: resolvedImageUrl } : {}),
   };
   const created = await upsertProductBySku(c, sku, insertValues, updateValues);
@@ -1220,6 +1301,7 @@ connectorRoutes.post("/products", async (c) => {
           : 0;
     const variantImageUrl = resolveImageUrl(variant);
     const variantMappedAttrs = extractMappedProductFieldsFromAttributes(variant.attributes);
+    const variantExtraAttrs = extractExtraAttributesFromAttributes(variant.attributes, variantMappedAttrs);
     const variantSaleEur =
       parsePrice(variant.sale_price) ??
       parsePrice(variant.sale_price_eur) ??
@@ -1252,6 +1334,7 @@ connectorRoutes.post("/products", async (c) => {
       ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
       ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
       ...variantMappedAttrs,
+      ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
       stockQty: variantStockQty,
       imageUrl: variantImageUrl,
     };
@@ -1278,6 +1361,7 @@ connectorRoutes.post("/products", async (c) => {
       ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
       ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
       ...variantMappedAttrs,
+      ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
       stockQty: variantStockQty,
       ...(variantImageUrl !== null ? { imageUrl: variantImageUrl } : {}),
     };
