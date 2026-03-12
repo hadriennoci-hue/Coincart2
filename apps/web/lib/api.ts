@@ -19,6 +19,17 @@ const allowDummyFallback =
   forceDummyCatalog ||
   process.env.NODE_ENV !== "production" ||
   typeof window !== "undefined";
+const API_TIMEOUT_MS = 5000;
+
+const fetchWithTimeout = async (input: string, init: RequestInit = {}, timeoutMs = API_TIMEOUT_MS) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
 
 export type Product = {
   id: string;
@@ -258,7 +269,7 @@ export const fetchProductsBySkus = async (skus: string[], currency: Currency) =>
 
   const joined = encodeURIComponent(skus.join(","));
   try {
-    const res = await fetch(`${apiBase}/v1/catalog/products/by-skus?currency=${currency}&skus=${joined}`, {
+    const res = await fetchWithTimeout(`${apiBase}/v1/catalog/products/by-skus?currency=${currency}&skus=${joined}`, {
       cache: "no-store",
     });
     if (!res.ok) throw new Error(`fetchProductsBySkus failed: ${res.status}`);
