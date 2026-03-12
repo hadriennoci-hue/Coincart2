@@ -616,7 +616,6 @@ export const getProductsBySkus = async (db: Db, skus: string[], currency: Curren
       and(
         inArray(products.sku, skus),
         eq(productPrices.currency, currency),
-        eq(products.isVariant, false),
         eq(products.visibilityStatus, "publish"),
       ),
     );

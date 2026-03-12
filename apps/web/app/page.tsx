@@ -198,7 +198,7 @@ export default async function Home({
         <section style={{ marginBottom: 40 }}>
           <div className="category-grid">
             {collections.map(({ key, label, productCount }) => (
-              <Link
+              <a
                 key={key}
                 className="category-card"
                 href={`/search?currency=${currency}&collection=${encodeURIComponent(key)}`}
@@ -206,7 +206,7 @@ export default async function Home({
                 <div className="category-icon">{COLLECTION_ICONS[key] || "\u{1F4C1}"}</div>
                 <div className="category-label">{label}</div>
                 <div className="caption">{productCount} products</div>
-              </Link>
+              </a>
             ))}
           </div>
         </section>

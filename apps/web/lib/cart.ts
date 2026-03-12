@@ -17,6 +17,10 @@ export const getCart = (): CartLine[] => {
       sku?: unknown;
       quantity?: unknown;
       snapshot?: unknown;
+      price?: unknown;
+      name?: unknown;
+      imageUrl?: unknown;
+      currency?: unknown;
     }>;
     const lines: CartLine[] = [];
     for (const entry of raw) {
@@ -29,15 +33,45 @@ export const getCart = (): CartLine[] => {
             ? snapshotRaw.price
             : typeof snapshotRaw?.price === "string" && Number.isFinite(Number(snapshotRaw.price))
               ? Number(snapshotRaw.price)
-              : undefined;
+              : typeof entry.price === "number" && Number.isFinite(entry.price)
+                ? entry.price
+                : typeof entry.price === "string" && Number.isFinite(Number(entry.price))
+                  ? Number(entry.price)
+                  : undefined;
         const snapshot: CartSnapshot | undefined = snapshotRaw
           ? {
-              name: typeof snapshotRaw.name === "string" ? snapshotRaw.name : undefined,
-              imageUrl: typeof snapshotRaw.imageUrl === "string" ? snapshotRaw.imageUrl : null,
+              name:
+                typeof snapshotRaw.name === "string"
+                  ? snapshotRaw.name
+                  : typeof entry.name === "string"
+                    ? entry.name
+                    : undefined,
+              imageUrl:
+                typeof snapshotRaw.imageUrl === "string"
+                  ? snapshotRaw.imageUrl
+                  : typeof entry.imageUrl === "string"
+                    ? entry.imageUrl
+                    : null,
               price: parsedSnapshotPrice,
-              currency: snapshotRaw.currency === "USD" ? "USD" : snapshotRaw.currency === "EUR" ? "EUR" : undefined,
+              currency:
+                snapshotRaw.currency === "USD"
+                  ? "USD"
+                  : snapshotRaw.currency === "EUR"
+                    ? "EUR"
+                    : entry.currency === "USD"
+                      ? "USD"
+                      : entry.currency === "EUR"
+                        ? "EUR"
+                        : undefined,
             }
-          : undefined;
+          : parsedSnapshotPrice !== undefined || typeof entry.name === "string" || typeof entry.imageUrl === "string"
+            ? {
+                name: typeof entry.name === "string" ? entry.name : undefined,
+                imageUrl: typeof entry.imageUrl === "string" ? entry.imageUrl : null,
+                price: parsedSnapshotPrice,
+                currency: entry.currency === "USD" ? "USD" : entry.currency === "EUR" ? "EUR" : undefined,
+              }
+            : undefined;
         lines.push({ sku, quantity, snapshot });
       }
     return lines;
