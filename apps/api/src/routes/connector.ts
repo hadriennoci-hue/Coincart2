@@ -250,6 +250,21 @@ const extractExtraAttributesFromAttributes = (
   return out;
 };
 
+const mergeExtraAttributes = (
+  base: Array<{ name: string; options: string[] }>,
+  overlay: Array<{ name: string; options: string[] }>,
+) => {
+  const dedupe = new Set<string>();
+  const out: Array<{ name: string; options: string[] }> = [];
+  for (const item of [...base, ...overlay]) {
+    const key = `${item.name.toLowerCase()}::${item.options.join("|").toLowerCase()}`;
+    if (dedupe.has(key)) continue;
+    dedupe.add(key);
+    out.push(item);
+  }
+  return out;
+};
+
 const resolveImageUrl = (payload: Record<string, unknown>) => {
   if (typeof payload.image_url === "string" && payload.image_url.trim()) return payload.image_url.trim();
   if (!Array.isArray(payload.images)) return null;
@@ -330,7 +345,7 @@ const toWooLikeProduct = (
   attrFromColumn("Resolution", product.resolution);
   attrFromColumn("Max Resolution", product.maxResolution);
   attrFromColumn("Refresh Rate", product.refreshRate);
-  attrFromColumn("RAM", product.ramMemory);
+  if (product.ramMemory !== null && product.ramMemory !== undefined) attrFromColumn("RAM", `${product.ramMemory}GB`);
   attrFromColumn("SSD Size", product.ssdSize);
   attrFromColumn("Storage", product.storage);
   if (Array.isArray(product.extraAttributes)) {
@@ -1068,6 +1083,23 @@ connectorRoutes.post("/products/:id", async (c) => {
   const replaceVariants = body.replace_variants === true || body.replace_variations === true;
   if (variantsInput.length > 0) {
     const parentId = resolvedProduct.id;
+    const parentMappedDefaults: Partial<typeof products.$inferInsert> = {
+      cpu: resolvedProduct.cpu ?? undefined,
+      gpu: resolvedProduct.gpu ?? undefined,
+      keyboardLayout: resolvedProduct.keyboardLayout ?? undefined,
+      usage: resolvedProduct.usage ?? undefined,
+      screenSize: resolvedProduct.screenSize ?? undefined,
+      displayType: resolvedProduct.displayType ?? undefined,
+      resolution: resolvedProduct.resolution ?? undefined,
+      maxResolution: resolvedProduct.maxResolution ?? undefined,
+      refreshRate: resolvedProduct.refreshRate ?? undefined,
+      ramMemory: resolvedProduct.ramMemory ?? undefined,
+      ssdSize: resolvedProduct.ssdSize ?? undefined,
+      storage: resolvedProduct.storage ?? undefined,
+    };
+    const parentExtraDefaults = Array.isArray(resolvedProduct.extraAttributes)
+      ? (resolvedProduct.extraAttributes as Array<{ name: string; options: string[] }>)
+      : [];
     const keepVariantIds: string[] = [];
     const variantIds: Array<string | number> = [];
 
@@ -1093,8 +1125,10 @@ connectorRoutes.post("/products/:id", async (c) => {
             ? 0
             : 0;
       const variantImageUrl = resolveImageUrl(variant);
-      const variantMappedAttrs = extractMappedProductFieldsFromAttributes(variant.attributes);
-      const variantExtraAttrs = extractExtraAttributesFromAttributes(variant.attributes, variantMappedAttrs);
+      const variantMappedRaw = extractMappedProductFieldsFromAttributes(variant.attributes);
+      const variantMappedAttrs = { ...parentMappedDefaults, ...variantMappedRaw };
+      const variantExtraRaw = extractExtraAttributesFromAttributes(variant.attributes, variantMappedRaw);
+      const variantExtraAttrs = mergeExtraAttributes(parentExtraDefaults, variantExtraRaw);
       const variantSaleEur =
         parsePrice(variant.sale_price) ??
         parsePrice(variant.sale_price_eur) ??
@@ -1331,6 +1365,8 @@ connectorRoutes.post("/products", async (c) => {
     return c.json({ created: true, id: created.wooId ?? created.id }, 201);
   }
 
+  const parentMappedDefaults = mappedFromAttributes;
+  const parentExtraDefaults = extraFromAttributes;
   const variantIds: Array<string | number> = [];
   for (const variant of variantsInput) {
     const variantSku = typeof variant.sku === "string" ? variant.sku.trim() : "";
@@ -1354,8 +1390,10 @@ connectorRoutes.post("/products", async (c) => {
           ? 0
           : 0;
     const variantImageUrl = resolveImageUrl(variant);
-    const variantMappedAttrs = extractMappedProductFieldsFromAttributes(variant.attributes);
-    const variantExtraAttrs = extractExtraAttributesFromAttributes(variant.attributes, variantMappedAttrs);
+    const variantMappedRaw = extractMappedProductFieldsFromAttributes(variant.attributes);
+    const variantMappedAttrs = { ...parentMappedDefaults, ...variantMappedRaw };
+    const variantExtraRaw = extractExtraAttributesFromAttributes(variant.attributes, variantMappedRaw);
+    const variantExtraAttrs = mergeExtraAttributes(parentExtraDefaults, variantExtraRaw);
     const variantSaleEur =
       parsePrice(variant.sale_price) ??
       parsePrice(variant.sale_price_eur) ??
