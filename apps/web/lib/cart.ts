@@ -15,6 +15,7 @@ export const getCart = (): CartLine[] => {
 export const setCart = (lines: CartLine[]) => {
   if (typeof window === "undefined") return;
   localStorage.setItem(KEY, JSON.stringify(lines));
+  window.dispatchEvent(new Event("cartupdate"));
 };
 
 export const addToCart = (sku: string, quantity = 1) => {

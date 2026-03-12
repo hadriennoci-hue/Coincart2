@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { getCart } from "../lib/cart";
 
@@ -17,13 +17,13 @@ export function SiteHeader() {
     sync();
     window.addEventListener("storage", sync);
     window.addEventListener("focus", sync);
+    window.addEventListener("cartupdate", sync);
     return () => {
       window.removeEventListener("storage", sync);
       window.removeEventListener("focus", sync);
+      window.removeEventListener("cartupdate", sync);
     };
   }, []);
-
-  const cartLabel = useMemo(() => (cartCount > 0 ? `Cart (${cartCount})` : "Cart"), [cartCount]);
 
   return (
     <div className="site-header-wrap" style={{ position: "relative", zIndex: 10 }}>
@@ -105,7 +105,7 @@ export function SiteHeader() {
         {/* Actions */}
         <nav style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
           <Link href="/cart" className="btn btn-ghost" style={{ position: "relative", padding: "7px 14px", fontSize: "0.8rem" }}>
-            {cartLabel}
+            Cart
             {cartCount > 0 && (
               <span style={{
                 position: "absolute",
