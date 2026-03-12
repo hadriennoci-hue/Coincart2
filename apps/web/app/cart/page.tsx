@@ -5,6 +5,7 @@ import Link from "next/link";
 import { fetchProductsBySkus, type Currency, type Product } from "../../lib/api";
 import { fmtPrice } from "../../lib/format";
 import { getCart, removeFromCart, type CartLine } from "../../lib/cart";
+import { buildImageFallback } from "../../lib/imageFallback";
 
 export default function CartPage() {
   const [currency, setCurrency] = useState<Currency>("EUR");
@@ -147,6 +148,9 @@ export default function CartPage() {
                       <img
                         src={row.imageUrl}
                         alt={row.name}
+                        onError={(event) => {
+                          event.currentTarget.src = buildImageFallback(row.sku || row.name);
+                        }}
                         style={{
                           width: 80,
                           height: 56,

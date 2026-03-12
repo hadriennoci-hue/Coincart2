@@ -20,6 +20,7 @@ const allowDummyFallback =
   process.env.NODE_ENV !== "production" ||
   typeof window !== "undefined";
 const API_TIMEOUT_MS = 5000;
+const IMAGE_PROXY_HOST = "img.coincart.store";
 
 const fetchWithTimeout = async (input: string, init: RequestInit = {}, timeoutMs = API_TIMEOUT_MS) => {
   const controller = new AbortController();
@@ -124,6 +125,23 @@ const toCollectionKey = (value?: string | null) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+const toImageProxyUrl = (rawUrl: string, seed: string) =>
+  `/api/image-proxy?url=${encodeURIComponent(rawUrl)}&seed=${encodeURIComponent(seed)}`;
+
+const normalizeImageUrl = (value: unknown, seed: string): string | null => {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith("/api/image-proxy")) return trimmed;
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.hostname === IMAGE_PROXY_HOST) return toImageProxyUrl(trimmed, seed);
+  } catch {
+    return trimmed;
+  }
+  return trimmed;
+};
+
 const applyClientFilters = (
   items: Product[],
   filters?: {
@@ -172,7 +190,18 @@ const applyClientFilters = (
   return out;
 };
 
-const normalizeProduct = (raw: Partial<Product>): Product => ({
+const normalizeProduct = (raw: Partial<Product>): Product => {
+  const seed = String(raw.sku || raw.slug || raw.name || "coincart-image");
+  const normalizedPrimary = normalizeImageUrl(raw.imageUrl, seed);
+  const normalizedGallery = Array.isArray((raw as Product).imageUrls)
+    ? ((raw as Product).imageUrls as string[])
+        .map((x) => normalizeImageUrl(x, seed))
+        .filter((x): x is string => typeof x === "string")
+    : normalizedPrimary
+      ? [normalizedPrimary]
+      : [];
+
+  return {
   ...(raw as Product),
   id: String(raw.id || ""),
   sku: String(raw.sku || ""),
@@ -182,12 +211,8 @@ const normalizeProduct = (raw: Partial<Product>): Product => ({
   brand: (raw as Product).brand ?? null,
   name: String(raw.name || ""),
   description: raw.description ?? null,
-  imageUrl: raw.imageUrl ?? null,
-  imageUrls: Array.isArray((raw as Product).imageUrls)
-    ? ((raw as Product).imageUrls as string[]).filter((x) => typeof x === "string")
-    : raw.imageUrl
-      ? [raw.imageUrl]
-      : [],
+  imageUrl: normalizedPrimary,
+  imageUrls: normalizedGallery,
   cpu: raw.cpu ?? null,
   gpu: raw.gpu ?? null,
   keyboardLayout: raw.keyboardLayout ?? null,
@@ -222,7 +247,8 @@ const normalizeProduct = (raw: Partial<Product>): Product => ({
   price: toNumber(raw.price, 0),
   promoPrice: toOptionalNumber((raw as Product).promoPrice),
   currency: raw.currency === "USD" ? "USD" : "EUR",
-});
+  };
+};
 
 const applyDummyFilters = (
   items: Product[],

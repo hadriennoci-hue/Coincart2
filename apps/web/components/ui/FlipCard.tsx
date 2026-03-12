@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { fmtPrice } from "../../lib/format";
+import { buildImageFallback } from "../../lib/imageFallback";
 
 interface FlipCardProps {
   name: string;
@@ -73,6 +75,15 @@ export function FlipCard({
   ) : (
     <>{fmtPrice(displayPrice, currency)}</>
   );
+  const fallbackImage = useMemo(
+    () => buildImageFallback(sku || name),
+    [name, sku],
+  );
+  const [currentImageUrl, setCurrentImageUrl] = useState(imageUrl || fallbackImage);
+
+  useEffect(() => {
+    setCurrentImageUrl(imageUrl || fallbackImage);
+  }, [fallbackImage, imageUrl]);
 
   return (
     <Link href={href} style={{ display: "block", textDecoration: "none" }}>
@@ -80,9 +91,9 @@ export function FlipCard({
         <div className="flip-card-inner">
           {/* Front */}
           <div className="flip-card-front">
-            {imageUrl ? (
+            {currentImageUrl ? (
               <img
-              src={imageUrl}
+              src={currentImageUrl}
               alt={name}
               className="product-card-img"
               width={1600}
@@ -91,6 +102,7 @@ export function FlipCard({
               loading="lazy"
               decoding="async"
                 fetchPriority="low"
+                onError={() => setCurrentImageUrl(fallbackImage)}
               />
             ) : (
               <div className="product-card-img-placeholder" />

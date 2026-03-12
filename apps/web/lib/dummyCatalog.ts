@@ -50,8 +50,13 @@ const cloudflareImageBasePath = (
   process.env.NEXT_PUBLIC_DUMMY_IMAGE_BASE_PATH || "https://img.coincart.store/dummy"
 ).replace(/\/+$/, "");
 
-const productImage = (slug: string, slot: number) =>
-  `${cloudflareImageBasePath}/${slug}-${slot}.jpg`;
+const productImage = (slug: string, slot: number) => {
+  const url = `${cloudflareImageBasePath}/${slug}-${slot}.jpg`;
+  if (url.includes("img.coincart.store")) {
+    return `/api/image-proxy?url=${encodeURIComponent(url)}&seed=${encodeURIComponent(`${slug}-${slot}`)}`;
+  }
+  return url;
+};
 
 const galleryCountForProductId = (id: string) => {
   const n = Number.parseInt(id.replace("dummy-", ""), 10);
