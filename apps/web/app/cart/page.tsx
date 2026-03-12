@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { fetchProductsBySkus, type Currency, type Product } from "../../lib/api";
 import { fmtPrice } from "../../lib/format";
-import { getCart, removeFromCart, type CartLine } from "../../lib/cart";
+import { decrementFromCart, getCart, type CartLine } from "../../lib/cart";
 import { buildImageFallback } from "../../lib/imageFallback";
+
+const normalizeSku = (value: string) => value.trim().toUpperCase();
 
 export default function CartPage() {
   const [currency, setCurrency] = useState<Currency>("EUR");
@@ -31,7 +33,7 @@ export default function CartPage() {
       setIsRefreshing(true);
       try {
         const products = await fetchProductsBySkus(
-          lines.map((x) => x.sku),
+          lines.map((x) => x.sku.trim()),
           currency,
         );
         if (!cancelled) setItems(products);
@@ -46,14 +48,14 @@ export default function CartPage() {
   }, [currency, lines]);
 
   const itemBySku = useMemo(
-    () => new Map(items.map((item) => [item.sku, item])),
+    () => new Map(items.map((item) => [normalizeSku(item.sku), item])),
     [items],
   );
 
   const displayRows = useMemo(
     () =>
       lines.map((line) => {
-        const product = itemBySku.get(line.sku);
+        const product = itemBySku.get(normalizeSku(line.sku));
         const livePrice =
           typeof product?.price === "number" && Number.isFinite(product.price) && product.price > 0
             ? product.price
@@ -218,12 +220,12 @@ export default function CartPage() {
                       <button
                         className="btn btn-danger btn-sm"
                         onClick={() => {
-                          removeFromCart(row.sku);
+                          decrementFromCart(row.sku, 1);
                           const now = getCart();
                           setLines(now);
                         }}
                       >
-                        Remove
+                        Remove 1
                       </button>
                     </div>
                   </div>

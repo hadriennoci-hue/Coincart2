@@ -105,4 +105,20 @@ export const removeFromCart = (sku: string) => {
   setCart(getCart().filter((x) => x.sku !== sku));
 };
 
+export const decrementFromCart = (sku: string, quantity = 1) => {
+  const normalizedSku = String(sku || "").trim();
+  if (!normalizedSku) return;
+  const delta = Number.isFinite(quantity) ? Math.max(1, Math.trunc(quantity)) : 1;
+  const cart = getCart();
+  const idx = cart.findIndex((x) => x.sku === normalizedSku);
+  if (idx < 0) return;
+  const nextQty = cart[idx].quantity - delta;
+  if (nextQty > 0) {
+    cart[idx] = { ...cart[idx], quantity: nextQty };
+    setCart(cart);
+    return;
+  }
+  setCart(cart.filter((x) => x.sku !== normalizedSku));
+};
+
 export const clearCart = () => setCart([]);

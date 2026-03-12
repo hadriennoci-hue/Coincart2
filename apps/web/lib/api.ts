@@ -20,7 +20,6 @@ const allowDummyFallback =
   process.env.NODE_ENV !== "production" ||
   typeof window !== "undefined";
 const API_TIMEOUT_MS = 5000;
-const IMAGE_PROXY_HOST = "img.coincart.store";
 
 const fetchWithTimeout = async (input: string, init: RequestInit = {}, timeoutMs = API_TIMEOUT_MS) => {
   const controller = new AbortController();
@@ -125,20 +124,10 @@ const toCollectionKey = (value?: string | null) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-const toImageProxyUrl = (rawUrl: string, seed: string) =>
-  `/api/image-proxy?url=${encodeURIComponent(rawUrl)}&seed=${encodeURIComponent(seed)}`;
-
-const normalizeImageUrl = (value: unknown, seed: string): string | null => {
+const normalizeImageUrl = (value: unknown): string | null => {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   if (!trimmed) return null;
-  if (trimmed.startsWith("/api/image-proxy")) return trimmed;
-  try {
-    const parsed = new URL(trimmed);
-    if (parsed.hostname === IMAGE_PROXY_HOST) return toImageProxyUrl(trimmed, seed);
-  } catch {
-    return trimmed;
-  }
   return trimmed;
 };
 
@@ -201,11 +190,10 @@ const applyClientFilters = (
 };
 
 const normalizeProduct = (raw: Partial<Product>): Product => {
-  const seed = String(raw.sku || raw.slug || raw.name || "coincart-image");
-  const normalizedPrimary = normalizeImageUrl(raw.imageUrl, seed);
+  const normalizedPrimary = normalizeImageUrl(raw.imageUrl);
   const normalizedGallery = Array.isArray((raw as Product).imageUrls)
     ? ((raw as Product).imageUrls as string[])
-        .map((x) => normalizeImageUrl(x, seed))
+        .map((x) => normalizeImageUrl(x))
         .filter((x): x is string => typeof x === "string")
     : normalizedPrimary
       ? [normalizedPrimary]
