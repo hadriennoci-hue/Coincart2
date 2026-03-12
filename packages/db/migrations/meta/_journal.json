@@ -71,6 +71,13 @@
       "when": 1773381600000,
       "tag": "0009_breezy_displays_cleanup",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1773397500000,
+      "tag": "0010_quick_connector_compat",
+      "breakpoints": true
     }
   ]
 }

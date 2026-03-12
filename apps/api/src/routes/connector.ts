@@ -114,6 +114,79 @@ const resolveCategory = (payload: Record<string, unknown>) => {
   return undefined;
 };
 
+const parseIntFromUnknown = (value: unknown) => {
+  if (typeof value === "number" && Number.isFinite(value)) return Math.trunc(value);
+  if (typeof value === "string") {
+    const digits = value.match(/\d+/)?.[0];
+    if (!digits) return null;
+    const parsed = Number(digits);
+    return Number.isFinite(parsed) ? Math.trunc(parsed) : null;
+  }
+  return null;
+};
+
+const normalizeAttrKey = (value: string) => value.trim().toLowerCase().replace(/[\s-]+/g, "_");
+
+const extractMappedProductFieldsFromAttributes = (attributes: unknown) => {
+  const mapped: Partial<typeof products.$inferInsert> = {};
+  if (!Array.isArray(attributes)) return mapped;
+
+  for (const raw of attributes as Array<Record<string, unknown>>) {
+    const rawName = typeof raw?.name === "string" ? raw.name : "";
+    const key = normalizeAttrKey(rawName);
+    if (!key) continue;
+    const firstOption =
+      typeof raw?.option === "string"
+        ? raw.option.trim()
+        : Array.isArray(raw?.options) && typeof raw.options[0] === "string"
+          ? String(raw.options[0]).trim()
+          : typeof raw?.value === "string"
+            ? raw.value.trim()
+            : "";
+    if (!firstOption) continue;
+
+    if (["cpu", "processor", "processor_model"].includes(key)) mapped.cpu = firstOption;
+    if (["gpu", "gpu_model", "graphics"].includes(key)) mapped.gpu = firstOption;
+    if (["screen_size", "display_size"].includes(key)) mapped.screenSize = firstOption;
+    if (["display_type", "screen_type", "panel_type"].includes(key)) mapped.displayType = firstOption;
+    if (["resolution", "screen_resolution"].includes(key)) mapped.resolution = firstOption;
+    if (["max_resolution"].includes(key)) mapped.maxResolution = firstOption;
+    if (["storage", "storage_capacity"].includes(key)) mapped.storage = firstOption;
+    if (["keyboard_layout"].includes(key)) mapped.keyboardLayout = firstOption;
+    if (["usage"].includes(key)) mapped.usage = firstOption;
+
+    if (["refresh_rate"].includes(key)) {
+      const parsed = parseIntFromUnknown(firstOption);
+      if (parsed !== null) mapped.refreshRate = parsed;
+    }
+    if (["ram", "ram_memory"].includes(key)) {
+      const parsed = parseIntFromUnknown(firstOption);
+      if (parsed !== null) mapped.ramMemory = parsed;
+    }
+    if (["ssd_size"].includes(key)) {
+      const parsed = parseIntFromUnknown(firstOption);
+      if (parsed !== null) mapped.ssdSize = parsed;
+    }
+  }
+
+  return mapped;
+};
+
+const resolveImageUrl = (payload: Record<string, unknown>) => {
+  if (typeof payload.image_url === "string" && payload.image_url.trim()) return payload.image_url.trim();
+  if (!Array.isArray(payload.images)) return null;
+  for (const entry of payload.images as Array<unknown>) {
+    if (typeof entry === "string" && entry.trim()) return entry.trim();
+    if (entry && typeof entry === "object") {
+      const maybeSrc = (entry as { src?: unknown; url?: unknown }).src;
+      const maybeUrl = (entry as { src?: unknown; url?: unknown }).url;
+      if (typeof maybeSrc === "string" && maybeSrc.trim()) return maybeSrc.trim();
+      if (typeof maybeUrl === "string" && maybeUrl.trim()) return maybeUrl.trim();
+    }
+  }
+  return null;
+};
+
 const resolveByParsedId = async (c: { var: AppContext["Variables"] }, parsedId: ReturnType<typeof parseProductId>) => {
   const [row] = await c.var.db
     .select({ id: products.id, wooId: products.wooId })
@@ -140,38 +213,81 @@ const toWooLikeProduct = (
     visibilityStatus: string;
     brand: string | null;
     ean: string | null;
+    cpu?: string | null;
+    gpu?: string | null;
+    keyboardLayout?: string | null;
+    usage?: string | null;
+    screenSize?: string | null;
+    displayType?: string | null;
+    resolution?: string | null;
+    maxResolution?: string | null;
+    refreshRate?: number | null;
+    ramMemory?: number | null;
+    ssdSize?: number | null;
+    storage?: string | null;
+    salePriceEur?: string | number | null;
+    salePriceUsd?: string | number | null;
     stockQty: number;
     createdAt: Date;
     updatedAt: Date;
   },
   prices: Record<string, number>,
-) => ({
-  id: product.wooId ?? product.id,
-  uuid: product.id,
-  woo_id: product.wooId,
-  parent_id: product.parentProductId ?? null,
-  type: product.isVariant ? "variation" : "simple",
-  sku: product.sku,
-  slug: product.slug,
-  name: product.name,
-  status: product.visibilityStatus,
-  description: product.description,
-  category: product.category,
-  categories: product.category ? [{ name: product.category }] : [],
-  attributes: [
-    ...(product.optionName && product.optionValue ? [{ name: product.optionName, option: product.optionValue }] : []),
-    ...(product.brand ? [{ name: "Brand", options: [product.brand] }] : []),
-  ],
-  meta_data: product.ean ? [{ key: "ean", value: product.ean }] : [],
-  manage_stock: true,
-  stock_quantity: product.stockQty,
-  in_stock: product.stockQty > 0,
-  prices,
-  date_modified: toIsoString(product.updatedAt),
-  date_modified_gmt: toIsoString(product.updatedAt),
-  date_created: toIsoString(product.createdAt),
-  image_url: product.imageUrl,
-});
+) => {
+  const attributes: Array<Record<string, unknown>> = [];
+  if (product.optionName && product.optionValue) attributes.push({ name: product.optionName, option: product.optionValue });
+  if (product.brand) attributes.push({ name: "Brand", options: [product.brand] });
+
+  const attrFromColumn = (name: string, value: unknown) => {
+    if (value === null || value === undefined || value === "") return;
+    attributes.push({ name, options: [String(value)] });
+  };
+  attrFromColumn("CPU", product.cpu);
+  attrFromColumn("GPU", product.gpu);
+  attrFromColumn("Keyboard Layout", product.keyboardLayout);
+  attrFromColumn("Usage", product.usage);
+  attrFromColumn("Screen Size", product.screenSize);
+  attrFromColumn("Display Type", product.displayType);
+  attrFromColumn("Resolution", product.resolution);
+  attrFromColumn("Max Resolution", product.maxResolution);
+  attrFromColumn("Refresh Rate", product.refreshRate);
+  attrFromColumn("RAM", product.ramMemory);
+  attrFromColumn("SSD Size", product.ssdSize);
+  attrFromColumn("Storage", product.storage);
+
+  const regular = Number.isFinite(prices.EUR) ? prices.EUR.toFixed(2) : "0.00";
+  const saleEurNumber = product.salePriceEur === null || product.salePriceEur === undefined ? null : Number(product.salePriceEur);
+  const sale = Number.isFinite(saleEurNumber) ? Number(saleEurNumber).toFixed(2) : null;
+  const activePrice = sale ?? regular;
+
+  return {
+    id: product.wooId ?? product.id,
+    uuid: product.id,
+    woo_id: product.wooId,
+    parent_id: product.parentProductId ?? null,
+    type: product.isVariant ? "variation" : "simple",
+    sku: product.sku,
+    slug: product.slug,
+    name: product.name,
+    status: product.visibilityStatus,
+    description: product.description,
+    category: product.category,
+    categories: product.category ? [{ name: product.category }] : [],
+    attributes,
+    meta_data: product.ean ? [{ key: "ean", value: product.ean }] : [],
+    manage_stock: true,
+    stock_quantity: product.stockQty,
+    in_stock: product.stockQty > 0,
+    prices,
+    regular_price: regular,
+    sale_price: sale,
+    price: activePrice,
+    date_modified: toIsoString(product.updatedAt),
+    date_modified_gmt: toIsoString(product.updatedAt),
+    date_created: toIsoString(product.createdAt),
+    image_url: product.imageUrl,
+    images: product.imageUrl ? [{ src: product.imageUrl }] : [],
+  };
+};
 
 const mapFields = (item: Record<string, unknown>, fields?: string) => {
   if (!fields) return item;
@@ -265,7 +381,7 @@ const upsertPrice = async (c: { var: AppContext["Variables"] }, productId: strin
   if (existing) {
     await c.var.db
       .update(productPrices)
-      .set({ amount: amountStr })
+      .set({ amount: amountStr, updatedAt: new Date() })
       .where(eq(productPrices.id, existing.id));
     return;
   }
@@ -295,7 +411,7 @@ const upsertProductBySku = async (
 
   const [updated] = await c.var.db
     .update(products)
-    .set(updateValues)
+    .set({ ...updateValues, updatedAt: new Date() })
     .where(eq(products.id, existing.id))
     .returning({ id: products.id, wooId: products.wooId });
   return updated;
@@ -475,6 +591,20 @@ connectorRoutes.get("/products/:parentId/variations", async (c) => {
       visibilityStatus: products.visibilityStatus,
       brand: products.brand,
       ean: products.ean,
+      cpu: products.cpu,
+      gpu: products.gpu,
+      keyboardLayout: products.keyboardLayout,
+      usage: products.usage,
+      screenSize: products.screenSize,
+      displayType: products.displayType,
+      resolution: products.resolution,
+      maxResolution: products.maxResolution,
+      refreshRate: products.refreshRate,
+      ramMemory: products.ramMemory,
+      ssdSize: products.ssdSize,
+      storage: products.storage,
+      salePriceEur: products.salePriceEur,
+      salePriceUsd: products.salePriceUsd,
       stockQty: products.stockQty,
       createdAt: products.createdAt,
       updatedAt: products.updatedAt,
@@ -521,6 +651,20 @@ connectorRoutes.get("/products/:id", async (c) => {
       visibilityStatus: products.visibilityStatus,
       brand: products.brand,
       ean: products.ean,
+      cpu: products.cpu,
+      gpu: products.gpu,
+      keyboardLayout: products.keyboardLayout,
+      usage: products.usage,
+      screenSize: products.screenSize,
+      displayType: products.displayType,
+      resolution: products.resolution,
+      maxResolution: products.maxResolution,
+      refreshRate: products.refreshRate,
+      ramMemory: products.ramMemory,
+      ssdSize: products.ssdSize,
+      storage: products.storage,
+      salePriceEur: products.salePriceEur,
+      salePriceUsd: products.salePriceUsd,
       stockQty: products.stockQty,
       createdAt: products.createdAt,
       updatedAt: products.updatedAt,
@@ -571,6 +715,20 @@ connectorRoutes.get("/products", async (c) => {
       visibilityStatus: products.visibilityStatus,
       brand: products.brand,
       ean: products.ean,
+      cpu: products.cpu,
+      gpu: products.gpu,
+      keyboardLayout: products.keyboardLayout,
+      usage: products.usage,
+      screenSize: products.screenSize,
+      displayType: products.displayType,
+      resolution: products.resolution,
+      maxResolution: products.maxResolution,
+      refreshRate: products.refreshRate,
+      ramMemory: products.ramMemory,
+      ssdSize: products.ssdSize,
+      storage: products.storage,
+      salePriceEur: products.salePriceEur,
+      salePriceUsd: products.salePriceUsd,
       stockQty: products.stockQty,
       createdAt: products.createdAt,
       updatedAt: products.updatedAt,
@@ -629,7 +787,7 @@ connectorRoutes.post("/products/batch", async (c) => {
 
     const result = await c.var.db
       .update(products)
-      .set({ stockQty: Math.max(0, Math.trunc(nextQty)) })
+      .set({ stockQty: Math.max(0, Math.trunc(nextQty)), updatedAt: new Date() })
       .where(parsed.wooId !== null ? eq(products.wooId, parsed.wooId) : eq(products.id, parsed.uuid!))
       .returning({ id: products.id, wooId: products.wooId, stockQty: products.stockQty });
 
@@ -680,6 +838,9 @@ connectorRoutes.post("/products/:id", async (c) => {
   if (typeof body.in_stock === "boolean" && body.in_stock === false) updatePayload.stockQty = 0;
   const resolvedCategory = resolveCategory(body);
   if (resolvedCategory !== undefined) updatePayload.category = resolvedCategory;
+  const resolvedImageUrl = resolveImageUrl(body);
+  if (resolvedImageUrl !== null) updatePayload.imageUrl = resolvedImageUrl;
+  Object.assign(updatePayload, extractMappedProductFieldsFromAttributes(body.attributes));
 
   if (typeof body.parent_id === "string" || typeof body.parent_id === "number") {
     const parentParsed = parseProductId(String(body.parent_id));
@@ -720,18 +881,25 @@ connectorRoutes.post("/products/:id", async (c) => {
       imageUrl: products.imageUrl,
       brand: products.brand,
       description: products.description,
+      cpu: products.cpu,
+      gpu: products.gpu,
+      keyboardLayout: products.keyboardLayout,
+      usage: products.usage,
+      screenSize: products.screenSize,
+      displayType: products.displayType,
+      resolution: products.resolution,
+      maxResolution: products.maxResolution,
+      refreshRate: products.refreshRate,
+      ramMemory: products.ramMemory,
+      ssdSize: products.ssdSize,
+      storage: products.storage,
+      salePriceEur: products.salePriceEur,
+      salePriceUsd: products.salePriceUsd,
     })
     .from(products)
     .where(eq(products.id, resolved.id))
     .limit(1);
   if (!resolvedProduct) return c.json(connectorError("Product not found", 404), 404);
-
-  if (Object.keys(updatePayload).length > 0) {
-    await c.var.db
-      .update(products)
-      .set(updatePayload)
-      .where(eq(products.id, resolved.id));
-  }
 
   const priceEur =
     parsePrice(body.regular_price) ??
@@ -740,6 +908,23 @@ connectorRoutes.post("/products/:id", async (c) => {
   const priceUsd =
     parsePrice(body.price_usd) ??
     parsePrice((body.prices as Record<string, unknown> | undefined)?.USD);
+  const salePriceEur =
+    parsePrice(body.sale_price) ??
+    parsePrice(body.sale_price_eur) ??
+    parsePrice((body.prices as Record<string, unknown> | undefined)?.SALE_EUR);
+  const salePriceUsd =
+    parsePrice(body.sale_price_usd) ??
+    parsePrice((body.prices as Record<string, unknown> | undefined)?.SALE_USD);
+
+  if (salePriceEur !== null) updatePayload.salePriceEur = salePriceEur.toFixed(2);
+  if (salePriceUsd !== null) updatePayload.salePriceUsd = salePriceUsd.toFixed(2);
+
+  if (Object.keys(updatePayload).length > 0) {
+    await c.var.db
+      .update(products)
+      .set({ ...updatePayload, updatedAt: new Date() })
+      .where(eq(products.id, resolved.id));
+  }
 
   if (priceEur !== null) {
     await upsertPrice(c, resolved.id, "EUR", priceEur);
@@ -778,6 +963,15 @@ connectorRoutes.post("/products/:id", async (c) => {
           : variant.in_stock === false
             ? 0
             : 0;
+      const variantImageUrl = resolveImageUrl(variant);
+      const variantMappedAttrs = extractMappedProductFieldsFromAttributes(variant.attributes);
+      const variantSaleEur =
+        parsePrice(variant.sale_price) ??
+        parsePrice(variant.sale_price_eur) ??
+        parsePrice((variant.prices as Record<string, unknown> | undefined)?.SALE_EUR);
+      const variantSaleUsd =
+        parsePrice(variant.sale_price_usd) ??
+        parsePrice((variant.prices as Record<string, unknown> | undefined)?.SALE_USD);
       const insertValues: typeof products.$inferInsert = {
         wooId:
           typeof variant.id === "number"
@@ -805,11 +999,11 @@ connectorRoutes.post("/products/:id", async (c) => {
           typeof variant.brand === "string" && variant.brand.trim()
             ? variant.brand.trim()
             : resolvedProduct.brand ?? null,
+        ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
+        ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
+        ...variantMappedAttrs,
         stockQty: variantStockQty,
-        imageUrl:
-          typeof variant.image_url === "string"
-            ? variant.image_url
-            : resolvedProduct.imageUrl ?? null,
+        imageUrl: variantImageUrl ?? resolvedProduct.imageUrl ?? null,
       };
       const updateValues: Partial<typeof products.$inferInsert> = {
         wooId:
@@ -837,11 +1031,11 @@ connectorRoutes.post("/products/:id", async (c) => {
           typeof variant.brand === "string" && variant.brand.trim()
             ? variant.brand.trim()
             : resolvedProduct.brand ?? null,
+        ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
+        ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
+        ...variantMappedAttrs,
         stockQty: variantStockQty,
-        imageUrl:
-          typeof variant.image_url === "string"
-            ? variant.image_url
-            : resolvedProduct.imageUrl ?? null,
+        ...(variantImageUrl !== null ? { imageUrl: variantImageUrl } : {}),
       };
 
       const saved = await upsertProductBySku(c, variantSku, insertValues, updateValues);
@@ -894,6 +1088,8 @@ connectorRoutes.post("/products", async (c) => {
 
   const category = resolveCategory(body);
   const fallbackOptionName = parseFirstOptionName(body);
+  const resolvedImageUrl = resolveImageUrl(body);
+  const mappedFromAttributes = extractMappedProductFieldsFromAttributes(body.attributes);
 
   let brand: string | undefined;
   if (Array.isArray(body.attributes)) {
@@ -920,6 +1116,13 @@ connectorRoutes.post("/products", async (c) => {
     const eanMeta = (body.meta_data as Array<{ key?: string; value?: string }>).find((x) => x.key === "ean");
     if (eanMeta?.value) ean = String(eanMeta.value);
   }
+  const salePriceEur =
+    parsePrice(body.sale_price) ??
+    parsePrice(body.sale_price_eur) ??
+    parsePrice((body.prices as Record<string, unknown> | undefined)?.SALE_EUR);
+  const salePriceUsd =
+    parsePrice(body.sale_price_usd) ??
+    parsePrice((body.prices as Record<string, unknown> | undefined)?.SALE_USD);
 
   const insertValues: typeof products.$inferInsert = {
     wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : null,
@@ -939,13 +1142,16 @@ connectorRoutes.post("/products", async (c) => {
     category: category ?? null,
     brand: brand ?? null,
     ean: ean ?? null,
+    ...(salePriceEur !== null ? { salePriceEur: salePriceEur.toFixed(2) } : {}),
+    ...(salePriceUsd !== null ? { salePriceUsd: salePriceUsd.toFixed(2) } : {}),
+    ...mappedFromAttributes,
     stockQty:
       typeof body.stock_quantity === "number"
         ? Math.max(0, Math.trunc(body.stock_quantity))
         : body.in_stock === false
           ? 0
           : 0,
-    imageUrl: typeof body.image_url === "string" ? body.image_url : null,
+    imageUrl: resolvedImageUrl,
   };
   const updateValues: Partial<typeof products.$inferInsert> = {
     wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : undefined,
@@ -964,6 +1170,10 @@ connectorRoutes.post("/products", async (c) => {
     category: category ?? null,
     brand: brand ?? null,
     ean: ean ?? null,
+    ...(salePriceEur !== null ? { salePriceEur: salePriceEur.toFixed(2) } : {}),
+    ...(salePriceUsd !== null ? { salePriceUsd: salePriceUsd.toFixed(2) } : {}),
+    ...mappedFromAttributes,
+    ...(resolvedImageUrl !== null ? { imageUrl: resolvedImageUrl } : {}),
   };
   const created = await upsertProductBySku(c, sku, insertValues, updateValues);
 
@@ -1008,6 +1218,15 @@ connectorRoutes.post("/products", async (c) => {
         : variant.in_stock === false
           ? 0
           : 0;
+    const variantImageUrl = resolveImageUrl(variant);
+    const variantMappedAttrs = extractMappedProductFieldsFromAttributes(variant.attributes);
+    const variantSaleEur =
+      parsePrice(variant.sale_price) ??
+      parsePrice(variant.sale_price_eur) ??
+      parsePrice((variant.prices as Record<string, unknown> | undefined)?.SALE_EUR);
+    const variantSaleUsd =
+      parsePrice(variant.sale_price_usd) ??
+      parsePrice((variant.prices as Record<string, unknown> | undefined)?.SALE_USD);
 
     const variantInsertValues: typeof products.$inferInsert = {
       wooId:
@@ -1030,8 +1249,11 @@ connectorRoutes.post("/products", async (c) => {
         typeof variant.brand === "string" && variant.brand.trim()
           ? variant.brand.trim()
           : brand ?? null,
+      ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
+      ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
+      ...variantMappedAttrs,
       stockQty: variantStockQty,
-      imageUrl: typeof variant.image_url === "string" ? variant.image_url : null,
+      imageUrl: variantImageUrl,
     };
     const variantUpdateValues: Partial<typeof products.$inferInsert> = {
       wooId:
@@ -1053,8 +1275,11 @@ connectorRoutes.post("/products", async (c) => {
         typeof variant.brand === "string" && variant.brand.trim()
           ? variant.brand.trim()
           : brand ?? null,
+      ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
+      ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
+      ...variantMappedAttrs,
       stockQty: variantStockQty,
-      imageUrl: typeof variant.image_url === "string" ? variant.image_url : null,
+      ...(variantImageUrl !== null ? { imageUrl: variantImageUrl } : {}),
     };
     const savedVariant = await upsertProductBySku(c, variantSku, variantInsertValues, variantUpdateValues);
 

@@ -39,6 +39,8 @@ export const products = pgTable("products", {
   ramMemory: integer("ram_memory"),
   ssdSize: integer("ssd_size"),
   storage: varchar("storage", { length: 120 }),
+  salePriceEur: numeric("sale_price_eur", { precision: 12, scale: 2 }),
+  salePriceUsd: numeric("sale_price_usd", { precision: 12, scale: 2 }),
   featured: boolean("featured").notNull().default(false),
   stockQty: integer("stock_qty").notNull().default(0),
   lastSeenSyncJobId: uuid("last_seen_sync_job_id"),
