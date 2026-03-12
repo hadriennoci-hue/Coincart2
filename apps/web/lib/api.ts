@@ -489,9 +489,11 @@ export const createCheckoutSession = async (payload: {
   phone: string;
   shippingName: string;
   streetAddress: string;
+  secondaryAddress?: string;
   city: string;
   postcode: string;
   shippingCountry: string;
+  shippingNotes?: string;
   currency: Currency;
   couponCode?: string;
   lines: Array<{ sku: string; quantity: number }>;

@@ -1,7 +1,9 @@
 import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import {
+  orderEvents,
   orderItems,
   orders,
+  payments,
   productCollections,
   productPrices,
   products,
@@ -78,6 +80,8 @@ const COUPON_DISCOUNT_RATE = 0.1;
 
 const shippingFeeForCurrency = (currency: Currency) =>
   currency === "EUR" ? SHIPPING_FEE_EUR : Number((SHIPPING_FEE_EUR * EUR_TO_USD).toFixed(2));
+
+const generateOrderNumber = () => `CC-${Date.now().toString(36).toUpperCase()}`;
 
 export const startSyncJob = async (db: Db, source: string) => {
   const [job] = await db.insert(syncJobs).values({ source, status: "running" }).returning();
@@ -252,18 +256,40 @@ export const createCheckoutSession = async (
   const [order] = await db
     .insert(orders)
     .values({
+      orderNumber: generateOrderNumber(),
+      orderStatus: "pending_payment",
+      paymentStatus: "pending",
+      fulfillmentStatus: "unfulfilled",
       customerEmail: input.email,
       customerPhone: input.phone,
+      shippingName: input.shippingName,
+      shippingAddress1: input.streetAddress,
+      shippingAddress2: input.secondaryAddress,
+      shippingCity: input.city,
+      shippingZip: input.postcode,
       shippingCountry: shippingCountryCode,
       shippingMethod: SHIPPING_METHOD,
+      shippingNotes: input.shippingNotes,
       estimatedDeliveryDays: ESTIMATED_DELIVERY_DAYS,
       shippingCost: shippingCost.toFixed(2),
+      shippingAmount: shippingCost.toFixed(2),
       currency: input.currency,
       subtotalAmount: discountedSubtotal.toFixed(2),
+      discountAmount: couponDiscount.toFixed(2),
+      taxAmount: "0.00",
+      couponCode: normalizedCoupon || null,
       totalAmount: totalAmount.toFixed(2),
+      paymentMethod: "btcpay",
       status: "pending_payment",
     })
     .returning();
+
+  await db.insert(orderEvents).values({
+    orderId: order.id,
+    type: "order.created",
+    message: "Order created and awaiting payment",
+    payload: { currency: input.currency, subtotal, couponCode: normalizedCoupon || null },
+  });
 
   for (const line of pricedLines) {
     await db.insert(orderItems).values({
@@ -294,6 +320,23 @@ export const createCheckoutSession = async (
     })
     .where(eq(orders.id, order.id))
     .returning();
+
+  await db.insert(payments).values({
+    orderId: order.id,
+    provider: "btcpay",
+    invoiceId: invoice.invoiceId,
+    amount: totalAmount.toFixed(2),
+    currency: input.currency,
+    status: "pending",
+    rawJson: { invoiceId: invoice.invoiceId, checkoutUrl: invoice.checkoutUrl },
+  });
+
+  await db.insert(orderEvents).values({
+    orderId: order.id,
+    type: "payment.invoice_created",
+    message: "BTCPay invoice created",
+    payload: { invoiceId: invoice.invoiceId, checkoutUrl: invoice.checkoutUrl },
+  });
 
   return {
     orderId: updated.id,
@@ -328,7 +371,13 @@ export const applyBtcPayWebhook = async (db: Db, input: { deliveryId: string; ev
   if (input.event.toLowerCase().includes("confirmed") || input.event.toLowerCase().includes("paid")) {
     const [updated] = await db
       .update(orders)
-      .set({ status: "paid", paidAt: sql`now()`, updatedAt: sql`now()` })
+      .set({
+        status: "paid",
+        orderStatus: "paid",
+        paymentStatus: "paid",
+        paidAt: sql`now()`,
+        updatedAt: sql`now()`,
+      })
       .where(
         and(
           eq(orders.btcpayInvoiceId, input.invoiceId),
@@ -338,6 +387,24 @@ export const applyBtcPayWebhook = async (db: Db, input: { deliveryId: string; ev
         ),
       )
       .returning({ id: orders.id });
+
+    if (updated?.id) {
+      await db
+        .update(payments)
+        .set({
+          status: "paid",
+          paidAt: sql`now()`,
+          rawJson: input.raw as object,
+        })
+        .where(and(eq(payments.orderId, updated.id), eq(payments.invoiceId, input.invoiceId)));
+
+      await db.insert(orderEvents).values({
+        orderId: updated.id,
+        type: "payment.paid",
+        message: "BTCPay payment confirmed",
+        payload: input.raw as object,
+      });
+    }
 
     return { duplicate: false, orderUpdated: Boolean(updated), orderId: updated?.id ?? null };
   }

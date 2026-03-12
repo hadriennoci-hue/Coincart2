@@ -86,19 +86,46 @@ export const syncJobs = pgTable("sync_jobs", {
 
 export const orders = pgTable("orders", {
   id: uuid("id").defaultRandom().primaryKey(),
+  orderNumber: varchar("order_number", { length: 40 }).unique(),
+  orderStatus: varchar("order_status", { length: 30 }).notNull().default("pending_payment"),
+  paymentStatus: varchar("payment_status", { length: 30 }).notNull().default("pending"),
+  fulfillmentStatus: varchar("fulfillment_status", { length: 30 }).notNull().default("unfulfilled"),
   customerEmail: varchar("customer_email", { length: 320 }).notNull(),
   customerPhone: varchar("customer_phone", { length: 30 }),
+  shippingName: varchar("shipping_name", { length: 120 }),
+  shippingAddress1: varchar("shipping_address1", { length: 200 }),
+  shippingAddress2: varchar("shipping_address2", { length: 200 }),
+  shippingCity: varchar("shipping_city", { length: 120 }),
+  shippingZip: varchar("shipping_zip", { length: 30 }),
   shippingCountry: varchar("shipping_country", { length: 2 }),
+  billingName: varchar("billing_name", { length: 120 }),
+  billingAddress1: varchar("billing_address1", { length: 200 }),
+  billingAddress2: varchar("billing_address2", { length: 200 }),
+  billingCity: varchar("billing_city", { length: 120 }),
+  billingZip: varchar("billing_zip", { length: 30 }),
+  billingCountry: varchar("billing_country", { length: 2 }),
   shippingMethod: varchar("shipping_method", { length: 60 }),
+  shippingNotes: text("shipping_notes"),
   estimatedDeliveryDays: integer("estimated_delivery_days"),
   shippingCost: numeric("shipping_cost", { precision: 12, scale: 2 }),
+  shippingAmount: numeric("shipping_amount", { precision: 12, scale: 2 }),
   currency: varchar("currency", { length: 3 }).notNull(),
   subtotalAmount: numeric("subtotal_amount", { precision: 12, scale: 2 }).notNull(),
+  discountAmount: numeric("discount_amount", { precision: 12, scale: 2 }),
+  taxAmount: numeric("tax_amount", { precision: 12, scale: 2 }),
+  couponCode: varchar("coupon_code", { length: 40 }),
   totalAmount: numeric("total_amount", { precision: 12, scale: 2 }).notNull(),
+  paymentMethod: varchar("payment_method", { length: 40 }),
   status: varchar("status", { length: 30 }).notNull().default("pending_payment"),
   btcpayInvoiceId: varchar("btcpay_invoice_id", { length: 120 }),
   btcpayCheckoutUrl: text("btcpay_checkout_url"),
   paidAt: timestamp("paid_at", { withTimezone: true }),
+  expiredAt: timestamp("expired_at", { withTimezone: true }),
+  canceledAt: timestamp("canceled_at", { withTimezone: true }),
+  shippedAt: timestamp("shipped_at", { withTimezone: true }),
+  deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+  returnedAt: timestamp("returned_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
   confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
   fulfilledAt: timestamp("fulfilled_at", { withTimezone: true }),
   cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
@@ -122,6 +149,37 @@ export const orderItems = pgTable("order_items", {
   unitPrice: numeric("unit_price", { precision: 12, scale: 2 }).notNull(),
   quantity: integer("quantity").notNull(),
   lineTotal: numeric("line_total", { precision: 12, scale: 2 }).notNull(),
+  variant: varchar("variant", { length: 160 }),
+  optionsJson: jsonb("options_json"),
+});
+
+export const payments = pgTable("payments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orderId: uuid("order_id")
+    .notNull()
+    .references(() => orders.id, { onDelete: "cascade" }),
+  provider: varchar("provider", { length: 40 }).notNull().default("btcpay"),
+  invoiceId: varchar("invoice_id", { length: 120 }),
+  txId: varchar("tx_id", { length: 160 }),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).notNull(),
+  status: varchar("status", { length: 30 }).notNull().default("pending"),
+  rawJson: jsonb("raw_json"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  paidAt: timestamp("paid_at", { withTimezone: true }),
+  expiredAt: timestamp("expired_at", { withTimezone: true }),
+  refundedAt: timestamp("refunded_at", { withTimezone: true }),
+});
+
+export const orderEvents = pgTable("order_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orderId: uuid("order_id")
+    .notNull()
+    .references(() => orders.id, { onDelete: "cascade" }),
+  type: varchar("type", { length: 80 }).notNull(),
+  message: text("message"),
+  payload: jsonb("payload"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const apiKeys = pgTable("api_keys", {
