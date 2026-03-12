@@ -159,7 +159,6 @@ export default async function Home({
         promoPrice={hero?.promoPrice}
         currency={hero?.currency || currency}
         stockQty={hero?.stockQty || 0}
-        imageUrl={hero?.imageUrl}
         href={hero ? `/product/${hero.slug}?currency=${currency}` : `/search?currency=${currency}&category=Laptops`}
       />
 

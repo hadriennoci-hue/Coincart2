@@ -14,7 +14,6 @@ interface PredatorHeroProps {
   promoPrice?: number | null;
   currency: "EUR" | "USD";
   stockQty: number;
-  imageUrl?: string | null;
   href?: string;
 }
 
@@ -27,7 +26,6 @@ export function PredatorHero({
   promoPrice,
   currency,
   stockQty,
-  imageUrl,
   href = "/search?category=Laptops",
 }: PredatorHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -137,7 +135,7 @@ export function PredatorHero({
                 className="ph-visual-wrap"
               >
                 <video
-                  src="/acer_predator.webm"
+                  src="/Output.webm"
                   className="ph-img"
                   autoPlay
                   loop
