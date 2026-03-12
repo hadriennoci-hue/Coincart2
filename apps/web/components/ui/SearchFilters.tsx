@@ -87,9 +87,9 @@ export function SearchFilters({
         </div>
 
         <label className="form-label" style={{ gap: 6 }}>
-          Category
+          Collection
           <select className="select" name="category" defaultValue={category}>
-            <option value="">All categories</option>
+            <option value="">All collections</option>
             {categories.map(([name, count]) => (
               <option key={name} value={name}>
                 {name} ({count})
