@@ -887,8 +887,6 @@ footer { position: relative; z-index: 1; }
 .search-aside {
   width: 220px;
   flex-shrink: 0;
-  position: sticky;
-  top: calc(var(--navbar-h) + 24px);
 }
 .search-filter-toggle { display: none; }
 .search-filter-form {
