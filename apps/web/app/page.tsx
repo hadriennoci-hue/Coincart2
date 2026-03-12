@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { fetchCollections, fetchProducts, fetchTopSellingProducts, type Currency } from "../lib/api";
+import { collectionMeta } from "../lib/collections";
 import { FlipCard } from "../components/ui/FlipCard";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
 import { PredatorHero } from "../components/ui/PredatorHero";
@@ -68,7 +69,15 @@ export default async function Home({
 }) {
   const { currency = "EUR" } = await searchParams;
   const items = await fetchProducts(currency, false);
-  const collections = await fetchCollections(currency);
+  const rawCollections = await fetchCollections(currency);
+  const collections = rawCollections.length > 0
+    ? rawCollections
+    : collectionMeta.map((entry) => ({
+        id: entry.key,
+        key: entry.key,
+        label: entry.label,
+        productCount: items.filter((p) => (p.collection || "").trim() === entry.key).length,
+      }));
   const topSellingFromSales = await fetchTopSellingProducts(currency, 4);
   const hero =
     items.find((item) => item.sku === HOME_HERO_SKU) ??
