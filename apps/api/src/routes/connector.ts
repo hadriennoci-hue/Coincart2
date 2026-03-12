@@ -255,13 +255,50 @@ const fallbackCollectionAttributes: Record<
 };
 
 const upsertPrice = async (c: { var: AppContext["Variables"] }, productId: string, currency: "EUR" | "USD", amount: number) => {
-  await c.var.db
-    .insert(productPrices)
-    .values({ productId, currency, amount: amount.toFixed(2) })
-    .onConflictDoUpdate({
-      target: [productPrices.productId, productPrices.currency],
-      set: { amount: amount.toFixed(2) },
-    });
+  const amountStr = amount.toFixed(2);
+  const [existing] = await c.var.db
+    .select({ id: productPrices.id })
+    .from(productPrices)
+    .where(and(eq(productPrices.productId, productId), eq(productPrices.currency, currency)))
+    .limit(1);
+
+  if (existing) {
+    await c.var.db
+      .update(productPrices)
+      .set({ amount: amountStr })
+      .where(eq(productPrices.id, existing.id));
+    return;
+  }
+
+  await c.var.db.insert(productPrices).values({ productId, currency, amount: amountStr });
+};
+
+const upsertProductBySku = async (
+  c: { var: AppContext["Variables"] },
+  sku: string,
+  insertValues: typeof products.$inferInsert,
+  updateValues: Partial<typeof products.$inferInsert>,
+) => {
+  const [existing] = await c.var.db
+    .select({ id: products.id })
+    .from(products)
+    .where(eq(products.sku, sku))
+    .limit(1);
+
+  if (!existing) {
+    const [created] = await c.var.db
+      .insert(products)
+      .values(insertValues)
+      .returning({ id: products.id, wooId: products.wooId });
+    return created;
+  }
+
+  const [updated] = await c.var.db
+    .update(products)
+    .set(updateValues)
+    .where(eq(products.id, existing.id))
+    .returning({ id: products.id, wooId: products.wooId });
+  return updated;
 };
 
 export const connectorRoutes = new Hono<AppContext>();
@@ -705,23 +742,11 @@ connectorRoutes.post("/products/:id", async (c) => {
     parsePrice((body.prices as Record<string, unknown> | undefined)?.USD);
 
   if (priceEur !== null) {
-    await c.var.db
-      .insert(productPrices)
-      .values({ productId: resolved.id, currency: "EUR", amount: priceEur.toFixed(2) })
-      .onConflictDoUpdate({
-        target: [productPrices.productId, productPrices.currency],
-        set: { amount: priceEur.toFixed(2) },
-      });
+    await upsertPrice(c, resolved.id, "EUR", priceEur);
   }
 
   if (priceUsd !== null) {
-    await c.var.db
-      .insert(productPrices)
-      .values({ productId: resolved.id, currency: "USD", amount: priceUsd.toFixed(2) })
-      .onConflictDoUpdate({
-        target: [productPrices.productId, productPrices.currency],
-        set: { amount: priceUsd.toFixed(2) },
-      });
+    await upsertPrice(c, resolved.id, "USD", priceUsd);
   }
 
   const variantsInput = parseVariantsInput(body);
@@ -753,77 +778,73 @@ connectorRoutes.post("/products/:id", async (c) => {
           : variant.in_stock === false
             ? 0
             : 0;
-      const [saved] = await c.var.db
-        .insert(products)
-        .values({
-          wooId:
-            typeof variant.id === "number"
-              ? variant.id
-              : typeof variant.woo_id === "number"
-                ? variant.woo_id
-                : null,
-          parentProductId: parentId,
-          isVariant: true,
-          optionName: option.optionName ?? null,
-          optionValue: option.optionValue ?? null,
-          sku: variantSku,
-          slug: variantSlug,
-          category: resolvedProduct.category ?? null,
-          name: variantName,
-          description:
-            typeof variant.description === "string"
-              ? variant.description
-              : resolvedProduct.description ?? null,
-          visibilityStatus:
-            typeof variant.status === "string"
-              ? variant.status
-              : resolvedProduct.visibilityStatus,
-          brand:
-            typeof variant.brand === "string" && variant.brand.trim()
-              ? variant.brand.trim()
-              : resolvedProduct.brand ?? null,
-          stockQty: variantStockQty,
-          imageUrl:
-            typeof variant.image_url === "string"
-              ? variant.image_url
-              : resolvedProduct.imageUrl ?? null,
-        })
-        .onConflictDoUpdate({
-          target: products.sku,
-          set: {
-            wooId:
-              typeof variant.id === "number"
-                ? variant.id
-                : typeof variant.woo_id === "number"
-                  ? variant.woo_id
-                  : undefined,
-            parentProductId: parentId,
-            isVariant: true,
-            optionName: option.optionName ?? null,
-            optionValue: option.optionValue ?? null,
-            slug: variantSlug,
-            category: resolvedProduct.category ?? null,
-            name: variantName,
-            description:
-              typeof variant.description === "string"
-                ? variant.description
-                : resolvedProduct.description ?? null,
-            visibilityStatus:
-              typeof variant.status === "string"
-                ? variant.status
-                : resolvedProduct.visibilityStatus,
-            brand:
-              typeof variant.brand === "string" && variant.brand.trim()
-                ? variant.brand.trim()
-                : resolvedProduct.brand ?? null,
-            stockQty: variantStockQty,
-            imageUrl:
-              typeof variant.image_url === "string"
-                ? variant.image_url
-                : resolvedProduct.imageUrl ?? null,
-          },
-        })
-        .returning({ id: products.id, wooId: products.wooId });
+      const insertValues: typeof products.$inferInsert = {
+        wooId:
+          typeof variant.id === "number"
+            ? variant.id
+            : typeof variant.woo_id === "number"
+              ? variant.woo_id
+              : null,
+        parentProductId: parentId,
+        isVariant: true,
+        optionName: option.optionName ?? null,
+        optionValue: option.optionValue ?? null,
+        sku: variantSku,
+        slug: variantSlug,
+        category: resolvedProduct.category ?? null,
+        name: variantName,
+        description:
+          typeof variant.description === "string"
+            ? variant.description
+            : resolvedProduct.description ?? null,
+        visibilityStatus:
+          typeof variant.status === "string"
+            ? variant.status
+            : resolvedProduct.visibilityStatus,
+        brand:
+          typeof variant.brand === "string" && variant.brand.trim()
+            ? variant.brand.trim()
+            : resolvedProduct.brand ?? null,
+        stockQty: variantStockQty,
+        imageUrl:
+          typeof variant.image_url === "string"
+            ? variant.image_url
+            : resolvedProduct.imageUrl ?? null,
+      };
+      const updateValues: Partial<typeof products.$inferInsert> = {
+        wooId:
+          typeof variant.id === "number"
+            ? variant.id
+            : typeof variant.woo_id === "number"
+              ? variant.woo_id
+              : undefined,
+        parentProductId: parentId,
+        isVariant: true,
+        optionName: option.optionName ?? null,
+        optionValue: option.optionValue ?? null,
+        slug: variantSlug,
+        category: resolvedProduct.category ?? null,
+        name: variantName,
+        description:
+          typeof variant.description === "string"
+            ? variant.description
+            : resolvedProduct.description ?? null,
+        visibilityStatus:
+          typeof variant.status === "string"
+            ? variant.status
+            : resolvedProduct.visibilityStatus,
+        brand:
+          typeof variant.brand === "string" && variant.brand.trim()
+            ? variant.brand.trim()
+            : resolvedProduct.brand ?? null,
+        stockQty: variantStockQty,
+        imageUrl:
+          typeof variant.image_url === "string"
+            ? variant.image_url
+            : resolvedProduct.imageUrl ?? null,
+      };
+
+      const saved = await upsertProductBySku(c, variantSku, insertValues, updateValues);
 
       keepVariantIds.push(saved.id);
       variantIds.push(saved.wooId ?? saved.id);
@@ -900,56 +921,51 @@ connectorRoutes.post("/products", async (c) => {
     if (eanMeta?.value) ean = String(eanMeta.value);
   }
 
-  const [created] = await c.var.db
-    .insert(products)
-    .values({
-      wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : null,
-      ...(shouldPersistVariantFields
-        ? {
-            parentProductId,
-            isVariant,
-            optionName: directVariantOption.optionName ?? null,
-            optionValue: directVariantOption.optionValue ?? null,
-          }
-        : {}),
-      sku,
-      slug,
-      name,
-      description: typeof body.description === "string" ? body.description : null,
-      visibilityStatus: typeof body.status === "string" ? body.status : "publish",
-      category: category ?? null,
-      brand: brand ?? null,
-      ean: ean ?? null,
-      stockQty:
-        typeof body.stock_quantity === "number"
-          ? Math.max(0, Math.trunc(body.stock_quantity))
-          : body.in_stock === false
-            ? 0
-            : 0,
-      imageUrl: typeof body.image_url === "string" ? body.image_url : null,
-    })
-    .onConflictDoUpdate({
-      target: products.sku,
-      set: {
-        wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : undefined,
-        ...(shouldPersistVariantFields
-          ? {
-              parentProductId,
-              isVariant,
-              optionName: directVariantOption.optionName ?? null,
-              optionValue: directVariantOption.optionValue ?? null,
-            }
-          : {}),
-        slug,
-        name,
-        description: typeof body.description === "string" ? body.description : null,
-        visibilityStatus: typeof body.status === "string" ? body.status : "publish",
-        category: category ?? null,
-        brand: brand ?? null,
-        ean: ean ?? null,
-      },
-    })
-    .returning({ id: products.id, wooId: products.wooId });
+  const insertValues: typeof products.$inferInsert = {
+    wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : null,
+    ...(shouldPersistVariantFields
+      ? {
+          parentProductId,
+          isVariant,
+          optionName: directVariantOption.optionName ?? null,
+          optionValue: directVariantOption.optionValue ?? null,
+        }
+      : {}),
+    sku,
+    slug,
+    name,
+    description: typeof body.description === "string" ? body.description : null,
+    visibilityStatus: typeof body.status === "string" ? body.status : "publish",
+    category: category ?? null,
+    brand: brand ?? null,
+    ean: ean ?? null,
+    stockQty:
+      typeof body.stock_quantity === "number"
+        ? Math.max(0, Math.trunc(body.stock_quantity))
+        : body.in_stock === false
+          ? 0
+          : 0,
+    imageUrl: typeof body.image_url === "string" ? body.image_url : null,
+  };
+  const updateValues: Partial<typeof products.$inferInsert> = {
+    wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : undefined,
+    ...(shouldPersistVariantFields
+      ? {
+          parentProductId,
+          isVariant,
+          optionName: directVariantOption.optionName ?? null,
+          optionValue: directVariantOption.optionValue ?? null,
+        }
+      : {}),
+    slug,
+    name,
+    description: typeof body.description === "string" ? body.description : null,
+    visibilityStatus: typeof body.status === "string" ? body.status : "publish",
+    category: category ?? null,
+    brand: brand ?? null,
+    ean: ean ?? null,
+  };
+  const created = await upsertProductBySku(c, sku, insertValues, updateValues);
 
   const priceEur =
     parsePrice(body.regular_price) ??
@@ -993,59 +1009,54 @@ connectorRoutes.post("/products", async (c) => {
           ? 0
           : 0;
 
-    const [savedVariant] = await c.var.db
-      .insert(products)
-      .values({
-        wooId:
-          typeof variant.id === "number"
-            ? variant.id
-            : typeof variant.woo_id === "number"
-              ? variant.woo_id
-              : null,
-        parentProductId: created.id,
-        isVariant: true,
-        optionName: option.optionName ?? null,
-        optionValue: option.optionValue ?? null,
-        sku: variantSku,
-        slug: variantSlug,
-        category: category ?? null,
-        name: variantName,
-        description: typeof variant.description === "string" ? variant.description : null,
-        visibilityStatus: typeof variant.status === "string" ? variant.status : "publish",
-        brand:
-          typeof variant.brand === "string" && variant.brand.trim()
-            ? variant.brand.trim()
-            : brand ?? null,
-        stockQty: variantStockQty,
-        imageUrl: typeof variant.image_url === "string" ? variant.image_url : null,
-      })
-      .onConflictDoUpdate({
-        target: products.sku,
-        set: {
-          wooId:
-            typeof variant.id === "number"
-              ? variant.id
-              : typeof variant.woo_id === "number"
-                ? variant.woo_id
-                : undefined,
-          parentProductId: created.id,
-          isVariant: true,
-          optionName: option.optionName ?? null,
-          optionValue: option.optionValue ?? null,
-          slug: variantSlug,
-          category: category ?? null,
-          name: variantName,
-          description: typeof variant.description === "string" ? variant.description : null,
-          visibilityStatus: typeof variant.status === "string" ? variant.status : "publish",
-          brand:
-            typeof variant.brand === "string" && variant.brand.trim()
-              ? variant.brand.trim()
-              : brand ?? null,
-          stockQty: variantStockQty,
-          imageUrl: typeof variant.image_url === "string" ? variant.image_url : null,
-        },
-      })
-      .returning({ id: products.id, wooId: products.wooId });
+    const variantInsertValues: typeof products.$inferInsert = {
+      wooId:
+        typeof variant.id === "number"
+          ? variant.id
+          : typeof variant.woo_id === "number"
+            ? variant.woo_id
+            : null,
+      parentProductId: created.id,
+      isVariant: true,
+      optionName: option.optionName ?? null,
+      optionValue: option.optionValue ?? null,
+      sku: variantSku,
+      slug: variantSlug,
+      category: category ?? null,
+      name: variantName,
+      description: typeof variant.description === "string" ? variant.description : null,
+      visibilityStatus: typeof variant.status === "string" ? variant.status : "publish",
+      brand:
+        typeof variant.brand === "string" && variant.brand.trim()
+          ? variant.brand.trim()
+          : brand ?? null,
+      stockQty: variantStockQty,
+      imageUrl: typeof variant.image_url === "string" ? variant.image_url : null,
+    };
+    const variantUpdateValues: Partial<typeof products.$inferInsert> = {
+      wooId:
+        typeof variant.id === "number"
+          ? variant.id
+          : typeof variant.woo_id === "number"
+            ? variant.woo_id
+            : undefined,
+      parentProductId: created.id,
+      isVariant: true,
+      optionName: option.optionName ?? null,
+      optionValue: option.optionValue ?? null,
+      slug: variantSlug,
+      category: category ?? null,
+      name: variantName,
+      description: typeof variant.description === "string" ? variant.description : null,
+      visibilityStatus: typeof variant.status === "string" ? variant.status : "publish",
+      brand:
+        typeof variant.brand === "string" && variant.brand.trim()
+          ? variant.brand.trim()
+          : brand ?? null,
+      stockQty: variantStockQty,
+      imageUrl: typeof variant.image_url === "string" ? variant.image_url : null,
+    };
+    const savedVariant = await upsertProductBySku(c, variantSku, variantInsertValues, variantUpdateValues);
 
     const variantEur =
       parsePrice(variant.regular_price) ??

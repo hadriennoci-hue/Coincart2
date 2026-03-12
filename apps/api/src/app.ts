@@ -51,6 +51,10 @@ export const createApp = ({
     .filter(Boolean);
 
   const app = new Hono<AppContext>();
+  app.onError((err, c) => {
+    console.error("Unhandled API error:", err);
+    return c.json({ error: "Internal Server Error" }, 500);
+  });
   app.use(
     "*",
     cors({
