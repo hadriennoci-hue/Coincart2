@@ -135,7 +135,7 @@ export function PredatorHero({
                 className="ph-visual-wrap"
               >
                 <video
-                  src="/Output.webm"
+                  src="/Output2.webm"
                   className="ph-img"
                   autoPlay
                   loop
