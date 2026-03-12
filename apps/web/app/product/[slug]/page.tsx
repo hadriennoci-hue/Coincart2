@@ -216,7 +216,6 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
                 value: product.ssdSize ? `${product.ssdSize} GB` : null,
               },
               { label: "Keyboard Layout", value: product.keyboardLayout },
-              { label: "Category", value: product.category },
             ]
               .filter((row) => row.value)
               .map((row, i, arr) => (
