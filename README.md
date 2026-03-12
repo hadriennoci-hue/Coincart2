@@ -57,3 +57,59 @@ If you want to open from another device on your network, use your PC local IP (f
 ## Cloudflare deploy
 
 See [CLOUDFLARE_DEPLOY.md](./CLOUDFLARE_DEPLOY.md) for Git-based auto-deploy of API and web.
+
+## Session Handoff (Quick Context)
+
+Updated: 2026-03-13
+
+### Current runtime topology
+- Frontend: `apps/web` (Next.js) on Cloudflare Pages / Edge runtime.
+- API: `apps/api` (Hono Worker) exposed at:
+- `https://coincart-api.hadrien-noci.workers.dev`
+- Storefront domain:
+- `https://coincart.store`
+- R2 image domain:
+- `https://img.coincart.store`
+
+### Databases and data stores
+- Main SQL database (production): Neon Postgres (Cloud-hosted).
+- Role: products, prices, orders, mappings, sync logs, attributes, collections.
+- Connection string is managed as `DATABASE_URL` in runtime secrets (not committed).
+- Cloudflare R2 bucket: `coincart2`.
+- Role: image object storage behind `img.coincart.store`.
+- Verified custom domain binding:
+- bucket `coincart2` <-> `img.coincart.store` (`ssl: active`, `ownership: active`).
+
+### Cloudflare access verified in this session
+- Token validity: confirmed active via `/user/tokens/verify`.
+- Works:
+- list accounts/zones
+- list Workers scripts
+- list Workers routes
+- list R2 buckets
+- inspect R2 custom domains
+- upload R2 objects (PUT object key)
+- Does not work with current token:
+- Zone DNS records API (`/zones/:id/dns_records`) -> authentication error
+- Implication: app/worker/R2 operations are available; direct DNS edits may require broader token scope.
+
+### Important production fixes applied recently
+- Image outage root cause on `img.coincart.store`: missing R2 object keys (not host downtime).
+- Confirmed missing key with API error `10007 The specified key does not exist`.
+- Patched one required key directly in R2:
+- `dummy/laptops/wizhard-main.jpg` now returns `200`.
+- Web safety patch added:
+- `/api/image-proxy` route proxies `img.coincart.store` images and falls back gracefully when origin object is missing.
+- Cart speed was improved with local snapshot-first behavior.
+- Cart price bug fixed:
+- if live API price is missing/zero, cart now falls back to valid snapshot price instead of `0`.
+
+### Known caveats still relevant
+- Coincart connector/variant flow had prior inconsistencies (parent/variant modeling and flaky 500s).
+- Worker observability previously showed request hangs on some connector GET paths.
+- Some image paths may still 404 until corresponding objects are uploaded to R2.
+
+### Secrets and local state conventions
+- Keep secrets only in ignored files / env vars:
+- `apps/api/.dev.vars` (already gitignored) can hold local Cloudflare token for operator actions.
+- Do not commit tokens, keys, DB URLs.
