@@ -4,12 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { fetchProductsBySkus, type Currency, type Product } from "../../lib/api";
 import { fmtPrice } from "../../lib/format";
-import { getCart, removeFromCart } from "../../lib/cart";
+import { getCart, removeFromCart, type CartLine } from "../../lib/cart";
 
 export default function CartPage() {
   const [currency, setCurrency] = useState<Currency>("EUR");
   const [items, setItems] = useState<Product[]>([]);
-  const [lines, setLines] = useState<Array<{ sku: string; quantity: number }>>([]);
+  const [lines, setLines] = useState<CartLine[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
 
@@ -19,23 +20,57 @@ export default function CartPage() {
   }, []);
 
   useEffect(() => {
+    if (lines.length === 0) {
+      setItems([]);
+      setIsRefreshing(false);
+      return;
+    }
+    let cancelled = false;
     const run = async () => {
-      const products = await fetchProductsBySkus(
-        lines.map((x) => x.sku),
-        currency,
-      );
-      setItems(products);
+      setIsRefreshing(true);
+      try {
+        const products = await fetchProductsBySkus(
+          lines.map((x) => x.sku),
+          currency,
+        );
+        if (!cancelled) setItems(products);
+      } finally {
+        if (!cancelled) setIsRefreshing(false);
+      }
     };
     run();
+    return () => {
+      cancelled = true;
+    };
   }, [currency, lines]);
 
-  const total = useMemo(() => {
-    const map = new Map(lines.map((x) => [x.sku, x.quantity]));
-    return items.reduce(
-      (acc, item) => acc + item.price * (map.get(item.sku) || 0),
-      0,
-    );
-  }, [items, lines]);
+  const itemBySku = useMemo(
+    () => new Map(items.map((item) => [item.sku, item])),
+    [items],
+  );
+
+  const displayRows = useMemo(
+    () =>
+      lines.map((line) => {
+        const product = itemBySku.get(line.sku);
+        const unitPrice = product?.price ?? line.snapshot?.price ?? 0;
+        return {
+          sku: line.sku,
+          quantity: line.quantity,
+          id: product?.id || line.sku,
+          name: product?.name || line.snapshot?.name || line.sku,
+          imageUrl: product?.imageUrl ?? line.snapshot?.imageUrl ?? null,
+          unitPrice,
+          lineTotal: unitPrice * line.quantity,
+        };
+      }),
+    [itemBySku, lines],
+  );
+
+  const total = useMemo(
+    () => displayRows.reduce((acc, row) => acc + row.lineTotal, 0),
+    [displayRows],
+  );
 
   const couponDiscount = useMemo(() => {
     if (appliedCoupon === "COINCART10") return total * 0.1;
@@ -50,7 +85,6 @@ export default function CartPage() {
     () => Math.max(0, total - couponDiscount) + shippingCost,
     [couponDiscount, shippingCost, total],
   );
-  const isResolvingProducts = lines.length > 0 && items.length === 0;
 
   return (
     <div className="container" style={{ paddingTop: 40, paddingBottom: 64 }}>
@@ -82,10 +116,6 @@ export default function CartPage() {
                 Browse Products
               </Link>
             </div>
-          ) : isResolvingProducts ? (
-            <div className="surface" style={{ textAlign: "center", padding: 40 }}>
-              <div style={{ display: "inline-block", width: 32, height: 32, border: "3px solid var(--border)", borderTopColor: "var(--primary)", borderRadius: "50%", animation: "spin 0.75s linear infinite" }} />
-            </div>
           ) : (
             <div
               style={{
@@ -97,11 +127,10 @@ export default function CartPage() {
                 overflow: "hidden",
               }}
             >
-              {items.map((item, index) => {
-                const qty = lines.find((l) => l.sku === item.sku)?.quantity || 0;
+              {displayRows.map((row, index) => {
                 return (
                   <div
-                    key={item.id}
+                    key={row.id}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -109,15 +138,15 @@ export default function CartPage() {
                       padding: "16px 20px",
                       background: "var(--surface)",
                       borderBottom:
-                        index < items.length - 1
+                        index < displayRows.length - 1
                           ? "1px solid var(--border)"
                           : "none",
                     }}
                   >
-                    {item.imageUrl ? (
+                    {row.imageUrl ? (
                       <img
-                        src={item.imageUrl}
-                        alt={item.name}
+                        src={row.imageUrl}
+                        alt={row.name}
                         style={{
                           width: 80,
                           height: 56,
@@ -149,9 +178,9 @@ export default function CartPage() {
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {item.name}
+                        {row.name}
                       </div>
-                      <div className="caption">{item.sku}</div>
+                      <div className="caption">{row.sku}</div>
                     </div>
                     <div style={{ textAlign: "right", flexShrink: 0 }}>
                       <div
@@ -161,7 +190,7 @@ export default function CartPage() {
                           marginBottom: 4,
                         }}
                       >
-                        {qty} &times; {fmtPrice(item.price, currency)}
+                        {row.quantity} &times; {fmtPrice(row.unitPrice, currency)}
                       </div>
                       <div
                         style={{
@@ -170,12 +199,12 @@ export default function CartPage() {
                           marginBottom: 8,
                         }}
                       >
-                        {fmtPrice(qty * item.price, currency)}
+                        {fmtPrice(row.lineTotal, currency)}
                       </div>
                       <button
                         className="btn btn-danger btn-sm"
                         onClick={() => {
-                          removeFromCart(item.sku);
+                          removeFromCart(row.sku);
                           const now = getCart();
                           setLines(now);
                         }}
@@ -186,6 +215,11 @@ export default function CartPage() {
                   </div>
                 );
               })}
+            </div>
+          )}
+          {lines.length > 0 && isRefreshing && (
+            <div className="caption" style={{ marginTop: 8, color: "var(--muted)" }}>
+              Updating live prices and stock...
             </div>
           )}
         </div>

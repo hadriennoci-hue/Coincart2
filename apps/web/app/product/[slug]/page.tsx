@@ -270,7 +270,13 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             />
           )}
 
-          <AddToCartButton sku={product.sku} />
+          <AddToCartButton
+            sku={product.sku}
+            name={product.name}
+            imageUrl={product.imageUrl}
+            price={product.price}
+            currency={product.currency}
+          />
         </div>
       </div>
 
