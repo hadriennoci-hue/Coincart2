@@ -128,8 +128,8 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
 
           <h1
             style={{
-              fontSize: "1.75rem",
-              fontWeight: 700,
+              fontSize: "1.5rem",
+              fontWeight: 500,
               color: "var(--text)",
               margin: 0,
               lineHeight: 1.25,
@@ -151,8 +151,8 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
 
           <span
             style={{
-              fontSize: "2rem",
-              fontWeight: 700,
+              fontSize: "1.5rem",
+              fontWeight: 500,
               color: "var(--text)",
             }}
           >
