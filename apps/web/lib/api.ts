@@ -115,6 +115,13 @@ const toOptionalNumber = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const toCollectionKey = (value?: string | null) =>
+  (value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
 const normalizeProduct = (raw: Partial<Product>): Product => ({
   ...(raw as Product),
   id: String(raw.id || ""),
@@ -326,6 +333,21 @@ export const fetchCollections = async (currency: Currency): Promise<Collection[]
       productCount: counts.get(entry.key) || 0,
     }));
   };
+  const apiProductsFallback = async () => {
+    const items = await fetchProducts(currency, false);
+    const counts = new Map<string, number>();
+    for (const product of items) {
+      const key = toCollectionKey(product.collection || product.category);
+      if (!key) continue;
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+    return collectionMeta.map((entry) => ({
+      id: entry.key,
+      key: entry.key,
+      label: entry.label,
+      productCount: counts.get(entry.key) || 0,
+    }));
+  };
 
   if (forceDummyCatalog) return dummyFallback();
 
@@ -345,7 +367,8 @@ export const fetchCollections = async (currency: Currency): Promise<Collection[]
       }))
       .filter((item) => Boolean(item.key));
   } catch {
-    return allowDummyFallback ? dummyFallback() : [];
+    if (allowDummyFallback) return dummyFallback();
+    return apiProductsFallback();
   }
 };
 
