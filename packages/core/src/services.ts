@@ -352,6 +352,8 @@ export const listProducts = async (db: Db, currency: Currency, featuredOnly = fa
     .where(
       and(
         eq(productPrices.currency, currency),
+        eq(products.isVariant, false),
+        eq(products.visibilityStatus, "publish"),
         featuredOnly ? eq(products.featured, true) : sql`true`,
         sql`${products.stockQty} > 0`,
       ),
@@ -383,6 +385,8 @@ export const listProductsWithFilters = async (
 ) => {
   const where = and(
     eq(productPrices.currency, currency),
+    eq(products.isVariant, false),
+    eq(products.visibilityStatus, "publish"),
     sql`${products.stockQty} > 0`,
     filters.featuredOnly ? eq(products.featured, true) : sql`true`,
     filters.search
@@ -477,7 +481,14 @@ export const listTopSellingProducts = async (db: Db, currency: Currency, limit =
     .innerJoin(productPrices, eq(productPrices.productId, products.id))
     .leftJoin(orderItems, eq(orderItems.sku, products.sku))
     .leftJoin(orders, and(eq(orders.id, orderItems.orderId), eq(orders.status, "paid")))
-    .where(and(eq(productPrices.currency, currency), sql`${products.stockQty} > 0`))
+    .where(
+      and(
+        eq(productPrices.currency, currency),
+        eq(products.isVariant, false),
+        eq(products.visibilityStatus, "publish"),
+        sql`${products.stockQty} > 0`,
+      ),
+    )
     .groupBy(
       products.id,
       products.sku,
@@ -542,7 +553,14 @@ export const getProductBySlug = async (db: Db, slug: string, currency: Currency)
     })
     .from(products)
     .innerJoin(productPrices, eq(productPrices.productId, products.id))
-    .where(and(eq(products.slug, slug), eq(productPrices.currency, currency)));
+    .where(
+      and(
+        eq(products.slug, slug),
+        eq(productPrices.currency, currency),
+        eq(products.isVariant, false),
+        eq(products.visibilityStatus, "publish"),
+      ),
+    );
 
   if (!rows[0]) return null;
   return { ...rows[0], price: Number(rows[0].price) };
@@ -570,7 +588,14 @@ export const getProductsBySkus = async (db: Db, skus: string[], currency: Curren
     })
     .from(products)
     .innerJoin(productPrices, eq(productPrices.productId, products.id))
-    .where(and(inArray(products.sku, skus), eq(productPrices.currency, currency)));
+    .where(
+      and(
+        inArray(products.sku, skus),
+        eq(productPrices.currency, currency),
+        eq(products.isVariant, false),
+        eq(products.visibilityStatus, "publish"),
+      ),
+    );
 
   return rows.map((row) => ({ ...row, price: Number(row.price) }));
 };
