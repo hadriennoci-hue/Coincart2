@@ -6,6 +6,7 @@ import {
   getDummyProductsBySkus,
   listDummyProducts,
 } from "./dummyCatalog";
+import { collectionMeta, type CollectionKey } from "./collections";
 
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -71,6 +72,21 @@ export type Order = {
     quantity: number;
     lineTotal: number;
   }>;
+};
+
+export type Collection = {
+  id: string;
+  key: CollectionKey;
+  label: string;
+  productCount: number;
+};
+
+type CollectionResponseItem = {
+  id?: string;
+  key?: string;
+  label?: string;
+  name?: string;
+  productCount?: number | string;
 };
 
 const toNumber = (value: unknown, fallback = 0) => {
@@ -280,6 +296,45 @@ export const fetchTopSellingProducts = async (currency: Currency, limit = 4) => 
     return apiItems;
   } catch {
     return allowDummyFallback ? dummyFallback() : ([] as Product[]);
+  }
+};
+
+export const fetchCollections = async (currency: Currency): Promise<Collection[]> => {
+  const dummyFallback = () => {
+    const counts = new Map<string, number>();
+    for (const product of listDummyProducts(currency) as Product[]) {
+      const key = (product.collection || "").trim();
+      if (!key) continue;
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+
+    return collectionMeta.map((entry) => ({
+      id: entry.key,
+      key: entry.key,
+      label: entry.label,
+      productCount: counts.get(entry.key) || 0,
+    }));
+  };
+
+  if (forceDummyCatalog) return dummyFallback();
+
+  try {
+    const res = await fetch(`${apiBase}/v1/catalog/collections`, { cache: "no-store" });
+    if (!res.ok) throw new Error(`fetchCollections failed: ${res.status}`);
+    const data = await res.json();
+    const items: CollectionResponseItem[] = Array.isArray(data.items) ? data.items : [];
+    if (items.length === 0) return dummyFallback();
+
+    return items
+      .map((item) => ({
+        id: String(item.id || item.key || ""),
+        key: String(item.key || "") as CollectionKey,
+        label: String(item.label || item.name || item.key || ""),
+        productCount: toNumber(item.productCount, 0),
+      }))
+      .filter((item) => Boolean(item.key));
+  } catch {
+    return allowDummyFallback ? dummyFallback() : [];
   }
 };
 

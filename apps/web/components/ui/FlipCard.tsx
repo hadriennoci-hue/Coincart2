@@ -13,6 +13,7 @@ interface FlipCardProps {
   description?: string | null;
   sku?: string;
   href: string;
+  collection?: string | null;
   category?: string | null;
   brand?: string | null;
   cpu?: string | null;
@@ -37,6 +38,7 @@ export function FlipCard({
   description,
   sku,
   href,
+  collection,
   category,
   brand,
   cpu,
@@ -52,6 +54,14 @@ export function FlipCard({
 }: FlipCardProps) {
   const hasPromo = typeof promoPrice === "number" && promoPrice > 0 && promoPrice < price;
   const displayPrice = hasPromo ? promoPrice : price;
+  const normalizedCollection = (collection || "").trim().toLowerCase();
+  const normalizedCategory = (category || "").trim().toLowerCase();
+  const isLaptop =
+    normalizedCollection === "laptops" || normalizedCategory.includes("laptop");
+  const isDisplay =
+    normalizedCollection === "displays" ||
+    normalizedCategory.includes("display") ||
+    normalizedCategory.includes("monitor");
 
   const priceBlock = hasPromo ? (
     <>
@@ -100,7 +110,7 @@ export function FlipCard({
           <div className="flip-card-back">
             <p style={{ fontWeight: 700, fontSize: "0.9375rem", color: "var(--text)", lineHeight: 1.3, margin: 0 }}>{name}</p>
             {sku && <p className="caption" style={{ margin: "2px 0 0" }}>{sku}</p>}
-            {category === "Laptops" ? (
+            {isLaptop ? (
               <div className="flip-card-specs">
                 {screenSize && <div className="flip-spec-row"><span>Screen</span><span>{screenSize}</span></div>}
                 {(resolution || maxResolution) && <div className="flip-spec-row"><span>Resolution</span><span>{resolution || maxResolution}</span></div>}
@@ -110,7 +120,7 @@ export function FlipCard({
                 {gpu && <div className="flip-spec-row"><span>GPU</span><span>{gpu}</span></div>}
                 {brand && <div className="flip-spec-row"><span>Brand</span><span>{brand}</span></div>}
               </div>
-            ) : category === "Monitors" ? (
+            ) : isDisplay ? (
               <div className="flip-card-specs">
                 {screenSize && <div className="flip-spec-row"><span>Screen</span><span>{screenSize}</span></div>}
                 {(resolution || maxResolution) && <div className="flip-spec-row"><span>Resolution</span><span>{resolution || maxResolution}</span></div>}

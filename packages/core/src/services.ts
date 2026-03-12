@@ -2,6 +2,7 @@ import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import {
   orderItems,
   orders,
+  productCollections,
   productPrices,
   products,
   syncJobs,
@@ -16,6 +17,13 @@ import type {
 } from "@coincart/types";
 
 type Db = ReturnType<typeof createDb>;
+
+const toCollectionKey = (category?: string | null) =>
+  (category ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 const EU_COUNTRY_CODES = new Set([
   "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV",
@@ -369,6 +377,7 @@ type ListProductFilters = {
   featuredOnly?: boolean;
   search?: string;
   category?: string;
+  collection?: string;
   keyboardLayout?: string;
   usage?: string;
   screenSize?: string;
@@ -443,7 +452,16 @@ export const listProductsWithFilters = async (
     .where(where)
     .orderBy(orderBy);
 
-  return rows.map((row) => ({ ...row, price: Number(row.price) }));
+  let items = rows.map((row) => ({
+    ...row,
+    collection: toCollectionKey(row.category),
+    price: Number(row.price),
+  }));
+  if (filters.collection) {
+    const expectedCollection = filters.collection.toLowerCase().trim();
+    items = items.filter((item) => item.collection === expectedCollection);
+  }
+  return items;
 };
 
 export const listTopSellingProducts = async (db: Db, currency: Currency, limit = 4) => {
@@ -519,6 +537,7 @@ export const listTopSellingProducts = async (db: Db, currency: Currency, limit =
 
   return rows.map((row) => ({
     ...row,
+    collection: toCollectionKey(row.category),
     price: Number(row.price),
     soldQty: Number(row.soldQty ?? 0),
   }));
@@ -563,7 +582,11 @@ export const getProductBySlug = async (db: Db, slug: string, currency: Currency)
     );
 
   if (!rows[0]) return null;
-  return { ...rows[0], price: Number(rows[0].price) };
+  return {
+    ...rows[0],
+    collection: toCollectionKey(rows[0].category),
+    price: Number(rows[0].price),
+  };
 };
 
 export const getProductsBySkus = async (db: Db, skus: string[], currency: Currency) => {
@@ -597,7 +620,51 @@ export const getProductsBySkus = async (db: Db, skus: string[], currency: Curren
       ),
     );
 
-  return rows.map((row) => ({ ...row, price: Number(row.price) }));
+  return rows.map((row) => ({
+    ...row,
+    collection: toCollectionKey(row.category),
+    price: Number(row.price),
+  }));
+};
+
+export const listCollectionsWithCounts = async (db: Db) => {
+  const [collections, countRows] = await Promise.all([
+    db
+      .select({
+        id: productCollections.id,
+        key: productCollections.key,
+        label: productCollections.label,
+      })
+      .from(productCollections)
+      .orderBy(asc(productCollections.label)),
+    db
+      .select({
+        category: products.category,
+      })
+      .from(products)
+      .where(
+        and(
+          eq(products.isVariant, false),
+          eq(products.visibilityStatus, "publish"),
+          sql`${products.stockQty} > 0`,
+          sql`${products.category} IS NOT NULL`,
+        ),
+      ),
+  ]);
+
+  const counts = new Map<string, number>();
+  for (const row of countRows) {
+    const key = toCollectionKey(row.category);
+    if (!key) continue;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+
+  return collections.map((collection) => ({
+    id: collection.id,
+    key: collection.key,
+    label: collection.label,
+    productCount: counts.get(collection.key) ?? 0,
+  }));
 };
 
 export const getOrderById = async (db: Db, orderId: string) => {

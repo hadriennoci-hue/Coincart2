@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fetchProducts, fetchTopSellingProducts, type Currency } from "../lib/api";
+import { fetchCollections, fetchProducts, fetchTopSellingProducts, type Currency } from "../lib/api";
 import { FlipCard } from "../components/ui/FlipCard";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
 import { PredatorHero } from "../components/ui/PredatorHero";
@@ -23,7 +23,7 @@ const allTestimonials: Testimonial[] = [
     date: "Jul 12, 2025",
   },
   {
-    text: "Ordered again from this seller, everything is great! I had a custom request — getting a QWERTY laptop to a non-QWERTY country, and they found a way to do that, re-shipped it for me as fast as possible.",
+    text: "Ordered again from this seller, everything is great! I had a custom request - getting a QWERTY laptop to a non-QWERTY country, and they found a way to do that, re-shipped it for me as fast as possible.",
     name: "Anonymous",
     date: "Jul 12, 2025",
   },
@@ -36,7 +36,7 @@ const allTestimonials: Testimonial[] = [
   {
     text: "I had a great experience ordering a GPU from this seller. It was dispatched within 24h via express delivery, so it came to me very fast.",
     name: "cocoa21",
-    role: "Donor – Liberator",
+    role: "Donor - Liberator",
     date: "Jun 23, 2025",
   },
   {
@@ -51,15 +51,15 @@ export const runtime = "edge";
 
 const HOME_HERO_SKU = process.env.NEXT_PUBLIC_HERO_SKU || "LT-GRY-14-A14-US";
 
-const collectionMeta = [
-  { key: "cases",         label: "Cases",        emoji: "📦" },
-  { key: "desktops",      label: "Desktops",     emoji: "🖥️" },
-  { key: "displays",      label: "Displays",     emoji: "📺" },
-  { key: "input-devices", label: "Input Devices",emoji: "⌨️" },
-  { key: "laptops",       label: "Laptops",      emoji: "💻" },
-  { key: "lifestyle",     label: "Lifestyle",    emoji: "🌟" },
-  { key: "tablets",       label: "Tablets",      emoji: "📱" },
-];
+const COLLECTION_ICONS: Record<string, string> = {
+  cases: "\u{1F4E6}",
+  desktops: "\u{1F5A5}\u{FE0F}",
+  displays: "\u{1F4FA}",
+  "input-devices": "\u{2328}\u{FE0F}",
+  laptops: "\u{1F4BB}",
+  lifestyle: "\u{1F31F}",
+  tablets: "\u{1F4F1}",
+};
 
 export default async function Home({
   searchParams,
@@ -68,6 +68,7 @@ export default async function Home({
 }) {
   const { currency = "EUR" } = await searchParams;
   const items = await fetchProducts(currency, false);
+  const collections = await fetchCollections(currency);
   const topSellingFromSales = await fetchTopSellingProducts(currency, 4);
   const hero =
     items.find((item) => item.sku === HOME_HERO_SKU) ??
@@ -110,19 +111,6 @@ export default async function Home({
       : topSellingFromSales.length > 0
         ? topSellingFromSales
         : topSellingFallback;
-
-  const collectionsMap = new Map<string, number>();
-  for (const item of items) {
-    const key = (item.collection || "").trim();
-    if (!key) continue;
-    collectionsMap.set(key, (collectionsMap.get(key) || 0) + 1);
-  }
-  const collections = collectionMeta.map((entry) => ({
-    key: entry.key,
-    name: entry.label,
-    productCount: collectionsMap.get(entry.key) || 0,
-    emoji: entry.emoji,
-  }));
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://coincart-web.pages.dev";
   const homeJsonLd = {
     "@context": "https://schema.org",
@@ -200,14 +188,14 @@ export default async function Home({
       <div className="container" style={{ paddingTop: 24 }}>
         <section style={{ marginBottom: 40 }}>
           <div className="category-grid">
-            {collections.map(({ key, name, productCount, emoji }) => (
+            {collections.map(({ key, label, productCount }) => (
               <Link
                 key={key}
                 className="category-card"
                 href={`/search?currency=${currency}&collection=${encodeURIComponent(key)}`}
               >
-                <div className="category-icon">{emoji}</div>
-                <div className="category-label">{name}</div>
+                <div className="category-icon">{COLLECTION_ICONS[key] || "\u{1F4C1}"}</div>
+                <div className="category-label">{label}</div>
                 <div className="caption">{productCount} products</div>
               </Link>
             ))}
@@ -233,6 +221,7 @@ export default async function Home({
                 description={item.description}
                 sku={item.sku}
                 href={`/product/${item.slug}?currency=${currency}`}
+                collection={item.collection}
                 category={item.category}
                 brand={item.brand}
                 cpu={item.cpu}
@@ -266,6 +255,7 @@ export default async function Home({
                 promoPrice={item.promoPrice}
                 currency={item.currency}
                 stockQty={item.stockQty}
+                collection={item.collection}
                 category={item.category}
                 brand={item.brand}
                 cpu={item.cpu}
@@ -316,4 +306,3 @@ export default async function Home({
     </div>
   );
 }
-

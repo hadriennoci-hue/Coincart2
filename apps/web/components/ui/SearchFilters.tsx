@@ -13,7 +13,7 @@ interface SearchFiltersProps {
   ssd_size: string;
   max_resolution: string;
   q: string;
-  categories: [string, number][];
+  collections: [string, number][];
   keyboardLayouts: string[];
   usages: string[];
   screenSizes: string[];
@@ -31,7 +31,7 @@ export function SearchFilters({
   ssd_size,
   max_resolution,
   q,
-  categories,
+  collections,
   keyboardLayouts,
   usages,
   screenSizes,
@@ -59,15 +59,13 @@ export function SearchFilters({
         {hasActiveFilters && <span className="search-filter-dot" />}
       </button>
 
-      {/* Filter form — always visible on desktop, toggle on mobile */}
+      {/* Filter form â€” always visible on desktop, toggle on mobile */}
       <form
         method="get"
         action="/search"
         className={`search-filter-form${open ? " search-filter-form--open" : ""}`}
       >
         {q && <input type="hidden" name="q" value={q} />}
-        {collection && <input type="hidden" name="collection" value={collection} />}
-
         <div className="search-filter-header">
           <span style={{ fontWeight: 700, fontSize: "0.875rem", display: "flex", alignItems: "center", gap: 8 }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.5 }}>
@@ -82,15 +80,15 @@ export function SearchFilters({
             onClick={() => setOpen(false)}
             aria-label="Close filters"
           >
-            ✕
+            âœ•
           </button>
         </div>
 
         <label className="form-label" style={{ gap: 6 }}>
           Collection
-          <select className="select" name="category" defaultValue={category}>
+          <select className="select" name="collection" defaultValue={collection || category}>
             <option value="">All collections</option>
-            {categories.map(([name, count]) => (
+            {collections.map(([name, count]) => (
               <option key={name} value={name}>
                 {name} ({count})
               </option>

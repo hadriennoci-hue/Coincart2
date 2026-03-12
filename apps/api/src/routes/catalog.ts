@@ -1,6 +1,12 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { getProductBySlug, getProductsBySkus, listProductsWithFilters, listTopSellingProducts } from "@coincart/core";
+import {
+  getProductBySlug,
+  getProductsBySkus,
+  listCollectionsWithCounts,
+  listProductsWithFilters,
+  listTopSellingProducts,
+} from "@coincart/core";
 import type { AppContext } from "../types";
 
 const currencySchema = z.enum(["USD", "EUR"]);
@@ -24,6 +30,7 @@ catalogRoutes.get("/products", async (c) => {
     featuredOnly: featured,
     search: c.req.query("q")?.trim(),
     category: c.req.query("category")?.trim(),
+    collection: c.req.query("collection")?.trim(),
     keyboardLayout: c.req.query("keyboard_layout")?.trim(),
     usage: c.req.query("usage")?.trim(),
     screenSize: c.req.query("screen_size")?.trim(),
@@ -39,6 +46,11 @@ catalogRoutes.get("/products", async (c) => {
         ? sort
         : "default",
   });
+  return c.json({ items });
+});
+
+catalogRoutes.get("/collections", async (c) => {
+  const items = await listCollectionsWithCounts(c.var.db);
   return c.json({ items });
 });
 
