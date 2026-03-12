@@ -14,6 +14,7 @@ export type AppContext = {
       consumerKey?: string;
       consumerSecret?: string;
     };
+    btcpayWebhookSecret?: string;
     rawBody?: string;
   };
 };

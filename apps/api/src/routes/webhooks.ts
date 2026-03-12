@@ -7,6 +7,37 @@ export const webhookRoutes = new Hono<AppContext>();
 
 const ADMIN_ORDER_EMAIL = "coincartstore@proton.me";
 
+const toHex = (bytes: Uint8Array) =>
+  Array.from(bytes)
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+
+const extractSignature = (headerValue: string | undefined) => {
+  if (!headerValue) return null;
+  const match = headerValue.match(/(?:sha256=)?([a-fA-F0-9]{64})/);
+  return match ? match[1].toLowerCase() : null;
+};
+
+const constantTimeEquals = (left: string, right: string) => {
+  if (left.length !== right.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < left.length; i += 1) mismatch |= left.charCodeAt(i) ^ right.charCodeAt(i);
+  return mismatch === 0;
+};
+
+const computeHmacSha256Hex = async (secret: string, payload: string) => {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(payload));
+  return toHex(new Uint8Array(signature));
+};
+
 const sendOrderConfirmationEmails = async (
   resendApiKey: string,
   from: string,
@@ -81,8 +112,23 @@ const sendOrderConfirmationEmails = async (
 
 webhookRoutes.post("/btcpay", async (c) => {
   try {
-    const body = await c.req.json();
+    const rawBody = await c.req.text();
+    const body = JSON.parse(rawBody);
     const parsed = btcpayWebhookSchema.safeParse(body);
+    const webhookSecret = c.var.btcpayWebhookSecret;
+
+    if (webhookSecret) {
+      const providedSignature = extractSignature(
+        c.req.header("btcpay-sig") || c.req.header("x-btcpay-sig") || undefined,
+      );
+      if (!providedSignature) {
+        return c.json({ error: "Missing BTCPay signature" }, 401);
+      }
+      const expectedSignature = await computeHmacSha256Hex(webhookSecret, rawBody);
+      if (!constantTimeEquals(providedSignature, expectedSignature)) {
+        return c.json({ error: "Invalid BTCPay signature" }, 401);
+      }
+    }
 
     const deliveryId =
       c.req.header("btcpay-sig") ||

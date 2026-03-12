@@ -22,6 +22,7 @@ type CreateAppOptions = {
   btcpayHost?: string;
   btcpayStoreId?: string;
   btcpayApiKey?: string;
+  btcpayWebhookSecret?: string;
 };
 
 export const createApp = ({
@@ -35,6 +36,7 @@ export const createApp = ({
   btcpayHost,
   btcpayStoreId,
   btcpayApiKey,
+  btcpayWebhookSecret,
 }: CreateAppOptions) => {
   const db = createDb(databaseUrl);
   const hasRealBtcPayConfig = Boolean(btcpayHost && btcpayStoreId && btcpayApiKey);
@@ -74,6 +76,7 @@ export const createApp = ({
       consumerKey: wooConsumerKey,
       consumerSecret: wooConsumerSecret,
     });
+    c.set("btcpayWebhookSecret", btcpayWebhookSecret);
     await next();
   });
 
