@@ -75,6 +75,94 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://coincart-web.pages.dev";
   const productUrl = `${siteUrl}/product/${product.slug}?currency=${currency}`;
+  const collectionKey = (product.collection || product.category || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const attributeValueMap = new Map<string, string>();
+  if (product.brand) attributeValueMap.set("brand", product.brand);
+  if (product.cpu) attributeValueMap.set("cpu", product.cpu);
+  if (product.gpu) attributeValueMap.set("gpu", product.gpu);
+  if (product.ramMemory) attributeValueMap.set("ram", `${product.ramMemory} GB`);
+  if (product.storage) attributeValueMap.set("storage", product.storage);
+  if (product.ssdSize) attributeValueMap.set("ssd", `${product.ssdSize} GB`);
+  if (product.screenSize) attributeValueMap.set("screen_size", product.screenSize);
+  if (product.displayType) attributeValueMap.set("display_type", product.displayType);
+  if (product.resolution) attributeValueMap.set("resolution", product.resolution);
+  if (product.maxResolution) attributeValueMap.set("max_resolution", product.maxResolution);
+  if (product.refreshRate) attributeValueMap.set("refresh_rate", `${product.refreshRate} Hz`);
+  if (product.keyboardLayout) attributeValueMap.set("keyboard_layout", product.keyboardLayout);
+  if (product.usage) attributeValueMap.set("usage", product.usage);
+
+  const orderByCollection: Record<string, string[]> = {
+    laptops: [
+      "brand",
+      "cpu",
+      "gpu",
+      "ram",
+      "storage",
+      "ssd",
+      "screen_size",
+      "resolution",
+      "max_resolution",
+      "refresh_rate",
+      "keyboard_layout",
+      "usage",
+    ],
+    displays: [
+      "brand",
+      "screen_size",
+      "display_type",
+      "resolution",
+      "max_resolution",
+      "refresh_rate",
+      "usage",
+    ],
+  };
+  const labelByKey: Record<string, string> = {
+    brand: "Brand",
+    cpu: "CPU",
+    gpu: "GPU",
+    ram: "RAM",
+    storage: "Storage",
+    ssd: "SSD",
+    screen_size: "Screen Size",
+    display_type: "Display Type",
+    resolution: "Resolution",
+    max_resolution: "Max Resolution",
+    refresh_rate: "Refresh Rate",
+    keyboard_layout: "Keyboard Layout",
+    usage: "Usage",
+  };
+  const preferredOrder = orderByCollection[collectionKey] || Object.keys(labelByKey);
+  const specRows: Array<{ label: string; value: string }> = [];
+  const usedKeys = new Set<string>();
+  for (const key of preferredOrder) {
+    const value = attributeValueMap.get(key);
+    if (!value) continue;
+    specRows.push({ label: labelByKey[key] || key, value });
+    usedKeys.add(key);
+  }
+  for (const [key, value] of attributeValueMap.entries()) {
+    if (usedKeys.has(key)) continue;
+    specRows.push({ label: labelByKey[key] || key, value });
+  }
+
+  const extraRows: Array<{ label: string; value: string }> = [];
+  const derivedTags: string[] = [];
+  for (const attribute of product.extraAttributes || []) {
+    const name = attribute.name.trim();
+    const options = attribute.options.map((item) => item.trim()).filter(Boolean);
+    if (!name || options.length === 0) continue;
+    if (name.toLowerCase() === "tag" || name.toLowerCase() === "tags") {
+      derivedTags.push(...options);
+      continue;
+    }
+    extraRows.push({ label: name, value: options.join(", ") });
+  }
+  const tags = Array.from(new Set([...(product.tags || []), ...derivedTags]));
+  const allSpecRows = [...specRows, ...extraRows];
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -191,34 +279,15 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
         <h2 className="card-title" style={{ marginBottom: 20 }}>
           Product Specifications
         </h2>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-          }}
-        >
-          <tbody>
-            {[
-              { label: "CPU", value: product.cpu },
-              { label: "GPU", value: product.gpu },
-              { label: "Screen Size", value: product.screenSize },
-              { label: "Max Resolution", value: product.maxResolution },
-              {
-                label: "Refresh Rate",
-                value: product.refreshRate ? `${product.refreshRate}Hz` : null,
-              },
-              {
-                label: "RAM",
-                value: product.ramMemory ? `${product.ramMemory} GB` : null,
-              },
-              {
-                label: "SSD",
-                value: product.ssdSize ? `${product.ssdSize} GB` : null,
-              },
-              { label: "Keyboard Layout", value: product.keyboardLayout },
-            ]
-              .filter((row) => row.value)
-              .map((row, i, arr) => (
+        {allSpecRows.length > 0 ? (
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+            }}
+          >
+            <tbody>
+              {allSpecRows.map((row, i, arr) => (
                 <tr
                   key={row.label}
                   style={{
@@ -249,8 +318,27 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
                   </td>
                 </tr>
               ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        ) : (
+          <p className="small" style={{ color: "var(--muted)", margin: 0 }}>
+            No technical attributes available for this product.
+          </p>
+        )}
+        {tags.length > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <div className="small" style={{ color: "var(--muted)", marginBottom: 8 }}>
+              Tags
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {tags.map((tag) => (
+                <span key={tag} className="badge badge-gray">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

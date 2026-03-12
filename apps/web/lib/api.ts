@@ -54,6 +54,8 @@ export type Product = {
   ramMemory?: number | null;
   ssdSize?: number | null;
   storage?: string | null;
+  extraAttributes?: Array<{ name: string; options: string[] }>;
+  tags?: string[];
   featured: boolean;
   bestSeller?: boolean;
   stockQty: number;
@@ -198,6 +200,21 @@ const normalizeProduct = (raw: Partial<Product>): Product => ({
   ramMemory: toOptionalNumber(raw.ramMemory),
   ssdSize: toOptionalNumber(raw.ssdSize),
   storage: raw.storage ?? null,
+  extraAttributes: Array.isArray((raw as Product).extraAttributes)
+    ? ((raw as Product).extraAttributes as Array<{ name?: unknown; options?: unknown }>)
+        .map((entry) => ({
+          name: String(entry?.name ?? "").trim(),
+          options: Array.isArray(entry?.options)
+            ? (entry.options as unknown[])
+                .map((value) => String(value ?? "").trim())
+                .filter(Boolean)
+            : [],
+        }))
+        .filter((entry) => entry.name.length > 0 && entry.options.length > 0)
+    : [],
+  tags: Array.isArray((raw as Product).tags)
+    ? ((raw as Product).tags as string[]).map((tag) => String(tag).trim()).filter(Boolean)
+    : [],
   featured: Boolean(raw.featured),
   bestSeller: Boolean((raw as Product).bestSeller),
   stockQty: toNumber(raw.stockQty, 0),

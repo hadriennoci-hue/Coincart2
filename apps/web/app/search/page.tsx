@@ -68,8 +68,7 @@ export default async function SearchPage({
       key: entry.key,
       label: entry.label,
       count: collectionsMap.get(entry.key) || 0,
-    }))
-    .filter((entry) => entry.count > 0 || entry.key === collection);
+    }));
 
   const uniq = <T,>(vals: (T | null | undefined)[]): T[] =>
     [...new Set(vals.filter((v): v is T => v != null && String(v).trim() !== ""))];

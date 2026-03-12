@@ -338,6 +338,7 @@ export const listProducts = async (db: Db, currency: Currency, featuredOnly = fa
       name: products.name,
       description: products.description,
       imageUrl: products.imageUrl,
+      extraAttributes: products.extraAttributes,
       cpu: products.cpu,
       gpu: products.gpu,
       keyboardLayout: products.keyboardLayout,
