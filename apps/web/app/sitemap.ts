@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 import { fetchProducts } from "../lib/api";
 
+export const runtime = "edge";
+
 const staticRoutes = [
   "",
   "/faq",
