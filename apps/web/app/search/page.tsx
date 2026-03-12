@@ -47,7 +47,7 @@ export default async function SearchPage({
   const currency: Currency = "EUR";
 
   // Fetch all products (no category filter) to populate filter dropdowns
-  const allItems = await fetchProducts(currency, false, { q, collection });
+  const allItems = (await fetchProducts(currency, false, { q, collection })).filter((item) => item.stockQty > 0);
 
   const categoriesMap = new Map<string, number>();
   for (const item of allItems) {
@@ -66,7 +66,7 @@ export default async function SearchPage({
   const ssdOptions = uniq(allItems.map((i) => i.ssdSize)).sort((a, b) => a - b);
 
   // Fetch filtered results
-  const items = await fetchProducts(currency, false, {
+  const items = (await fetchProducts(currency, false, {
     q,
     category,
     collection,
@@ -77,7 +77,7 @@ export default async function SearchPage({
     ssd_size,
     max_resolution,
     sort,
-  });
+  })).filter((item) => item.stockQty > 0);
 
   return (
     <div
