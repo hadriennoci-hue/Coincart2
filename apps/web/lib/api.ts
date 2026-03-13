@@ -97,6 +97,11 @@ export type Order = {
   customerEmail: string;
   customerPhone?: string | null;
   currency: Currency;
+  subtotalAmount?: number;
+  shippingAmount?: number;
+  taxAmount?: number;
+  discountAmount?: number;
+  couponCode?: string | null;
   shippingMethod?: string | null;
   estimatedDeliveryDays?: number | null;
   shippingCost?: number;

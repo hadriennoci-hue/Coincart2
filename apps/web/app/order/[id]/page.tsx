@@ -29,10 +29,12 @@ export default async function OrderPage({
         ? "badge badge-error"
         : "badge badge-gray";
 
-  const subtotal = order.items.reduce(
+  const itemsSubtotal = order.items.reduce(
     (acc, item) => acc + item.unitPrice * item.quantity,
     0,
   );
+  const discountAmount = Math.max(0, order.discountAmount || 0);
+  const subtotal = Math.max(0, itemsSubtotal - discountAmount);
 
   return (
     <div
@@ -119,9 +121,27 @@ export default async function OrderPage({
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span className="small" style={{ color: "var(--muted)" }}>Subtotal</span>
             <span>
-              {fmtPrice(subtotal, order.currency)}
+              {fmtPrice(itemsSubtotal, order.currency)}
             </span>
           </div>
+          {order.couponCode ? (
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span className="small" style={{ color: "var(--muted)" }}>
+                Coupon ({order.couponCode})
+              </span>
+              <span style={{ color: "var(--accent)" }}>
+                -{fmtPrice(discountAmount, order.currency)}
+              </span>
+            </div>
+          ) : null}
+          {discountAmount > 0 ? (
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span className="small" style={{ color: "var(--muted)" }}>Subtotal after discount</span>
+              <span>
+                {fmtPrice(subtotal, order.currency)}
+              </span>
+            </div>
+          ) : null}
           {typeof order.shippingCost === "number" && (
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span className="small" style={{ color: "var(--muted)" }}>
@@ -183,16 +203,6 @@ export default async function OrderPage({
           ✓ Payment received — your order is being processed
         </div>
       ) : null}
-
-      {order.btcpayCheckoutUrl && !isPaid && (
-        <a
-          className="btn btn-primary btn-full btn-lg"
-          href={order.btcpayCheckoutUrl}
-          style={{ display: "block", textAlign: "center", marginBottom: 16 }}
-        >
-          Complete Payment on BTCPay
-        </a>
-      )}
 
       <Link className="btn btn-ghost btn-full" href="/">
         Back to Catalog

@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import { btcpayWebhookSchema } from "@coincart/types";
 import { applyBtcPayWebhook, getOrderById, getOrderByInvoiceId } from "@coincart/core";
+import { orderEvents } from "@coincart/db";
+import { and, eq } from "drizzle-orm";
 import type { AppContext } from "../types";
 
 export const webhookRoutes = new Hono<AppContext>();
@@ -38,6 +40,41 @@ const computeHmacSha256Hex = async (secret: string, payload: string) => {
   return toHex(new Uint8Array(signature));
 };
 
+const formatAddress = (parts: Array<string | null | undefined>) =>
+  parts
+    .map((part) => String(part || "").trim())
+    .filter(Boolean)
+    .join(", ");
+
+const sendResendEmail = async (input: {
+  resendApiKey: string;
+  from: string;
+  to: string | string[];
+  subject: string;
+  text: string;
+  html: string;
+}) => {
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${input.resendApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: input.from,
+      to: input.to,
+      subject: input.subject,
+      text: input.text,
+      html: input.html,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text().catch(() => "");
+    throw new Error(`Failed to send email (${response.status}) ${errorBody}`);
+  }
+};
+
 const sendOrderConfirmationEmails = async (
   resendApiKey: string,
   from: string,
@@ -51,23 +88,50 @@ const sendOrderConfirmationEmails = async (
     typeof order.shippingCost === "number"
       ? `Shipping${order.shippingMethod ? ` (${order.shippingMethod})` : ""}: ${order.shippingCost.toFixed(2)} ${order.currency}`
       : "Shipping: N/A";
+  const shippingAddress = formatAddress([
+    order.shippingName,
+    order.shippingAddress1,
+    order.shippingAddress2,
+    order.shippingCity,
+    order.shippingZip,
+    order.shippingCountry,
+  ]);
+  const billingAddress = formatAddress([
+    order.billingName,
+    order.billingAddress1,
+    order.billingAddress2,
+    order.billingCity,
+    order.billingZip,
+    order.billingCountry,
+  ]);
 
   const orderRef = order.orderNumber || order.id;
-  const subject = `Coincart order paid - ${orderRef}`;
-  const text = [
-    `Order ${orderRef} has been paid.`,
+  const customerSubject = `Coincart - Payment Received for Order ${orderRef}`;
+  const customerText = [
+    `Hello,`,
     "",
-    `Customer: ${order.customerEmail}`,
+    `We have just received payment for your order ${orderRef} and we are now preparing it.`,
+    `You will receive another email once shipment is done, with your tracking ID and tracking URL.`,
+    `Please note the transporter will also send shipping notifications to the phone number you provided.`,
+    "",
+    `Order details:`,
+    itemsText || "-",
+    "",
     `Currency: ${order.currency}`,
     `Subtotal: ${order.items.reduce((acc, item) => acc + item.lineTotal, 0).toFixed(2)} ${order.currency}`,
+    order.discountAmount > 0
+      ? `Discount${order.couponCode ? ` (${order.couponCode})` : ""}: -${order.discountAmount.toFixed(2)} ${order.currency}`
+      : "",
     shippingLine,
     `Total: ${order.totalAmount.toFixed(2)} ${order.currency}`,
     "",
-    "Items:",
-    itemsText || "-",
+    `Shipping address: ${shippingAddress || "N/A"}`,
+    `Billing address: ${billingAddress || "N/A"}`,
     "",
     `Invoice: ${order.btcpayInvoiceId || "N/A"}`,
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   const htmlItems = order.items
     .map(
@@ -76,39 +140,88 @@ const sendOrderConfirmationEmails = async (
     )
     .join("");
 
-  const html = `
-    <h2>Order Paid</h2>
-    <p><strong>Order ID:</strong> ${orderRef}</p>
-    <p><strong>Customer:</strong> ${order.customerEmail}</p>
-    <p><strong>Currency:</strong> ${order.currency}</p>
-    <p><strong>Total:</strong> ${order.totalAmount.toFixed(2)} ${order.currency}</p>
-    <p><strong>${shippingLine}</strong></p>
-    <p><strong>Items:</strong></p>
+  const customerHtml = `
+    <h2>Payment Received</h2>
+    <p>Hello,</p>
+    <p>We have just received payment for your order <strong>${orderRef}</strong> and we are now preparing it.</p>
+    <p>You will receive another email once shipment is done, with your tracking ID and tracking URL.</p>
+    <p>Please note the transporter will also send shipping notifications to the phone number you provided.</p>
+    <p><strong>Order details:</strong></p>
     <ul>${htmlItems || "<li>-</li>"}</ul>
+    <p><strong>Currency:</strong> ${order.currency}</p>
+    <p><strong>Subtotal:</strong> ${order.items.reduce((acc, item) => acc + item.lineTotal, 0).toFixed(2)} ${order.currency}</p>
+    ${order.discountAmount > 0 ? `<p><strong>Discount${order.couponCode ? ` (${order.couponCode})` : ""}:</strong> -${order.discountAmount.toFixed(2)} ${order.currency}</p>` : ""}
+    <p><strong>${shippingLine}</strong></p>
+    <p><strong>Total:</strong> ${order.totalAmount.toFixed(2)} ${order.currency}</p>
+    <p><strong>Shipping address:</strong> ${shippingAddress || "N/A"}</p>
+    <p><strong>Billing address:</strong> ${billingAddress || "N/A"}</p>
     <p><strong>Invoice:</strong> ${order.btcpayInvoiceId || "N/A"}</p>
   `;
 
-  const to = Array.from(new Set([order.customerEmail, ADMIN_ORDER_EMAIL]));
+  const managementSubject = `Coincart - Paid Order ${orderRef} (Ready to Ship)`;
+  const managementText = [
+    `Paid order received: ${orderRef}`,
+    "",
+    `Customer email: ${order.customerEmail}`,
+    `Customer phone: ${order.customerPhone || "N/A"}`,
+    `Company: ${order.companyName || "N/A"}`,
+    "",
+    `Shipping address: ${shippingAddress || "N/A"}`,
+    `Billing address: ${billingAddress || "N/A"}`,
+    `Order notes: ${order.shippingNotes || "N/A"}`,
+    "",
+    `Items:`,
+    itemsText || "-",
+    "",
+    `Currency: ${order.currency}`,
+    `Subtotal: ${order.items.reduce((acc, item) => acc + item.lineTotal, 0).toFixed(2)} ${order.currency}`,
+    order.discountAmount > 0
+      ? `Discount${order.couponCode ? ` (${order.couponCode})` : ""}: -${order.discountAmount.toFixed(2)} ${order.currency}`
+      : "",
+    shippingLine,
+    `Total: ${order.totalAmount.toFixed(2)} ${order.currency}`,
+    "",
+    `Invoice: ${order.btcpayInvoiceId || "N/A"}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${resendApiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to,
-      subject,
-      text,
-      html,
-    }),
+  const managementHtml = `
+    <h2>Paid Order Ready to Ship</h2>
+    <p><strong>Order ID:</strong> ${orderRef}</p>
+    <p><strong>Customer email:</strong> ${order.customerEmail}</p>
+    <p><strong>Customer phone:</strong> ${order.customerPhone || "N/A"}</p>
+    <p><strong>Company:</strong> ${order.companyName || "N/A"}</p>
+    <p><strong>Shipping address:</strong> ${shippingAddress || "N/A"}</p>
+    <p><strong>Billing address:</strong> ${billingAddress || "N/A"}</p>
+    <p><strong>Order notes:</strong> ${order.shippingNotes || "N/A"}</p>
+    <p><strong>Items:</strong></p>
+    <ul>${htmlItems || "<li>-</li>"}</ul>
+    <p><strong>Currency:</strong> ${order.currency}</p>
+    <p><strong>Subtotal:</strong> ${order.items.reduce((acc, item) => acc + item.lineTotal, 0).toFixed(2)} ${order.currency}</p>
+    ${order.discountAmount > 0 ? `<p><strong>Discount${order.couponCode ? ` (${order.couponCode})` : ""}:</strong> -${order.discountAmount.toFixed(2)} ${order.currency}</p>` : ""}
+    <p><strong>${shippingLine}</strong></p>
+    <p><strong>Total:</strong> ${order.totalAmount.toFixed(2)} ${order.currency}</p>
+    <p><strong>Invoice:</strong> ${order.btcpayInvoiceId || "N/A"}</p>
+  `;
+
+  await sendResendEmail({
+    resendApiKey,
+    from,
+    to: order.customerEmail,
+    subject: customerSubject,
+    text: customerText,
+    html: customerHtml,
   });
 
-  if (!response.ok) {
-    const errorBody = await response.text().catch(() => "");
-    throw new Error(`Failed to send order confirmation email (${response.status}) ${errorBody}`);
-  }
+  await sendResendEmail({
+    resendApiKey,
+    from,
+    to: ADMIN_ORDER_EMAIL,
+    subject: managementSubject,
+    text: managementText,
+    html: managementHtml,
+  });
 };
 
 webhookRoutes.post("/btcpay", async (c) => {
@@ -161,14 +274,34 @@ webhookRoutes.post("/btcpay", async (c) => {
       raw: parsed.success ? parsed.data.raw : body,
     });
 
-    if (result.orderUpdated) {
+    const normalizedEvent = event.toLowerCase();
+    const isSuccessfulPaymentEvent =
+      normalizedEvent.includes("confirmed") ||
+      normalizedEvent.includes("paid") ||
+      normalizedEvent.includes("settled") ||
+      normalizedEvent.includes("completed");
+
+    if (isSuccessfulPaymentEvent) {
       const { resendApiKey, contactFromEmail } = c.var.contact;
-      if (resendApiKey) {
-        const order =
-          (result.orderId ? await getOrderById(c.var.db, result.orderId) : null) ||
-          (await getOrderByInvoiceId(c.var.db, invoiceId));
-        if (order) {
+      const order =
+        (result.orderId ? await getOrderById(c.var.db, result.orderId) : null) ||
+        (await getOrderByInvoiceId(c.var.db, invoiceId));
+
+      if (resendApiKey && order) {
+        const alreadySent = await c.var.db
+          .select({ id: orderEvents.id })
+          .from(orderEvents)
+          .where(and(eq(orderEvents.orderId, order.id), eq(orderEvents.type, "email.order_confirmation_sent")))
+          .limit(1);
+
+        if (alreadySent.length === 0) {
           await sendOrderConfirmationEmails(resendApiKey, contactFromEmail, order);
+          await c.var.db.insert(orderEvents).values({
+            orderId: order.id,
+            type: "email.order_confirmation_sent",
+            message: "Order confirmation emails sent",
+            payload: { invoiceId, event },
+          });
         }
       }
     }
