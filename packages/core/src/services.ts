@@ -82,10 +82,10 @@ const shippingFeeForCurrency = (currency: Currency) =>
   currency === "EUR" ? SHIPPING_FEE_EUR : Number((SHIPPING_FEE_EUR * EUR_TO_USD).toFixed(2));
 
 const buildBtcPayItemDescription = (
-  lines: Array<{ name: string; sku: string; quantity: number }>,
+  lines: Array<{ name: string; quantity: number }>,
 ) => {
   const raw = lines
-    .map((line) => `${line.name} (SKU ${line.sku}) x${line.quantity}`)
+    .map((line) => `${line.name} x${line.quantity}`)
     .join("; ");
   // Keep metadata compact and safe for gateway limits.
   return raw.length > 600 ? `${raw.slice(0, 597)}...` : raw;
@@ -325,14 +325,11 @@ export const createCheckoutSession = async (
     metadata: {
       orderId: order.id,
       itemDesc: buildBtcPayItemDescription(
-        pricedLines.map((line) => ({ name: line.name, sku: line.sku, quantity: line.quantity })),
+        pricedLines.map((line) => ({ name: line.name, quantity: line.quantity })),
       ),
       cart: pricedLines.map((line) => ({
-        sku: line.sku,
-        name: line.name,
+        title: line.name,
         quantity: line.quantity,
-        unitPrice: Number(line.unitPrice.toFixed(2)),
-        lineTotal: Number(line.lineTotal.toFixed(2)),
       })),
       ...(normalizedCoupon ? { couponCode: normalizedCoupon, couponDiscount } : {}),
     },
