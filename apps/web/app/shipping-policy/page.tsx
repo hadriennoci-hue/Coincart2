@@ -52,9 +52,6 @@ export default function ShippingPolicyPage() {
                 >
                   DHL Standard
                 </div>
-                <div className="small" style={{ color: "var(--muted)", marginTop: 4 }}>
-                  The Supplier processes orders via DHL, and so does Coincart.
-                </div>
               </div>
             </div>
 
@@ -83,10 +80,6 @@ export default function ShippingPolicyPage() {
                 >
                   5 Business Days
                 </div>
-                <div className="small" style={{ color: "var(--muted)", marginTop: 4 }}>
-                  Estimated after order processing. Delivery times may vary by
-                  destination (e.g. 2–4 days in France depending on location).
-                </div>
               </div>
             </div>
 
@@ -114,11 +107,6 @@ export default function ShippingPolicyPage() {
                   }}
                 >
                   &euro;10 Flat Rate
-                </div>
-                <div className="small" style={{ color: "var(--muted)", marginTop: 4 }}>
-                  Fixed 10 EUR per order across eligible EU destinations. If
-                  checkout currency is USD, the shipping fee is converted at
-                  checkout using Coincart conversion settings.
                 </div>
               </div>
             </div>

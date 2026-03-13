@@ -119,12 +119,7 @@ export default function FaqPage() {
             textAlign: "center",
           }}
         >
-          <h3 style={{ marginBottom: 8 }}>Still have questions?</h3>
-          <p className="small" style={{ marginBottom: 20, color: "var(--muted)" }}>
-            Our support team is available Monday–Friday, 9:00–18:00 CET and
-            responds within 24 hours.
-          </p>
-          <InteractiveHoverButton text="Contact Support" variant="blue" href="/contact-us" />
+          <h3 style={{ marginBottom: 8 }}>Still have questions?</h3>`r`n          <InteractiveHoverButton text="Contact Support" variant="blue" href="/contact-us" />
         </div>
       </div>
     </div>
