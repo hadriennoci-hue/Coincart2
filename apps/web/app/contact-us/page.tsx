@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { sendContactMessage } from "../../lib/api";
@@ -86,53 +86,6 @@ export default function ContactUsPage() {
         >
           {/* Left: Info Cards */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div className="surface">
-              <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>✉️</span>
-                <div>
-                  <div
-                    style={{
-                      fontWeight: 700,
-                      color: "var(--text)",
-                      marginBottom: 4,
-                    }}
-                  >
-                    Email
-                  </div>
-                  <a
-                    href="mailto:coincart@coincart.store"
-                    style={{
-                      color: "var(--primary)",
-                      textDecoration: "none",
-                      fontSize: "0.875rem",
-                    }}
-                  >
-                    coincart@coincart.store
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <div className="surface">
-              <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>🕐</span>
-                <div>
-                  <div
-                    style={{
-                      fontWeight: 700,
-                      color: "var(--text)",
-                      marginBottom: 4,
-                    }}
-                  >
-                    Support Hours
-                  </div>
-                  <div className="small" style={{ color: "var(--muted)" }}>
-                    Mon–Fri 9:00–18:00 CET
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <div
               style={{
                 background: "var(--primary)",
@@ -146,7 +99,7 @@ export default function ContactUsPage() {
                   marginBottom: 10,
                 }}
               >
-                ⚡
+                âš¡
               </div>
               <div
                 style={{
@@ -291,3 +244,4 @@ export default function ContactUsPage() {
     </div>
   );
 }
+

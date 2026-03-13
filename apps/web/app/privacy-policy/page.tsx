@@ -354,34 +354,6 @@ export default function PrivacyPolicyPage() {
             </p>
           </div>
 
-          {/* CTA Card */}
-          <div
-            style={{
-              background: "var(--primary)",
-              borderRadius: 16,
-              padding: "28px 24px",
-              textAlign: "center",
-            }}
-          >
-            <h3 style={{ color: "#fff", marginBottom: 8 }}>
-              Questions about your data?
-            </h3>
-            <p
-              style={{
-                color: "rgba(255,255,255,0.8)",
-                marginBottom: 0,
-                fontSize: "0.875rem",
-              }}
-            >
-              Contact:{" "}
-              <a
-                href="mailto:coincart@coincart.store"
-                style={{ color: "#fff", fontWeight: 600 }}
-              >
-                coincart@coincart.store
-              </a>
-            </p>
-          </div>
         </div>
       </div>
     </div>
