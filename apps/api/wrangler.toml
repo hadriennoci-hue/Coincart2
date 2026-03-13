@@ -4,7 +4,7 @@ compatibility_date = "2026-03-09"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-CORS_ORIGIN = "https://coincart-web.pages.dev"
+CORS_ORIGIN = "https://coincart.store,https://www.coincart.store,https://coincart-web.pages.dev"
 CONTACT_TO_EMAIL = "coincartstore@proton.me"
 CONTACT_FROM_EMAIL = "Coincart <coincart@coincart.store>"
 ORDER_REDIRECT_BASE_URL = "https://coincart.store/order"

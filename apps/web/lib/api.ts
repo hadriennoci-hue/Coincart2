@@ -8,10 +8,14 @@ import {
 } from "./dummyCatalog";
 import { collectionMeta, type CollectionKey } from "./collections";
 
+const defaultApiBase =
+  process.env.NODE_ENV === "production"
+    ? "https://coincart-api.hadrien-noci.workers.dev"
+    : "http://localhost:4000";
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   process.env.API_BASE_URL ||
-  "http://localhost:4000";
+  defaultApiBase;
 const forceDummyCatalog =
   process.env.NEXT_PUBLIC_USE_DUMMY_CATALOG === "true" ||
   process.env.COINCART_USE_DUMMY_CATALOG === "true";
