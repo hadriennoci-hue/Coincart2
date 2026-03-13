@@ -72,7 +72,7 @@ export default async function OrderPage({
           {isPaid ? "Order Confirmed" : isPending ? "Awaiting Payment" : "Order " + order.status}
         </h1>
         <div className="caption" style={{ marginBottom: 12 }}>
-          Order ID: {order.id}
+          Order ID: {order.orderNumber || order.id}
         </div>
         <span className={statusBadgeClass}>
           {order.status.replace("_", " ").toUpperCase()}

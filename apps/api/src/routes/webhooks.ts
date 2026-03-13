@@ -52,9 +52,10 @@ const sendOrderConfirmationEmails = async (
       ? `Shipping${order.shippingMethod ? ` (${order.shippingMethod})` : ""}: ${order.shippingCost.toFixed(2)} ${order.currency}`
       : "Shipping: N/A";
 
-  const subject = `Coincart order paid - ${order.id}`;
+  const orderRef = order.orderNumber || order.id;
+  const subject = `Coincart order paid - ${orderRef}`;
   const text = [
-    `Order ${order.id} has been paid.`,
+    `Order ${orderRef} has been paid.`,
     "",
     `Customer: ${order.customerEmail}`,
     `Currency: ${order.currency}`,
@@ -77,7 +78,7 @@ const sendOrderConfirmationEmails = async (
 
   const html = `
     <h2>Order Paid</h2>
-    <p><strong>Order ID:</strong> ${order.id}</p>
+    <p><strong>Order ID:</strong> ${orderRef}</p>
     <p><strong>Customer:</strong> ${order.customerEmail}</p>
     <p><strong>Currency:</strong> ${order.currency}</p>
     <p><strong>Total:</strong> ${order.totalAmount.toFixed(2)} ${order.currency}</p>

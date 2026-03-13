@@ -71,6 +71,7 @@ export type Product = {
 
 export type Order = {
   id: string;
+  orderNumber?: string | null;
   customerEmail: string;
   customerPhone?: string | null;
   currency: Currency;

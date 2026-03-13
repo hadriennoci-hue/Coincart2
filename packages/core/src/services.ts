@@ -81,8 +81,6 @@ const COUPON_DISCOUNT_RATE = 0.1;
 const shippingFeeForCurrency = (currency: Currency) =>
   currency === "EUR" ? SHIPPING_FEE_EUR : Number((SHIPPING_FEE_EUR * EUR_TO_USD).toFixed(2));
 
-const generateOrderNumber = () => `CC-${Date.now().toString(36).toUpperCase()}`;
-
 const buildBtcPayItemDescription = (
   lines: Array<{ name: string; sku: string; quantity: number }>,
 ) => {
@@ -272,7 +270,6 @@ export const createCheckoutSession = async (
   const [order] = await db
     .insert(orders)
     .values({
-      orderNumber: generateOrderNumber(),
       orderStatus: "pending_payment",
       paymentStatus: "pending",
       fulfillmentStatus: "unfulfilled",
@@ -368,7 +365,7 @@ export const createCheckoutSession = async (
     orderId: order.id,
     type: "payment.invoice_created",
     message: "BTCPay invoice created",
-    payload: { invoiceId: invoice.invoiceId, checkoutUrl: invoice.checkoutUrl },
+    payload: { orderNumber: order.orderNumber, invoiceId: invoice.invoiceId, checkoutUrl: invoice.checkoutUrl },
   });
 
   return {
@@ -788,6 +785,7 @@ export const getOrderById = async (db: Db, orderId: string) => {
   const orderRows = await db
     .select({
       id: orders.id,
+      orderNumber: orders.orderNumber,
       customerEmail: orders.customerEmail,
       customerPhone: orders.customerPhone,
       currency: orders.currency,

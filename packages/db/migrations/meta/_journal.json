@@ -99,6 +99,13 @@
       "when": 1773472500000,
       "tag": "0013_checkout_company_and_terms",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1773475200000,
+      "tag": "0014_order_number_sequence",
+      "breakpoints": true
     }
   ]
 }

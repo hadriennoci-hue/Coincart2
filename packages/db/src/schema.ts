@@ -86,7 +86,9 @@ export const syncJobs = pgTable("sync_jobs", {
 
 export const orders = pgTable("orders", {
   id: uuid("id").defaultRandom().primaryKey(),
-  orderNumber: varchar("order_number", { length: 40 }).unique(),
+  orderNumber: varchar("order_number", { length: 40 })
+    .default(sql`nextval('orders_order_number_seq')::text`)
+    .unique(),
   orderStatus: varchar("order_status", { length: 30 }).notNull().default("pending_payment"),
   paymentStatus: varchar("payment_status", { length: 30 }).notNull().default("pending"),
   fulfillmentStatus: varchar("fulfillment_status", { length: 30 }).notNull().default("unfulfilled"),
