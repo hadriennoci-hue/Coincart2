@@ -249,7 +249,7 @@ export default function CheckoutPage() {
                 }}
               >
                 <label className="form-label">
-                  City
+                  City *
                   {showMissing("city")}
                   <input
                     className="input"
@@ -259,7 +259,7 @@ export default function CheckoutPage() {
                   />
                 </label>
                 <label className="form-label">
-                  Postcode
+                  Postcode *
                   {showMissing("postcode")}
                   <input
                     className="input"
