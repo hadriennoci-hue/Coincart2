@@ -211,6 +211,9 @@ export const createCheckoutSession = async (
     orderRedirectBaseUrl?: string;
   },
 ) => {
+  if (input.agreeTermsAccepted === false) {
+    throw new Error("Terms must be accepted before checkout.");
+  }
   const shippingCountryCode = normalizeCountryToCode(input.shippingCountry);
   if (!EU_COUNTRY_CODES.has(shippingCountryCode)) {
     throw new Error("Shipping is currently available only in EU countries.");
@@ -265,6 +268,7 @@ export const createCheckoutSession = async (
       fulfillmentStatus: "unfulfilled",
       customerEmail: input.email,
       customerPhone: input.phone,
+      companyName: input.companyName,
       shippingName: input.shippingName,
       shippingAddress1: input.streetAddress,
       shippingAddress2: input.secondaryAddress,
@@ -284,6 +288,7 @@ export const createCheckoutSession = async (
       totalAmount: totalAmount.toFixed(2),
       paymentMethod: "btcpay",
       status: "pending_payment",
+      termsAcceptedAt: input.agreeTermsAccepted === false ? null : sql`now()`,
     })
     .returning();
 

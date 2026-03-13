@@ -488,17 +488,20 @@ export const createCheckoutSession = async (payload: {
   email: string;
   phone: string;
   shippingName: string;
+  companyName?: string;
   streetAddress: string;
   secondaryAddress?: string;
   city: string;
   postcode: string;
   shippingCountry: string;
   shippingNotes?: string;
+  agreeTermsAccepted?: boolean;
   currency: Currency;
   couponCode?: string;
   lines: Array<{ sku: string; quantity: number }>;
 }) => {
-  if (forceDummyCatalog) {
+  const allowDummyCheckout = forceDummyCatalog && process.env.NODE_ENV !== "production";
+  if (allowDummyCheckout) {
     return {
       orderId: `demo-${Date.now().toString(36)}-paid`,
       shippingMethod: "DHL Standard",
