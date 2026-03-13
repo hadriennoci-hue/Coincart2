@@ -35,6 +35,28 @@ const fetchWithTimeout = async (input: string, init: RequestInit = {}, timeoutMs
   }
 };
 
+const toErrorMessage = (value: unknown, fallback: string) => {
+  if (!value) return fallback;
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) {
+    const messages = value
+      .map((entry) => {
+        if (typeof entry === "string") return entry;
+        if (entry && typeof entry === "object" && "message" in entry) {
+          return String((entry as { message?: unknown }).message || "").trim();
+        }
+        return "";
+      })
+      .filter(Boolean);
+    return messages.length > 0 ? messages.join("; ") : fallback;
+  }
+  if (value && typeof value === "object" && "message" in value) {
+    const msg = String((value as { message?: unknown }).message || "").trim();
+    return msg || fallback;
+  }
+  return fallback;
+};
+
 export type Product = {
   id: string;
   sku: string;
@@ -523,8 +545,8 @@ export const createCheckoutSession = async (payload: {
       body: JSON.stringify(payload),
     });
     if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error || "Checkout failed");
+      const data = await res.json().catch(() => null);
+      throw new Error(toErrorMessage(data && (data as { error?: unknown }).error, "Checkout failed"));
     }
     return res.json() as Promise<{
       orderId: string;
