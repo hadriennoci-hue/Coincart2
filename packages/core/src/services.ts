@@ -83,6 +83,16 @@ const shippingFeeForCurrency = (currency: Currency) =>
 
 const generateOrderNumber = () => `CC-${Date.now().toString(36).toUpperCase()}`;
 
+const buildBtcPayItemDescription = (
+  lines: Array<{ name: string; sku: string; quantity: number }>,
+) => {
+  const raw = lines
+    .map((line) => `${line.name} (SKU ${line.sku}) x${line.quantity}`)
+    .join("; ");
+  // Keep metadata compact and safe for gateway limits.
+  return raw.length > 600 ? `${raw.slice(0, 597)}...` : raw;
+};
+
 export const startSyncJob = async (db: Db, source: string) => {
   const [job] = await db.insert(syncJobs).values({ source, status: "running" }).returning();
   return job;
@@ -315,7 +325,20 @@ export const createCheckoutSession = async (
     amount: totalAmount,
     currency: input.currency,
     orderId: order.id,
-    metadata: normalizedCoupon ? { couponCode: normalizedCoupon, couponDiscount } : undefined,
+    metadata: {
+      orderId: order.id,
+      itemDesc: buildBtcPayItemDescription(
+        pricedLines.map((line) => ({ name: line.name, sku: line.sku, quantity: line.quantity })),
+      ),
+      cart: pricedLines.map((line) => ({
+        sku: line.sku,
+        name: line.name,
+        quantity: line.quantity,
+        unitPrice: Number(line.unitPrice.toFixed(2)),
+        lineTotal: Number(line.lineTotal.toFixed(2)),
+      })),
+      ...(normalizedCoupon ? { couponCode: normalizedCoupon, couponDiscount } : {}),
+    },
     redirectUrl: options?.orderRedirectBaseUrl
       ? `${options.orderRedirectBaseUrl.replace(/\/+$/, "")}/${order.id}`
       : undefined,
