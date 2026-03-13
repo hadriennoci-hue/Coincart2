@@ -40,6 +40,8 @@ const computeHmacSha256Hex = async (secret: string, payload: string) => {
   return toHex(new Uint8Array(signature));
 };
 
+const BRAND_LOGO_URL = "https://coincart.store/Coincart-color-fond-clair-logo-seul-2048x1764.png";
+
 const formatAddress = (parts: Array<string | null | undefined>) =>
   parts
     .map((part) => String(part || "").trim())
@@ -129,6 +131,9 @@ const sendOrderConfirmationEmails = async (
     `Billing address: ${billingAddress || "N/A"}`,
     "",
     `Invoice: ${order.btcpayInvoiceId || "N/A"}`,
+    "",
+    "--",
+    "Coincart Store",
   ]
     .filter(Boolean)
     .join("\n");
@@ -156,6 +161,10 @@ const sendOrderConfirmationEmails = async (
     <p><strong>Shipping address:</strong> ${shippingAddress || "N/A"}</p>
     <p><strong>Billing address:</strong> ${billingAddress || "N/A"}</p>
     <p><strong>Invoice:</strong> ${order.btcpayInvoiceId || "N/A"}</p>
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e7eb;display:flex;align-items:center;gap:10px;">
+      <img src="${BRAND_LOGO_URL}" alt="Coincart logo" style="width:28px;height:28px;object-fit:contain;border-radius:4px;" />
+      <span style="font-size:14px;font-weight:600;color:#111827;">Coincart Store</span>
+    </div>
   `;
 
   const managementSubject = `Coincart - Paid Order ${orderRef} (Ready to Ship)`;
