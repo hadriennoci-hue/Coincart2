@@ -10,11 +10,24 @@ const subjectOptions = [
   "Other",
 ] as const;
 
+const normalizeSubject = (raw: string): (typeof subjectOptions)[number] => {
+  const value = raw.trim();
+  const direct = subjectOptions.find((option) => option === value);
+  if (direct) return direct;
+
+  const lower = value.toLowerCase();
+  if (lower.includes("product") || lower.includes("brand")) return subjectOptions[0];
+  if (lower.includes("order") || lower.includes("payment") || lower.includes("delivery")) return subjectOptions[1];
+  if (lower.includes("suggestion")) return subjectOptions[2];
+  if (lower.includes("business") || lower.includes("proposal")) return subjectOptions[3];
+  return subjectOptions[4];
+};
+
 const contactSchema = z.object({
   firstName: z.string().trim().min(1).max(100),
   lastName: z.string().trim().min(1).max(100),
   email: z.string().trim().email().max(320),
-  subject: z.enum(subjectOptions),
+  subject: z.string().trim().min(1).max(200).transform(normalizeSubject),
   message: z.string().trim().min(10).max(4000),
   company: z.string().optional(),
 });
@@ -85,4 +98,3 @@ contactRoutes.post("/", async (c) => {
 
   return c.json({ ok: true });
 });
-

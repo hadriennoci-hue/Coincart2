@@ -76,48 +76,7 @@ export default function ContactUsPage() {
       </div>
 
       <div className="container" style={{ paddingTop: 48, paddingBottom: 64 }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "35% 65%",
-            gap: 32,
-            alignItems: "start",
-          }}
-        >
-          {/* Left: Info Cards */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div
-              style={{
-                background: "var(--primary)",
-                borderRadius: 12,
-                padding: 20,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "1.5rem",
-                  marginBottom: 10,
-                }}
-              >
-                âš¡
-              </div>
-              <div
-                style={{
-                  fontWeight: 700,
-                  color: "#fff",
-                  marginBottom: 6,
-                }}
-              >
-                Fast Response
-              </div>
-              <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "0.875rem" }}>
-                We respond to all inquiries within 24 hours.
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Form */}
-          <div className="surface">
+        <div className="surface">
             <h2 className="card-title" style={{ marginBottom: 24 }}>
               Send a Message
             </h2>
@@ -238,7 +197,6 @@ export default function ContactUsPage() {
                 </div>
               ) : null}
             </form>
-          </div>
         </div>
       </div>
     </div>
