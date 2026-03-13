@@ -384,18 +384,24 @@ export const applyBtcPayWebhook = async (db: Db, input: { deliveryId: string; ev
     .from(webhookEvents)
     .where(eq(webhookEvents.deliveryId, input.deliveryId));
 
-  if (existing.length > 0) {
-    return { duplicate: true };
+  const isDuplicateDelivery = existing.length > 0;
+  if (!isDuplicateDelivery) {
+    await db.insert(webhookEvents).values({
+      provider: "btcpay",
+      deliveryId: input.deliveryId,
+      eventType: input.event,
+      payload: JSON.stringify(input.raw),
+    });
   }
 
-  await db.insert(webhookEvents).values({
-    provider: "btcpay",
-    deliveryId: input.deliveryId,
-    eventType: input.event,
-    payload: JSON.stringify(input.raw),
-  });
+  const normalizedEvent = input.event.toLowerCase();
+  const isSuccessfulPaymentEvent =
+    normalizedEvent.includes("confirmed") ||
+    normalizedEvent.includes("paid") ||
+    normalizedEvent.includes("settled") ||
+    normalizedEvent.includes("completed");
 
-  if (input.event.toLowerCase().includes("confirmed") || input.event.toLowerCase().includes("paid")) {
+  if (isSuccessfulPaymentEvent) {
     const [updated] = await db
       .update(orders)
       .set({
@@ -433,10 +439,10 @@ export const applyBtcPayWebhook = async (db: Db, input: { deliveryId: string; ev
       });
     }
 
-    return { duplicate: false, orderUpdated: Boolean(updated), orderId: updated?.id ?? null };
+    return { duplicate: isDuplicateDelivery, orderUpdated: Boolean(updated), orderId: updated?.id ?? null };
   }
 
-  return { duplicate: false, orderUpdated: false, orderId: null };
+  return { duplicate: isDuplicateDelivery, orderUpdated: false, orderId: null };
 };
 
 export const listProducts = async (db: Db, currency: Currency, featuredOnly = false) => {
