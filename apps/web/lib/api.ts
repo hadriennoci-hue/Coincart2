@@ -526,15 +526,7 @@ export const createCheckoutSession = async (payload: {
       checkoutUrl: string;
     }>;
   } catch (error) {
-    if (allowDummyFallback) {
-      return {
-        orderId: `demo-${Date.now().toString(36)}-paid`,
-        shippingMethod: "DHL Standard",
-        estimatedDeliveryDays: 5,
-        shippingCost: payload.currency === "EUR" ? 10 : 11,
-        checkoutUrl: "https://btcpay.example.test/invoice/demo",
-      };
-    }
+    // Never silently downgrade checkout in live mode.
     throw error;
   }
 };
