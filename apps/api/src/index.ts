@@ -16,6 +16,7 @@ const btcpayHost = process.env.BTCPAY_HOST;
 const btcpayStoreId = process.env.BTCPAY_STORE_ID;
 const btcpayApiKey = process.env.BTCPAY_API_KEY;
 const btcpayWebhookSecret = process.env.BTCPAY_WEBHOOK_SECRET;
+const orderRedirectBaseUrl = process.env.ORDER_REDIRECT_BASE_URL || "https://coincart.store/order";
 const port = Number(process.env.PORT || 4000);
 const app = createApp({
   databaseUrl,
@@ -29,6 +30,7 @@ const app = createApp({
   btcpayStoreId,
   btcpayApiKey,
   btcpayWebhookSecret,
+  orderRedirectBaseUrl,
 });
 
 serve({ fetch: app.fetch, port, hostname: "0.0.0.0" });

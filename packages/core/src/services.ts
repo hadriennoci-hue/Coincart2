@@ -207,6 +207,9 @@ export const createCheckoutSession = async (
   db: Db,
   btcpay: BtcPayClient,
   input: CheckoutSessionCreate,
+  options?: {
+    orderRedirectBaseUrl?: string;
+  },
 ) => {
   const shippingCountryCode = normalizeCountryToCode(input.shippingCountry);
   if (!EU_COUNTRY_CODES.has(shippingCountryCode)) {
@@ -307,8 +310,10 @@ export const createCheckoutSession = async (
     amount: totalAmount,
     currency: input.currency,
     orderId: order.id,
-    buyerEmail: input.email,
     metadata: normalizedCoupon ? { couponCode: normalizedCoupon, couponDiscount } : undefined,
+    redirectUrl: options?.orderRedirectBaseUrl
+      ? `${options.orderRedirectBaseUrl.replace(/\/+$/, "")}/${order.id}`
+      : undefined,
   });
 
   const [updated] = await db

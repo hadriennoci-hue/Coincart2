@@ -23,6 +23,7 @@ type CreateAppOptions = {
   btcpayStoreId?: string;
   btcpayApiKey?: string;
   btcpayWebhookSecret?: string;
+  orderRedirectBaseUrl?: string;
 };
 
 export const createApp = ({
@@ -37,6 +38,7 @@ export const createApp = ({
   btcpayStoreId,
   btcpayApiKey,
   btcpayWebhookSecret,
+  orderRedirectBaseUrl = "https://coincart.store/order",
 }: CreateAppOptions) => {
   const db = createDb(databaseUrl);
   const hasRealBtcPayConfig = Boolean(btcpayHost && btcpayStoreId && btcpayApiKey);
@@ -76,6 +78,7 @@ export const createApp = ({
       consumerKey: wooConsumerKey,
       consumerSecret: wooConsumerSecret,
     });
+    c.set("orderRedirectBaseUrl", orderRedirectBaseUrl);
     c.set("btcpayWebhookSecret", btcpayWebhookSecret);
     await next();
   });

@@ -2,8 +2,8 @@ export type BtcPayInvoiceRequest = {
   amount: number;
   currency: "USD" | "EUR";
   orderId: string;
-  buyerEmail: string;
   metadata?: Record<string, unknown>;
+  redirectUrl?: string;
 };
 
 export type BtcPayInvoiceResponse = {
@@ -69,9 +69,15 @@ export class GreenfieldBtcPayClient implements BtcPayClient {
             currency: input.currency,
             metadata: {
               orderId: input.orderId,
-              buyerEmail: input.buyerEmail,
               ...(input.metadata ?? {}),
             },
+            ...(input.redirectUrl
+              ? {
+                  checkout: {
+                    redirectURL: input.redirectUrl,
+                  },
+                }
+              : {}),
           }),
           signal: abort.signal,
         },
