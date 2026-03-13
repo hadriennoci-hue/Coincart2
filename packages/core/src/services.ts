@@ -395,20 +395,21 @@ export const applyBtcPayWebhook = async (db: Db, input: { deliveryId: string; ev
   }
 
   const normalizedEvent = input.event.toLowerCase();
+  const isExpiredEvent = normalizedEvent.includes("expired");
   const isSuccessfulPaymentEvent =
     normalizedEvent.includes("confirmed") ||
     normalizedEvent.includes("paid") ||
     normalizedEvent.includes("settled") ||
     normalizedEvent.includes("completed");
 
-  if (isSuccessfulPaymentEvent) {
-    const [updated] = await db
+  if (isExpiredEvent) {
+    const [expired] = await db
       .update(orders)
       .set({
-        status: "paid",
-        orderStatus: "paid",
-        paymentStatus: "paid",
-        paidAt: sql`now()`,
+        status: "cancelled",
+        orderStatus: "expired",
+        paymentStatus: "expired",
+        expiredAt: sql`now()`,
         updatedAt: sql`now()`,
       })
       .where(
@@ -417,6 +418,49 @@ export const applyBtcPayWebhook = async (db: Db, input: { deliveryId: string; ev
           ne(orders.status, "paid"),
           ne(orders.status, "confirmed"),
           ne(orders.status, "fulfilled"),
+          ne(orders.orderStatus, "expired"),
+        ),
+      )
+      .returning({ id: orders.id });
+
+    if (expired?.id) {
+      await db
+        .update(payments)
+        .set({
+          status: "expired",
+          expiredAt: sql`now()`,
+          rawJson: input.raw as object,
+        })
+        .where(and(eq(payments.orderId, expired.id), eq(payments.invoiceId, input.invoiceId), ne(payments.status, "paid")));
+
+      await db.insert(orderEvents).values({
+        orderId: expired.id,
+        type: "payment.expired",
+        message: "BTCPay invoice expired",
+        payload: input.raw as object,
+      });
+    }
+
+    return { duplicate: isDuplicateDelivery, orderUpdated: Boolean(expired), orderId: expired?.id ?? null };
+  }
+
+  if (isSuccessfulPaymentEvent) {
+    const [updated] = await db
+      .update(orders)
+      .set({
+        status: "paid",
+        orderStatus: "to_ship",
+        paymentStatus: "paid",
+        fulfillmentStatus: "to_ship",
+        paidAt: sql`now()`,
+        updatedAt: sql`now()`,
+      })
+      .where(
+        and(
+          eq(orders.btcpayInvoiceId, input.invoiceId),
+          ne(orders.status, "fulfilled"),
+          ne(orders.status, "cancelled"),
+          sql`(${orders.status} <> 'paid' OR ${orders.orderStatus} <> 'to_ship' OR ${orders.paymentStatus} <> 'paid' OR ${orders.fulfillmentStatus} <> 'to_ship')`,
         ),
       )
       .returning({ id: orders.id });
