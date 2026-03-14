@@ -9,7 +9,7 @@ import { applySyncItems, finalizeSyncJob, startSyncJob } from "@coincart/core";
 import { requireSignedSyncAuth } from "../middleware/syncAuth";
 import type { AppContext } from "../types";
 
-const parseJson = async <T>(c: any, schema: z.ZodType<T>): Promise<T> => {
+const parseJson = async <T extends z.ZodTypeAny>(c: any, schema: T): Promise<z.infer<T>> => {
   const body = c.var.rawBody ?? (await c.req.text());
   const parsed = schema.safeParse(JSON.parse(body || "{}"));
   if (!parsed.success) {

@@ -3,6 +3,13 @@
   "private": true,
   "version": "0.1.0",
   "packageManager": "pnpm@10.0.0",
+  "dependencies": {
+    "drizzle-orm": "^0.36.4",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.5"
+  },
   "scripts": {
     "dev": "cmd /c \"set DATABASE_URL=postgres://coincart:coincart@localhost:5432/coincart&& %APPDATA%\\npm\\pnpm.cmd --parallel --filter @coincart/api --filter @coincart/web dev\"",
     "dev:api": "cmd /c \"set DATABASE_URL=postgres://coincart:coincart@localhost:5432/coincart&& %APPDATA%\\npm\\pnpm.cmd --filter @coincart/api dev\"",

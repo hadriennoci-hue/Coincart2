@@ -6,7 +6,18 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    dependencies:
+      drizzle-orm:
+        specifier: ^0.36.4
+        version: 0.36.4(@cloudflare/workers-types@4.20260307.1)(@neondatabase/serverless@1.0.2)(@types/pg@8.18.0)(@types/react@19.2.14)(pg@8.20.0)(react@19.0.0)
+      pg:
+        specifier: ^8.13.1
+        version: 8.20.0
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.15.5
+        version: 8.18.0
 
   apps/api:
     dependencies:
@@ -25,9 +36,6 @@ importers:
       '@hono/node-server':
         specifier: ^1.13.7
         version: 1.19.11(hono@4.12.5)
-      drizzle-orm:
-        specifier: ^0.36.4
-        version: 0.36.4(@cloudflare/workers-types@4.20260307.1)(@neondatabase/serverless@1.0.2)(@types/pg@8.18.0)(@types/react@19.2.14)(pg@8.20.0)(react@19.0.0)
       hono:
         specifier: ^4.6.15
         version: 4.12.5
@@ -93,18 +101,12 @@ importers:
       '@coincart/types':
         specifier: workspace:*
         version: link:../types
-      drizzle-orm:
-        specifier: ^0.36.4
-        version: 0.36.4(@cloudflare/workers-types@4.20260307.1)(@neondatabase/serverless@1.0.2)(@types/pg@8.18.0)(@types/react@19.2.14)(pg@8.20.0)(react@19.0.0)
 
   packages/db:
     dependencies:
       '@neondatabase/serverless':
         specifier: ^1.0.2
         version: 1.0.2
-      drizzle-orm:
-        specifier: ^0.36.4
-        version: 0.36.4(@cloudflare/workers-types@4.20260307.1)(@neondatabase/serverless@1.0.2)(@types/pg@8.18.0)(@types/react@19.2.14)(pg@8.20.0)(react@19.0.0)
       pg:
         specifier: ^8.13.1
         version: 8.20.0

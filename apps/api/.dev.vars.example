@@ -1,0 +1,5 @@
+BTCPAY_HOST=https://your-btcpay-host.example.com/
+BTCPAY_STORE_ID=
+BTCPAY_API_KEY=
+BTCPAY_WEBHOOK_SECRET=
+ORDER_REDIRECT_BASE_URL=https://coincart.store/order

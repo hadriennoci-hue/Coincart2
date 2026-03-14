@@ -295,7 +295,7 @@ export const createCheckoutSession = async (
       totalAmount: totalAmount.toFixed(2),
       paymentMethod: "btcpay",
       status: "pending_payment",
-      termsAcceptedAt: input.agreeTermsAccepted === false ? null : sql`now()`,
+      termsAcceptedAt: input.agreeTermsAccepted ? sql`now()` : null,
     })
     .returning();
 

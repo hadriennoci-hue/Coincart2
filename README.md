@@ -42,6 +42,7 @@ Prerequisites:
 
 3. Configure env:
 - Copy `apps/api/.env.example` to `apps/api/.env`
+- Copy `apps/api/.dev.vars.example` to `apps/api/.dev.vars` for local BTCPay/worker secrets
 - Copy `apps/web/.env.example` to `apps/web/.env.local`
 
 4. Run API:
@@ -112,4 +113,5 @@ Updated: 2026-03-13
 ### Secrets and local state conventions
 - Keep secrets only in ignored files / env vars:
 - `apps/api/.dev.vars` (already gitignored) can hold local Cloudflare token for operator actions.
+- `apps/api/.dev.vars` can also hold local BTCPay secrets for `wrangler dev` and `pnpm dev:api`.
 - Do not commit tokens, keys, DB URLs.
