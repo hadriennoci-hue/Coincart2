@@ -235,7 +235,7 @@ export function SearchFilters({
           </label>
         )}
 
-        {!isLaptopCollection && keyboardLayouts.length > 0 && (
+        {keyboardLayouts.length > 0 && (
           <label className="form-label" style={{ gap: 6 }}>
             Keyboard Layout
             <select className="select" name="keyboard_layout" defaultValue={keyboard_layout}>
