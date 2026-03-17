@@ -65,14 +65,10 @@ export default async function SearchPage({
   const currency: Currency = "EUR";
 
   // Global in-stock set for collection selector counts (must not be narrowed by active collection filter)
-  const collectionCountItems = (await fetchProducts(currency, false)).filter(
-    (item) => item.stockQty > 0,
-  );
+  const collectionCountItems = await fetchProducts(currency, false);
 
   // Dynamic set for non-collection filters
-  const allItems = (await fetchProducts(currency, false, { q, collection })).filter(
-    (item) => item.stockQty > 0,
-  );
+  const allItems = await fetchProducts(currency, false, { q, collection });
 
   const collectionsMap = new Map<string, number>();
   for (const item of collectionCountItems) {
@@ -105,7 +101,7 @@ export default async function SearchPage({
   const ssdOptions = uniq(allItems.map((i) => i.ssdSize)).sort((a, b) => a - b);
 
   // Fetch filtered results
-  const items = (await fetchProducts(currency, false, {
+  const items = await fetchProducts(currency, false, {
     q,
     category,
     collection,
@@ -121,7 +117,7 @@ export default async function SearchPage({
     ssd_size,
     max_resolution,
     sort,
-  })).filter((item) => item.stockQty > 0);
+  });
 
   return (
     <div

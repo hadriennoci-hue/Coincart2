@@ -29,6 +29,33 @@ const toCollectionKey = (value?: string | null) =>
 
 const resolveGroupingValue = (collection?: string | null, category?: string | null) => collection ?? category ?? null;
 
+const hasSellableInventory = sql<boolean>`(
+  ${products.stockQty} > 0
+  OR EXISTS (
+    SELECT 1
+    FROM products AS child
+    WHERE child.parent_product_id = ${products.id}
+      AND child.is_variant = true
+      AND child.visibility_status = 'publish'
+      AND child.stock_qty > 0
+  )
+)`;
+
+const effectiveListingStockQty = sql<number>`GREATEST(
+  ${products.stockQty},
+  COALESCE(
+    (
+      SELECT SUM(child.stock_qty)
+      FROM products AS child
+      WHERE child.parent_product_id = ${products.id}
+        AND child.is_variant = true
+        AND child.visibility_status = 'publish'
+        AND child.stock_qty > 0
+    ),
+    0
+  )
+)`;
+
 const normalizeImageUrls = (value: unknown): string[] => {
   if (!Array.isArray(value)) return [];
   return value
@@ -531,7 +558,7 @@ export const listProducts = async (db: Db, currency: Currency, featuredOnly = fa
       ssdSize: products.ssdSize,
       storage: products.storage,
       featured: products.featured,
-      stockQty: products.stockQty,
+      stockQty: effectiveListingStockQty,
       price: productPrices.amount,
       currency: productPrices.currency,
     })
@@ -543,7 +570,7 @@ export const listProducts = async (db: Db, currency: Currency, featuredOnly = fa
         eq(products.isVariant, false),
         eq(products.visibilityStatus, "publish"),
         featuredOnly ? eq(products.featured, true) : sql`true`,
-        sql`${products.stockQty} > 0`,
+        hasSellableInventory,
       ),
     );
 
@@ -579,13 +606,12 @@ export const listProductsWithFilters = async (
     eq(productPrices.currency, currency),
     eq(products.isVariant, false),
     eq(products.visibilityStatus, "publish"),
-    sql`${products.stockQty} > 0`,
+    hasSellableInventory,
     filters.featuredOnly ? eq(products.featured, true) : sql`true`,
     filters.search
       ? sql`(${products.name} ILIKE ${`%${filters.search}%`} OR ${products.sku} ILIKE ${`%${filters.search}%`} OR COALESCE(${products.collection}, ${products.category}) ILIKE ${`%${filters.search}%`})`
       : sql`true`,
     filters.category ? sql`COALESCE(${products.collection}, ${products.category}) = ${filters.category}` : sql`true`,
-    filters.collection ? sql`COALESCE(${products.collection}, ${products.category}) = ${filters.collection}` : sql`true`,
     filters.keyboardLayout ? eq(products.keyboardLayout, filters.keyboardLayout) : sql`true`,
     filters.usage ? eq(products.usage, filters.usage) : sql`true`,
     filters.screenSize ? eq(products.screenSize, filters.screenSize) : sql`true`,
@@ -600,7 +626,7 @@ export const listProductsWithFilters = async (
       : filters.sort === "price_desc"
         ? desc(productPrices.amount)
         : filters.sort === "popularity"
-          ? desc(products.stockQty)
+          ? desc(effectiveListingStockQty)
           : filters.sort === "newest"
             ? desc(products.createdAt)
             : asc(products.name);
@@ -629,7 +655,7 @@ export const listProductsWithFilters = async (
       ssdSize: products.ssdSize,
       storage: products.storage,
       featured: products.featured,
-      stockQty: products.stockQty,
+      stockQty: effectiveListingStockQty,
       price: productPrices.amount,
       currency: productPrices.currency,
     })
@@ -645,6 +671,10 @@ export const listProductsWithFilters = async (
     category: resolveGroupingValue(row.collection, row.category),
     price: Number(row.price),
   }));
+  if (filters.collection) {
+    const expectedCollection = toCollectionKey(filters.collection);
+    items = items.filter((item) => item.collection === expectedCollection);
+  }
   return items;
 };
 
@@ -676,7 +706,7 @@ export const listTopSellingProducts = async (db: Db, currency: Currency, limit =
       ssdSize: products.ssdSize,
       storage: products.storage,
       featured: products.featured,
-      stockQty: products.stockQty,
+      stockQty: effectiveListingStockQty,
       price: productPrices.amount,
       currency: productPrices.currency,
       soldQty: soldQtyExpr,
@@ -690,7 +720,7 @@ export const listTopSellingProducts = async (db: Db, currency: Currency, limit =
         eq(productPrices.currency, currency),
         eq(products.isVariant, false),
         eq(products.visibilityStatus, "publish"),
-        sql`${products.stockQty} > 0`,
+        hasSellableInventory,
       ),
     )
     .groupBy(
@@ -715,11 +745,10 @@ export const listTopSellingProducts = async (db: Db, currency: Currency, limit =
       products.ssdSize,
       products.storage,
       products.featured,
-      products.stockQty,
       productPrices.amount,
       productPrices.currency,
     )
-    .orderBy(desc(soldQtyExpr), desc(products.stockQty), asc(products.name))
+    .orderBy(desc(soldQtyExpr), desc(effectiveListingStockQty), asc(products.name))
     .limit(cappedLimit);
 
   return rows.map((row) => ({
@@ -900,7 +929,7 @@ export const listCollectionsWithCounts = async (db: Db) => {
         and(
           eq(products.isVariant, false),
           eq(products.visibilityStatus, "publish"),
-          sql`${products.stockQty} > 0`,
+          hasSellableInventory,
           sql`COALESCE(${products.collection}, ${products.category}) IS NOT NULL`,
         ),
       ),
