@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fetchCollections, fetchProducts, fetchTopSellingProducts, type Currency } from "../lib/api";
+import { fetchCollections, fetchProducts, type Currency } from "../lib/api";
 import { collectionByKey, collectionMeta } from "../lib/collections";
 import { FlipCard } from "../components/ui/FlipCard";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
@@ -69,6 +69,7 @@ export default async function Home({
 }) {
   const { currency = "EUR" } = await searchParams;
   const items = await fetchProducts(currency, false);
+  const latestItems = await fetchProducts(currency, false, { sort: "newest" });
   const rawCollections = await fetchCollections(currency);
   const collections = rawCollections.length > 0
     ? rawCollections
@@ -78,7 +79,6 @@ export default async function Home({
         label: entry.label,
         productCount: items.filter((p) => (p.collection || "").trim() === entry.key).length,
       }));
-  const topSellingFromSales = await fetchTopSellingProducts(currency, 4);
   const hero =
     items.find((item) => item.sku === HOME_HERO_SKU) ??
     items.find((item) => item.collection === "laptops") ??
@@ -108,20 +108,11 @@ export default async function Home({
             hero.displayType ? `Panel: ${hero.displayType}` : null,
           ].filter((value): value is string => Boolean(value))
         : [];
-  const promotions = items
-    .filter((item) => typeof item.promoPrice === "number" && item.promoPrice > 0 && item.promoPrice < item.price)
+  const promotions = latestItems
+    .filter((item) => typeof item.promoPrice === "number" && item.promoPrice > 0)
     .slice(0, 4);
-  const bestSellerItems = [...items]
-    .filter((item) => item.bestSeller)
-    .sort((a, b) => b.stockQty - a.stockQty)
-    .slice(0, 4);
-  const topSellingFallback = [...items].sort((a, b) => b.stockQty - a.stockQty).slice(0, 4);
-  const topSelling =
-    bestSellerItems.length > 0
-      ? bestSellerItems
-      : topSellingFromSales.length > 0
-        ? topSellingFromSales
-        : topSellingFallback;
+  const topSellingFallback = latestItems.slice(0, 4);
+  const topSelling = topSellingFallback;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://coincart-web.pages.dev";
   const homeJsonLd = {
     "@context": "https://schema.org",

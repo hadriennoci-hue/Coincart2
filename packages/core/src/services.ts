@@ -56,6 +56,9 @@ const effectiveListingStockQty = sql<number>`GREATEST(
   )
 )`;
 
+const getPromoPriceColumn = (currency: Currency) =>
+  currency === "EUR" ? products.salePriceEur : products.salePriceUsd;
+
 const toNormalizedImageUrls = (primary: unknown, gallery: unknown) => {
   const normalizedGallery = normalizeImageUrls(gallery);
   if (normalizedGallery.length > 0) return normalizedGallery;
@@ -638,6 +641,7 @@ export const applyBtcPayWebhook = async (db: Db, input: { deliveryId: string; ev
 };
 
 export const listProducts = async (db: Db, currency: Currency, featuredOnly = false) => {
+  const promoPriceColumn = getPromoPriceColumn(currency);
   const rows = await db
     .select({
       id: products.id,
@@ -666,6 +670,7 @@ export const listProducts = async (db: Db, currency: Currency, featuredOnly = fa
       featured: products.featured,
       stockQty: effectiveListingStockQty,
       price: productPrices.amount,
+      promoPrice: promoPriceColumn,
       currency: productPrices.currency,
     })
     .from(products)
@@ -690,9 +695,10 @@ export const listProducts = async (db: Db, currency: Currency, featuredOnly = fa
     const row = withFieldFallback(rawRow, variantFallbacks.get(rawRow.id) as typeof rawRow | undefined);
     return {
       ...row,
-    collection: resolveGroupingValue(row.collection, row.category),
-    category: resolveGroupingValue(row.collection, row.category),
-    price: Number(row.price),
+      collection: resolveGroupingValue(row.collection, row.category),
+      category: resolveGroupingValue(row.collection, row.category),
+      price: Number(row.price),
+      promoPrice: row.promoPrice === null ? null : Number(row.promoPrice),
     };
   });
 };
@@ -716,6 +722,7 @@ export const listProductsWithFilters = async (
   currency: Currency,
   filters: ListProductFilters,
 ) => {
+  const promoPriceColumn = getPromoPriceColumn(currency);
   const where = and(
     eq(productPrices.currency, currency),
     eq(products.isVariant, false),
@@ -773,6 +780,7 @@ export const listProductsWithFilters = async (
       featured: products.featured,
       stockQty: effectiveListingStockQty,
       price: productPrices.amount,
+      promoPrice: promoPriceColumn,
       currency: productPrices.currency,
     })
     .from(products)
@@ -790,9 +798,10 @@ export const listProductsWithFilters = async (
     const row = withFieldFallback(rawRow, variantFallbacks.get(rawRow.id) as typeof rawRow | undefined);
     return {
       ...row,
-    collection: toCollectionKey(resolveGroupingValue(row.collection, row.category)),
-    category: resolveGroupingValue(row.collection, row.category),
-    price: Number(row.price),
+      collection: toCollectionKey(resolveGroupingValue(row.collection, row.category)),
+      category: resolveGroupingValue(row.collection, row.category),
+      price: Number(row.price),
+      promoPrice: row.promoPrice === null ? null : Number(row.promoPrice),
     };
   });
   if (filters.collection) {
@@ -803,6 +812,7 @@ export const listProductsWithFilters = async (
 };
 
 export const listTopSellingProducts = async (db: Db, currency: Currency, limit = 4) => {
+  const promoPriceColumn = getPromoPriceColumn(currency);
   const cappedLimit = Math.max(1, Math.min(24, limit));
   const soldQtyExpr = sql<number>`COALESCE(SUM(CASE WHEN ${orders.id} IS NOT NULL THEN ${orderItems.quantity} ELSE 0 END), 0)`;
 
@@ -834,6 +844,7 @@ export const listTopSellingProducts = async (db: Db, currency: Currency, limit =
       featured: products.featured,
       stockQty: effectiveListingStockQty,
       price: productPrices.amount,
+      promoPrice: promoPriceColumn,
       currency: productPrices.currency,
       soldQty: soldQtyExpr,
     })
@@ -887,15 +898,17 @@ export const listTopSellingProducts = async (db: Db, currency: Currency, limit =
     const row = withFieldFallback(rawRow, variantFallbacks.get(rawRow.id) as typeof rawRow | undefined);
     return {
       ...row,
-    collection: toCollectionKey(resolveGroupingValue(row.collection, row.category)),
-    category: resolveGroupingValue(row.collection, row.category),
-    price: Number(row.price),
-    soldQty: Number(row.soldQty ?? 0),
+      collection: toCollectionKey(resolveGroupingValue(row.collection, row.category)),
+      category: resolveGroupingValue(row.collection, row.category),
+      price: Number(row.price),
+      promoPrice: row.promoPrice === null ? null : Number(row.promoPrice),
+      soldQty: Number(row.soldQty ?? 0),
     };
   });
 };
 
 export const getProductBySlug = async (db: Db, slug: string, currency: Currency) => {
+  const promoPriceColumn = getPromoPriceColumn(currency);
   const rows = await db
     .select({
       id: products.id,
@@ -928,6 +941,7 @@ export const getProductBySlug = async (db: Db, slug: string, currency: Currency)
       featured: products.featured,
       stockQty: products.stockQty,
       price: productPrices.amount,
+      promoPrice: promoPriceColumn,
       currency: productPrices.currency,
     })
     .from(products)
@@ -1006,6 +1020,7 @@ export const getProductBySlug = async (db: Db, slug: string, currency: Currency)
       featured: products.featured,
       stockQty: products.stockQty,
       price: productPrices.amount,
+      promoPrice: promoPriceColumn,
       currency: productPrices.currency,
     })
     .from(products)
@@ -1027,17 +1042,20 @@ export const getProductBySlug = async (db: Db, slug: string, currency: Currency)
     collection: toCollectionKey(resolveGroupingValue(product.collection, product.category)),
     category: resolveGroupingValue(product.collection, product.category),
     price: Number(product.price),
+    promoPrice: product.promoPrice === null ? null : Number(product.promoPrice),
     variants: variantRows.map((row) => ({
       ...withFieldFallback(row, parentProduct),
       collection: toCollectionKey(resolveGroupingValue(row.collection, row.category)),
       category: resolveGroupingValue(row.collection, row.category),
       price: Number(row.price),
+      promoPrice: row.promoPrice === null ? null : Number(row.promoPrice),
     })),
   };
 };
 
 export const getProductsBySkus = async (db: Db, skus: string[], currency: Currency) => {
   if (skus.length === 0) return [];
+  const promoPriceColumn = getPromoPriceColumn(currency);
   const rows = await db
     .select({
       id: products.id,
@@ -1056,6 +1074,7 @@ export const getProductsBySkus = async (db: Db, skus: string[], currency: Curren
       maxResolution: products.maxResolution,
       stockQty: products.stockQty,
       price: productPrices.amount,
+      promoPrice: promoPriceColumn,
       currency: productPrices.currency,
     })
     .from(products)
@@ -1074,6 +1093,7 @@ export const getProductsBySkus = async (db: Db, skus: string[], currency: Curren
     collection: toCollectionKey(resolveGroupingValue(row.collection, row.category)),
     category: resolveGroupingValue(row.collection, row.category),
     price: Number(row.price),
+    promoPrice: row.promoPrice === null ? null : Number(row.promoPrice),
   }));
 };
 
