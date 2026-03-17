@@ -198,6 +198,36 @@ const normalizeImageUrl = (value: unknown): string | null => {
   return trimmed;
 };
 
+const stripHtml = (value: string) =>
+  value
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const deriveFieldsFromDescription = (description?: string | null) => {
+  const text = typeof description === "string" ? stripHtml(description) : "";
+  if (!text) return {};
+
+  const cpuMatch = text.match(/((?:AMD|Intel)[^.|\n]*?Processor[^.\n]*)/i);
+  const gpuMatch = text.match(/((?:NVIDIA|AMD)[^.|\n]*(?:GeForce|RTX|Radeon)[^.\n]*)/i);
+  const screenSizeMatch = text.match(/(\d+(?:[.,]\d+)?)\s*cm\s*\(/i);
+  const resolutionMatch = text.match(/(\d{3,4}\s*x\s*\d{3,4})/i);
+  const refreshRateMatch = text.match(/(\d{2,3})\s*Hz/i);
+  const ramMatch = text.match(/(\d+)\s*GB,\s*(?:DDR|LPDDR)/i);
+  const storageMatch = text.match(/(\d+(?:[.,]\d+)?)\s*(TB|GB)\s+SSD/i);
+
+  return {
+    cpu: cpuMatch?.[1]?.trim() ?? null,
+    gpu: gpuMatch?.[1]?.trim() ?? null,
+    screenSize: screenSizeMatch?.[1]?.replace(",", ".") ?? null,
+    resolution: resolutionMatch?.[1]?.replace(/\s+/g, "") ?? null,
+    refreshRate: refreshRateMatch ? Number(refreshRateMatch[1]) : null,
+    ramMemory: ramMatch ? Number(ramMatch[1]) : null,
+    storage: storageMatch ? `${storageMatch[1].replace(",", ".")} ${storageMatch[2].toUpperCase()} SSD` : null,
+  };
+};
+
 const applyClientFilters = (
   items: Product[],
   filters?: {
@@ -259,6 +289,8 @@ const applyClientFilters = (
 };
 
 const normalizeProduct = (raw: Partial<Product>): Product => {
+  const description = raw.description ?? null;
+  const derived = deriveFieldsFromDescription(description);
   const normalizedPrimary = normalizeImageUrl(raw.imageUrl);
   const normalizedGallery = Array.isArray((raw as Product).imageUrls)
     ? ((raw as Product).imageUrls as string[])
@@ -281,21 +313,21 @@ const normalizeProduct = (raw: Partial<Product>): Product => {
   collection: (raw as Product).collection ?? raw.category ?? null,
   brand: (raw as Product).brand ?? null,
   name: String(raw.name || ""),
-  description: raw.description ?? null,
+  description,
   imageUrl: normalizedPrimary,
   imageUrls: normalizedGallery,
-  cpu: raw.cpu ?? null,
-  gpu: raw.gpu ?? null,
+  cpu: raw.cpu ?? derived.cpu ?? null,
+  gpu: raw.gpu ?? derived.gpu ?? null,
   keyboardLayout: raw.keyboardLayout ?? null,
   usage: raw.usage ?? null,
-  screenSize: raw.screenSize ?? null,
+  screenSize: raw.screenSize ?? derived.screenSize ?? null,
   displayType: raw.displayType ?? null,
-  resolution: raw.resolution ?? null,
+  resolution: raw.resolution ?? derived.resolution ?? null,
   maxResolution: raw.maxResolution ?? null,
-  refreshRate: toOptionalNumber(raw.refreshRate),
-  ramMemory: toOptionalNumber(raw.ramMemory),
+  refreshRate: toOptionalNumber(raw.refreshRate) ?? derived.refreshRate ?? null,
+  ramMemory: toOptionalNumber(raw.ramMemory) ?? derived.ramMemory ?? null,
   ssdSize: toOptionalNumber(raw.ssdSize),
-  storage: raw.storage ?? null,
+  storage: raw.storage ?? derived.storage ?? null,
   extraAttributes: Array.isArray((raw as Product).extraAttributes)
     ? ((raw as Product).extraAttributes as Array<{ name?: unknown; options?: unknown }>)
         .map((entry) => ({
