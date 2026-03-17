@@ -28,6 +28,7 @@ export const products = pgTable("products", {
   name: varchar("name", { length: 220 }).notNull(),
   description: text("description"),
   imageUrl: text("image_url"),
+  imageUrls: jsonb("image_urls").$type<string[]>(),
   cpu: varchar("cpu", { length: 120 }),
   gpu: varchar("gpu", { length: 120 }),
   keyboardLayout: varchar("keyboard_layout", { length: 30 }),

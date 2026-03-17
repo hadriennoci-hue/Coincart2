@@ -18,6 +18,7 @@ export const syncedProductSchema = z.object({
   name: z.string().min(1).max(220),
   description: z.string().max(2000).optional(),
   imageUrl: z.string().url().optional(),
+  imageUrls: z.array(z.string().url()).max(50).optional(),
   cpu: z.string().max(120).optional(),
   gpu: z.string().max(120).optional(),
   keyboardLayout: z.string().max(30).optional(),

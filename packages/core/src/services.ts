@@ -27,6 +27,13 @@ const toCollectionKey = (category?: string | null) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+const normalizeImageUrls = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => (typeof item === "string" ? item.trim() : ""))
+    .filter((item) => item.length > 0);
+};
+
 const EU_COUNTRY_CODES = new Set([
   "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV",
   "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
@@ -98,6 +105,8 @@ export const startSyncJob = async (db: Db, source: string) => {
 
 export const applySyncItems = async (db: Db, input: SyncItemsRequest) => {
   for (const item of input.items) {
+    const imageUrls = normalizeImageUrls(item.imageUrls);
+    const primaryImageUrl = item.imageUrl ?? imageUrls[0] ?? null;
     const [product] = await db
       .insert(products)
       .values({
@@ -106,7 +115,8 @@ export const applySyncItems = async (db: Db, input: SyncItemsRequest) => {
         category: item.category,
         name: item.name,
         description: item.description,
-        imageUrl: item.imageUrl,
+        imageUrl: primaryImageUrl,
+        imageUrls,
         cpu: item.cpu,
         gpu: item.gpu,
         keyboardLayout: item.keyboardLayout,
@@ -131,7 +141,8 @@ export const applySyncItems = async (db: Db, input: SyncItemsRequest) => {
           category: item.category,
           name: item.name,
           description: item.description,
-          imageUrl: item.imageUrl,
+          imageUrl: primaryImageUrl,
+          imageUrls,
           cpu: item.cpu,
           gpu: item.gpu,
           keyboardLayout: item.keyboardLayout,
@@ -499,6 +510,7 @@ export const listProducts = async (db: Db, currency: Currency, featuredOnly = fa
       name: products.name,
       description: products.description,
       imageUrl: products.imageUrl,
+      imageUrls: products.imageUrls,
       extraAttributes: products.extraAttributes,
       cpu: products.cpu,
       gpu: products.gpu,
@@ -531,6 +543,7 @@ export const listProducts = async (db: Db, currency: Currency, featuredOnly = fa
 
   return rows.map((row) => ({
     ...row,
+    imageUrls: normalizeImageUrls(row.imageUrls),
     price: Number(row.price),
   }));
 };
@@ -592,6 +605,7 @@ export const listProductsWithFilters = async (
       name: products.name,
       description: products.description,
       imageUrl: products.imageUrl,
+      imageUrls: products.imageUrls,
       cpu: products.cpu,
       gpu: products.gpu,
       keyboardLayout: products.keyboardLayout,
@@ -616,6 +630,7 @@ export const listProductsWithFilters = async (
 
   let items = rows.map((row) => ({
     ...row,
+    imageUrls: normalizeImageUrls(row.imageUrls),
     collection: toCollectionKey(row.category),
     price: Number(row.price),
   }));
@@ -639,6 +654,7 @@ export const listTopSellingProducts = async (db: Db, currency: Currency, limit =
       name: products.name,
       description: products.description,
       imageUrl: products.imageUrl,
+      imageUrls: products.imageUrls,
       cpu: products.cpu,
       gpu: products.gpu,
       keyboardLayout: products.keyboardLayout,
@@ -677,6 +693,7 @@ export const listTopSellingProducts = async (db: Db, currency: Currency, limit =
       products.name,
       products.description,
       products.imageUrl,
+      products.imageUrls,
       products.cpu,
       products.gpu,
       products.keyboardLayout,
@@ -699,6 +716,7 @@ export const listTopSellingProducts = async (db: Db, currency: Currency, limit =
 
   return rows.map((row) => ({
     ...row,
+    imageUrls: normalizeImageUrls(row.imageUrls),
     collection: toCollectionKey(row.category),
     price: Number(row.price),
     soldQty: Number(row.soldQty ?? 0),
@@ -715,6 +733,7 @@ export const getProductBySlug = async (db: Db, slug: string, currency: Currency)
       name: products.name,
       description: products.description,
       imageUrl: products.imageUrl,
+      imageUrls: products.imageUrls,
       cpu: products.cpu,
       gpu: products.gpu,
       keyboardLayout: products.keyboardLayout,
@@ -746,6 +765,7 @@ export const getProductBySlug = async (db: Db, slug: string, currency: Currency)
   if (!rows[0]) return null;
   return {
     ...rows[0],
+    imageUrls: normalizeImageUrls(rows[0].imageUrls),
     collection: toCollectionKey(rows[0].category),
     price: Number(rows[0].price),
   };
@@ -761,6 +781,7 @@ export const getProductsBySkus = async (db: Db, skus: string[], currency: Curren
       category: products.category,
       name: products.name,
       imageUrl: products.imageUrl,
+      imageUrls: products.imageUrls,
       keyboardLayout: products.keyboardLayout,
       usage: products.usage,
       screenSize: products.screenSize,
@@ -783,6 +804,7 @@ export const getProductsBySkus = async (db: Db, skus: string[], currency: Curren
 
   return rows.map((row) => ({
     ...row,
+    imageUrls: normalizeImageUrls(row.imageUrls),
     collection: toCollectionKey(row.category),
     price: Number(row.price),
   }));

@@ -265,19 +265,33 @@ const mergeExtraAttributes = (
   return out;
 };
 
-const resolveImageUrl = (payload: Record<string, unknown>) => {
-  if (typeof payload.image_url === "string" && payload.image_url.trim()) return payload.image_url.trim();
-  if (!Array.isArray(payload.images)) return null;
+const resolveImageUrls = (payload: Record<string, unknown>): string[] => {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const push = (value: unknown) => {
+    if (typeof value !== "string") return;
+    const trimmed = value.trim();
+    if (!trimmed || seen.has(trimmed)) return;
+    seen.add(trimmed);
+    out.push(trimmed);
+  };
+
+  push(payload.image_url);
+  push(payload.imageUrl);
+
+  if (!Array.isArray(payload.images)) return out;
   for (const entry of payload.images as Array<unknown>) {
-    if (typeof entry === "string" && entry.trim()) return entry.trim();
+    if (typeof entry === "string") {
+      push(entry);
+      continue;
+    }
     if (entry && typeof entry === "object") {
-      const maybeSrc = (entry as { src?: unknown; url?: unknown }).src;
-      const maybeUrl = (entry as { src?: unknown; url?: unknown }).url;
-      if (typeof maybeSrc === "string" && maybeSrc.trim()) return maybeSrc.trim();
-      if (typeof maybeUrl === "string" && maybeUrl.trim()) return maybeUrl.trim();
+      const image = entry as { src?: unknown; url?: unknown };
+      push(image.src);
+      push(image.url);
     }
   }
-  return null;
+  return out;
 };
 
 const resolveByParsedId = async (c: { var: AppContext["Variables"] }, parsedId: ReturnType<typeof parseProductId>) => {
@@ -303,6 +317,7 @@ const toWooLikeProduct = (
     name: string;
     description: string | null;
     imageUrl: string | null;
+    imageUrls?: string[] | null;
     visibilityStatus: string;
     brand: string | null;
     ean: string | null;
@@ -369,6 +384,11 @@ const toWooLikeProduct = (
   const saleEurNumber = product.salePriceEur === null || product.salePriceEur === undefined ? null : Number(product.salePriceEur);
   const sale = Number.isFinite(saleEurNumber) ? Number(saleEurNumber).toFixed(2) : null;
   const activePrice = sale ?? regular;
+  const imageUrls = Array.isArray(product.imageUrls)
+    ? product.imageUrls.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    : product.imageUrl
+      ? [product.imageUrl]
+      : [];
 
   return {
     id: product.wooId ?? product.id,
@@ -395,8 +415,8 @@ const toWooLikeProduct = (
     date_modified: toIsoString(product.updatedAt),
     date_modified_gmt: toIsoString(product.updatedAt),
     date_created: toIsoString(product.createdAt),
-    image_url: product.imageUrl,
-    images: product.imageUrl ? [{ src: product.imageUrl }] : [],
+    image_url: imageUrls[0] ?? product.imageUrl,
+    images: imageUrls.map((src) => ({ src })),
   };
 };
 
@@ -699,6 +719,7 @@ connectorRoutes.get("/products/:parentId/variations", async (c) => {
       name: products.name,
       description: products.description,
       imageUrl: products.imageUrl,
+      imageUrls: products.imageUrls,
       visibilityStatus: products.visibilityStatus,
       brand: products.brand,
       ean: products.ean,
@@ -764,6 +785,7 @@ connectorRoutes.get("/products/:id", async (c) => {
       name: products.name,
       description: products.description,
       imageUrl: products.imageUrl,
+      imageUrls: products.imageUrls,
       visibilityStatus: products.visibilityStatus,
       brand: products.brand,
       ean: products.ean,
@@ -839,6 +861,7 @@ connectorRoutes.get("/products", async (c) => {
       name: products.name,
       description: products.description,
       imageUrl: products.imageUrl,
+      imageUrls: products.imageUrls,
       visibilityStatus: products.visibilityStatus,
       brand: products.brand,
       ean: products.ean,
@@ -978,8 +1001,11 @@ connectorRoutes.post("/products/:id", async (c) => {
   if (typeof body.in_stock === "boolean" && body.in_stock === false) updatePayload.stockQty = 0;
   const resolvedCategory = resolveCategory(body);
   if (resolvedCategory !== undefined) updatePayload.category = resolvedCategory;
-  const resolvedImageUrl = resolveImageUrl(body);
-  if (resolvedImageUrl !== null) updatePayload.imageUrl = resolvedImageUrl;
+  const resolvedImageUrls = resolveImageUrls(body);
+  if (resolvedImageUrls.length > 0) {
+    updatePayload.imageUrl = resolvedImageUrls[0];
+    updatePayload.imageUrls = resolvedImageUrls;
+  }
   const mappedFromAttributes = extractMappedProductFieldsFromAttributes(body.attributes);
   const extraFromAttributes = extractExtraAttributesFromAttributes(body.attributes, mappedFromAttributes);
   Object.assign(updatePayload, mappedFromAttributes);
@@ -1022,6 +1048,7 @@ connectorRoutes.post("/products/:id", async (c) => {
       category: products.category,
       visibilityStatus: products.visibilityStatus,
       imageUrl: products.imageUrl,
+      imageUrls: products.imageUrls,
       brand: products.brand,
       description: products.description,
       cpu: products.cpu,
@@ -1124,7 +1151,7 @@ connectorRoutes.post("/products/:id", async (c) => {
           : variant.in_stock === false
             ? 0
             : 0;
-      const variantImageUrl = resolveImageUrl(variant);
+      const variantImageUrls = resolveImageUrls(variant);
       const variantMappedRaw = extractMappedProductFieldsFromAttributes(variant.attributes);
       const variantMappedAttrs = { ...parentMappedDefaults, ...variantMappedRaw };
       const variantExtraRaw = extractExtraAttributesFromAttributes(variant.attributes, variantMappedRaw);
@@ -1168,7 +1195,14 @@ connectorRoutes.post("/products/:id", async (c) => {
         ...variantMappedAttrs,
         ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
         stockQty: variantStockQty,
-        imageUrl: variantImageUrl ?? resolvedProduct.imageUrl ?? null,
+        imageUrl: variantImageUrls[0] ?? resolvedProduct.imageUrl ?? null,
+        imageUrls: variantImageUrls.length > 0
+          ? variantImageUrls
+          : Array.isArray(resolvedProduct.imageUrls)
+            ? resolvedProduct.imageUrls
+            : resolvedProduct.imageUrl
+              ? [resolvedProduct.imageUrl]
+              : [],
       };
       const updateValues: Partial<typeof products.$inferInsert> = {
         wooId:
@@ -1201,7 +1235,9 @@ connectorRoutes.post("/products/:id", async (c) => {
         ...variantMappedAttrs,
         ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
         stockQty: variantStockQty,
-        ...(variantImageUrl !== null ? { imageUrl: variantImageUrl } : {}),
+        ...(variantImageUrls.length > 0
+          ? { imageUrl: variantImageUrls[0], imageUrls: variantImageUrls }
+          : {}),
       };
 
       const saved = await upsertProductBySku(c, variantSku, insertValues, updateValues);
@@ -1254,7 +1290,7 @@ connectorRoutes.post("/products", async (c) => {
 
   const category = resolveCategory(body);
   const fallbackOptionName = parseFirstOptionName(body);
-  const resolvedImageUrl = resolveImageUrl(body);
+  const resolvedImageUrls = resolveImageUrls(body);
   const mappedFromAttributes = extractMappedProductFieldsFromAttributes(body.attributes);
   const extraFromAttributes = extractExtraAttributesFromAttributes(body.attributes, mappedFromAttributes);
 
@@ -1319,7 +1355,8 @@ connectorRoutes.post("/products", async (c) => {
         : body.in_stock === false
           ? 0
           : 0,
-    imageUrl: resolvedImageUrl,
+    imageUrl: resolvedImageUrls[0] ?? null,
+    imageUrls: resolvedImageUrls,
   };
   const updateValues: Partial<typeof products.$inferInsert> = {
     wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : undefined,
@@ -1342,7 +1379,9 @@ connectorRoutes.post("/products", async (c) => {
     ...(salePriceUsd !== null ? { salePriceUsd: salePriceUsd.toFixed(2) } : {}),
     ...mappedFromAttributes,
     ...(extraFromAttributes.length > 0 ? { extraAttributes: extraFromAttributes } : {}),
-    ...(resolvedImageUrl !== null ? { imageUrl: resolvedImageUrl } : {}),
+    ...(resolvedImageUrls.length > 0
+      ? { imageUrl: resolvedImageUrls[0], imageUrls: resolvedImageUrls }
+      : {}),
   };
   const created = await upsertProductBySku(c, sku, insertValues, updateValues);
 
@@ -1389,7 +1428,7 @@ connectorRoutes.post("/products", async (c) => {
         : variant.in_stock === false
           ? 0
           : 0;
-    const variantImageUrl = resolveImageUrl(variant);
+    const variantImageUrls = resolveImageUrls(variant);
     const variantMappedRaw = extractMappedProductFieldsFromAttributes(variant.attributes);
     const variantMappedAttrs = { ...parentMappedDefaults, ...variantMappedRaw };
     const variantExtraRaw = extractExtraAttributesFromAttributes(variant.attributes, variantMappedRaw);
@@ -1428,7 +1467,8 @@ connectorRoutes.post("/products", async (c) => {
       ...variantMappedAttrs,
       ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
       stockQty: variantStockQty,
-      imageUrl: variantImageUrl,
+      imageUrl: variantImageUrls[0] ?? null,
+      imageUrls: variantImageUrls,
     };
     const variantUpdateValues: Partial<typeof products.$inferInsert> = {
       wooId:
@@ -1455,7 +1495,9 @@ connectorRoutes.post("/products", async (c) => {
       ...variantMappedAttrs,
       ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
       stockQty: variantStockQty,
-      ...(variantImageUrl !== null ? { imageUrl: variantImageUrl } : {}),
+      ...(variantImageUrls.length > 0
+        ? { imageUrl: variantImageUrls[0], imageUrls: variantImageUrls }
+        : {}),
     };
     const savedVariant = await upsertProductBySku(c, variantSku, variantInsertValues, variantUpdateValues);
 
