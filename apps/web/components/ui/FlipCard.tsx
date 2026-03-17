@@ -30,6 +30,34 @@ interface FlipCardProps {
   displayType?: string | null;
 }
 
+const stripHtml = (value: string) =>
+  value
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const deriveSpecsFromDescription = (description?: string | null) => {
+  const text = typeof description === "string" ? stripHtml(description) : "";
+  if (!text) return {};
+
+  const cpu = text.match(/((?:AMD|Intel)[^.|]*?Processor[^.]*)/i)?.[1]?.trim() ?? null;
+  const gpu = text.match(/((?:NVIDIA|AMD)[^.|]*(?:GeForce|RTX|Radeon)[^.]*)/i)?.[1]?.trim() ?? null;
+  const screenSize = text.match(/(\d+(?:[.,]\d+)?)\s*cm\s*\(/i)?.[1]?.replace(",", ".") ?? null;
+  const resolution = text.match(/(\d{3,4}\s*x\s*\d{3,4})/i)?.[1]?.replace(/\s+/g, "") ?? null;
+  const ramMemory = text.match(/(\d+)\s*GB,\s*(?:DDR|LPDDR)/i)?.[1];
+  const storageMatch = text.match(/(\d+(?:[.,]\d+)?)\s*(TB|GB)\s+SSD/i);
+
+  return {
+    cpu,
+    gpu,
+    screenSize,
+    resolution,
+    ramMemory: ramMemory ? Number(ramMemory) : null,
+    storage: storageMatch ? `${storageMatch[1].replace(",", ".")} ${storageMatch[2].toUpperCase()} SSD` : null,
+  };
+};
+
 export function FlipCard({
   name,
   imageUrl,
@@ -54,6 +82,7 @@ export function FlipCard({
   storage,
   displayType,
 }: FlipCardProps) {
+  const derivedSpecs = deriveSpecsFromDescription(description);
   const hasPromo = typeof promoPrice === "number" && promoPrice > 0 && promoPrice < price;
   const displayPrice = hasPromo ? promoPrice : price;
   const normalizedCollection = (collection || "").trim().toLowerCase();
@@ -64,6 +93,12 @@ export function FlipCard({
     normalizedCollection === "displays" ||
     normalizedCategory.includes("display") ||
     normalizedCategory.includes("monitor");
+  const displayCpu = cpu || derivedSpecs.cpu || null;
+  const displayGpu = gpu || derivedSpecs.gpu || null;
+  const displayScreenSize = screenSize || derivedSpecs.screenSize || null;
+  const displayResolution = resolution || maxResolution || derivedSpecs.resolution || null;
+  const displayRamMemory = ramMemory ?? derivedSpecs.ramMemory ?? null;
+  const displayStorage = storage || (ssdSize ? `${ssdSize} GB SSD` : null) || derivedSpecs.storage || null;
 
   const priceBlock = hasPromo ? (
     <>
@@ -124,12 +159,12 @@ export function FlipCard({
             {sku && <p className="caption" style={{ margin: "2px 0 0" }}>{sku}</p>}
             {isLaptop ? (
               <div className="flip-card-specs">
-                {screenSize && <div className="flip-spec-row"><span>Screen</span><span>{screenSize}</span></div>}
-                {(resolution || maxResolution) && <div className="flip-spec-row"><span>Resolution</span><span>{resolution || maxResolution}</span></div>}
-                {cpu && <div className="flip-spec-row"><span>CPU</span><span>{cpu}</span></div>}
-                {ramMemory && <div className="flip-spec-row"><span>RAM</span><span>{ramMemory} GB</span></div>}
-                {(ssdSize || storage) && <div className="flip-spec-row"><span>Storage</span><span>{ssdSize ? `${ssdSize} GB SSD` : storage}</span></div>}
-                {gpu && <div className="flip-spec-row"><span>GPU</span><span>{gpu}</span></div>}
+                {displayScreenSize && <div className="flip-spec-row"><span>Screen</span><span>{displayScreenSize}</span></div>}
+                {displayResolution && <div className="flip-spec-row"><span>Resolution</span><span>{displayResolution}</span></div>}
+                {displayCpu && <div className="flip-spec-row"><span>CPU</span><span>{displayCpu}</span></div>}
+                {displayRamMemory && <div className="flip-spec-row"><span>RAM</span><span>{displayRamMemory} GB</span></div>}
+                {displayStorage && <div className="flip-spec-row"><span>Storage</span><span>{displayStorage}</span></div>}
+                {displayGpu && <div className="flip-spec-row"><span>GPU</span><span>{displayGpu}</span></div>}
                 {brand && <div className="flip-spec-row"><span>Brand</span><span>{brand}</span></div>}
               </div>
             ) : isDisplay ? (

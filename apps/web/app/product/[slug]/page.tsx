@@ -9,6 +9,36 @@ import { fmtPrice } from "../../../lib/format";
 
 export const runtime = 'edge';
 
+const stripHtml = (value: string) =>
+  value
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const deriveSpecsFromDescription = (description?: string | null) => {
+  const text = typeof description === "string" ? stripHtml(description) : "";
+  if (!text) return {};
+
+  const cpu = text.match(/((?:AMD|Intel)[^.|]*?Processor[^.]*)/i)?.[1]?.trim() ?? null;
+  const gpu = text.match(/((?:NVIDIA|AMD)[^.|]*(?:GeForce|RTX|Radeon)[^.]*)/i)?.[1]?.trim() ?? null;
+  const screenSize = text.match(/(\d+(?:[.,]\d+)?)\s*cm\s*\(/i)?.[1]?.replace(",", ".") ?? null;
+  const resolution = text.match(/(\d{3,4}\s*x\s*\d{3,4})/i)?.[1]?.replace(/\s+/g, "") ?? null;
+  const refreshRate = text.match(/(\d{2,3})\s*Hz/i)?.[1];
+  const ramMemory = text.match(/(\d+)\s*GB,\s*(?:DDR|LPDDR)/i)?.[1];
+  const storageMatch = text.match(/(\d+(?:[.,]\d+)?)\s*(TB|GB)\s+SSD/i);
+
+  return {
+    cpu,
+    gpu,
+    screenSize,
+    resolution,
+    refreshRate: refreshRate ? Number(refreshRate) : null,
+    ramMemory: ramMemory ? Number(ramMemory) : null,
+    storage: storageMatch ? `${storageMatch[1].replace(",", ".")} ${storageMatch[2].toUpperCase()} SSD` : null,
+  };
+};
+
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ currency?: Currency }>;
@@ -86,18 +116,19 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
     .replace(/^-+|-+$/g, "");
   const collectionLabel =
     collectionByKey[collectionKey as keyof typeof collectionByKey]?.label || product.collection || product.category;
+  const derivedSpecs = deriveSpecsFromDescription(product.description);
   const attributeValueMap = new Map<string, string>();
   if (product.brand) attributeValueMap.set("brand", product.brand);
-  if (product.cpu) attributeValueMap.set("cpu", product.cpu);
-  if (product.gpu) attributeValueMap.set("gpu", product.gpu);
-  if (product.ramMemory) attributeValueMap.set("ram", `${product.ramMemory} GB`);
-  if (product.storage) attributeValueMap.set("storage", product.storage);
+  if (product.cpu || derivedSpecs.cpu) attributeValueMap.set("cpu", product.cpu || derivedSpecs.cpu || "");
+  if (product.gpu || derivedSpecs.gpu) attributeValueMap.set("gpu", product.gpu || derivedSpecs.gpu || "");
+  if (product.ramMemory || derivedSpecs.ramMemory) attributeValueMap.set("ram", `${product.ramMemory || derivedSpecs.ramMemory} GB`);
+  if (product.storage || derivedSpecs.storage) attributeValueMap.set("storage", product.storage || derivedSpecs.storage || "");
   if (product.ssdSize) attributeValueMap.set("ssd", `${product.ssdSize} GB`);
-  if (product.screenSize) attributeValueMap.set("screen_size", product.screenSize);
+  if (product.screenSize || derivedSpecs.screenSize) attributeValueMap.set("screen_size", product.screenSize || derivedSpecs.screenSize || "");
   if (product.displayType) attributeValueMap.set("display_type", product.displayType);
-  if (product.resolution) attributeValueMap.set("resolution", product.resolution);
+  if (product.resolution || derivedSpecs.resolution) attributeValueMap.set("resolution", product.resolution || derivedSpecs.resolution || "");
   if (product.maxResolution) attributeValueMap.set("max_resolution", product.maxResolution);
-  if (product.refreshRate) attributeValueMap.set("refresh_rate", `${product.refreshRate} Hz`);
+  if (product.refreshRate || derivedSpecs.refreshRate) attributeValueMap.set("refresh_rate", `${product.refreshRate || derivedSpecs.refreshRate} Hz`);
   if (product.keyboardLayout) attributeValueMap.set("keyboard_layout", product.keyboardLayout);
   if (product.usage) attributeValueMap.set("usage", product.usage);
 
