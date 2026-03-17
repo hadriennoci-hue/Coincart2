@@ -14,6 +14,7 @@ export const syncStartResponseSchema = z.object({
 export const syncedProductSchema = z.object({
   sku: z.string().min(1).max(120),
   slug: z.string().min(1).max(160),
+  collection: z.string().max(120).optional(),
   category: z.string().max(120).optional(),
   name: z.string().min(1).max(220),
   description: z.string().max(2000).optional(),

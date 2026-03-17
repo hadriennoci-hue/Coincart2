@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { fetchCollections, fetchProducts, fetchTopSellingProducts, type Currency } from "../lib/api";
-import { collectionMeta } from "../lib/collections";
+import { collectionByKey, collectionMeta } from "../lib/collections";
 import { FlipCard } from "../components/ui/FlipCard";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
 import { PredatorHero } from "../components/ui/PredatorHero";
@@ -81,9 +81,11 @@ export default async function Home({
   const topSellingFromSales = await fetchTopSellingProducts(currency, 4);
   const hero =
     items.find((item) => item.sku === HOME_HERO_SKU) ??
-    items.find((item) => item.category === "Laptops") ??
+    items.find((item) => item.collection === "laptops") ??
     items[0];
-  const heroCategory = (hero?.category || "").toLowerCase();
+  const heroCategory = (hero?.collection || hero?.category || "").toLowerCase();
+  const heroCategoryLabel =
+    collectionByKey[heroCategory as keyof typeof collectionByKey]?.label || hero?.collection || hero?.category;
   const heroIsLaptop = heroCategory.includes("laptop");
   const heroIsMonitor = heroCategory.includes("monitor") || heroCategory.includes("display");
   const heroSpecs = !hero
@@ -149,14 +151,14 @@ export default async function Home({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(topJsonLd) }} />
       <PredatorHero
         name={hero?.name || "Featured Product"}
-        category={hero?.category}
+        category={heroCategoryLabel}
         description={hero?.description}
         specs={heroSpecs}
         price={hero?.price || 0}
         promoPrice={hero?.promoPrice}
         currency={hero?.currency || currency}
         stockQty={hero?.stockQty || 0}
-        href={hero ? `/product/${hero.slug}?currency=${currency}` : `/search?currency=${currency}&category=Laptops`}
+        href={hero ? `/product/${hero.slug}?currency=${currency}` : `/search?currency=${currency}&collection=laptops`}
       />
 
       {/* Trust strip */}

@@ -5,17 +5,19 @@ import { useRouter } from "next/navigation";
 
 type VariantOption = {
   slug: string;
-  keyboardLayout: string;
+  label: string;
   sku: string;
 };
 
 export function ProductVariantSelect({
   currency,
   currentSlug,
+  label,
   options,
 }: {
   currency: "EUR" | "USD";
   currentSlug: string;
+  label: string;
   options: VariantOption[];
 }) {
   const router = useRouter();
@@ -28,11 +30,11 @@ export function ProductVariantSelect({
 
   return (
     <label className="form-label" style={{ gap: 6 }}>
-      Keyboard Layout
-      <select className="select" value={currentSlug} onChange={onChange} aria-label="Keyboard Layout">
+      {label}
+      <select className="select" value={currentSlug} onChange={onChange} aria-label={label}>
         {options.map((option) => (
           <option key={option.slug} value={option.slug}>
-            {option.keyboardLayout} ({option.sku})
+            {option.label} ({option.sku})
           </option>
         ))}
       </select>

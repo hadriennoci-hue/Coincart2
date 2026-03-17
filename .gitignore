@@ -4,9 +4,5 @@ node_modules/
 apps/web/.next/
 *.log
 *.tmp
-apps/api/.env
-apps/api/.env.dev
-apps/api/.dev.vars
-apps/web/.env.local
-local/
+.coincart.env.local
 tools/

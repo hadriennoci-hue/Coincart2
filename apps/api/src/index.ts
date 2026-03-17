@@ -16,20 +16,26 @@ const stripWrappingQuotes = (value: string) => {
 
 const loadLocalDevVars = () => {
   const currentDir = dirname(fileURLToPath(import.meta.url));
-  const devVarsPath = resolve(currentDir, "../.dev.vars");
-  if (!existsSync(devVarsPath)) return;
+  const candidatePaths = [
+    resolve(currentDir, "../../../.coincart.env.local"),
+    resolve(currentDir, "../.dev.vars"),
+  ];
 
-  const lines = readFileSync(devVarsPath, "utf8").split(/\r?\n/);
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-    if (!line || line.startsWith("#")) continue;
-    const separatorIndex = line.indexOf("=");
-    if (separatorIndex <= 0) continue;
+  for (const filePath of candidatePaths) {
+    if (!existsSync(filePath)) continue;
 
-    const key = line.slice(0, separatorIndex).trim();
-    const value = stripWrappingQuotes(line.slice(separatorIndex + 1).trim());
-    if (!key || process.env[key] !== undefined) continue;
-    process.env[key] = value;
+    const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line || line.startsWith("#")) continue;
+      const separatorIndex = line.indexOf("=");
+      if (separatorIndex <= 0) continue;
+
+      const key = line.slice(0, separatorIndex).trim();
+      const value = stripWrappingQuotes(line.slice(separatorIndex + 1).trim());
+      if (!key || process.env[key] !== undefined) continue;
+      process.env[key] = value;
+    }
   }
 };
 

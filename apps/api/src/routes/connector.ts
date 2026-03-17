@@ -29,6 +29,51 @@ const parsePrice = (value: unknown) => {
   return null;
 };
 
+const resolveGroupingValue = (collection?: string | null, category?: string | null) => collection ?? category ?? null;
+
+const normalizeVisibilityStatus = (value: unknown) => {
+  if (typeof value !== "string") return undefined;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return undefined;
+  if (normalized === "active") return "publish";
+  return normalized;
+};
+
+const parseStockQuantity = (payload: Record<string, unknown>) => {
+  if (typeof payload.stock_quantity === "number") return Math.max(0, Math.trunc(payload.stock_quantity));
+  if (typeof payload.stock === "number") return Math.max(0, Math.trunc(payload.stock));
+  if (typeof payload.in_stock === "boolean" && payload.in_stock === false) return 0;
+  return 0;
+};
+
+const parseRegularPrice = (payload: Record<string, unknown>) =>
+  parsePrice(payload.regular_price) ??
+  parsePrice(payload.price_eur) ??
+  parsePrice((payload.prices as Record<string, unknown> | undefined)?.EUR) ??
+  parsePrice(payload.compareAt) ??
+  parsePrice(payload.price);
+
+const parseUsdPrice = (payload: Record<string, unknown>) =>
+  parsePrice(payload.price_usd) ??
+  parsePrice((payload.prices as Record<string, unknown> | undefined)?.USD);
+
+const parseSalePriceEur = (payload: Record<string, unknown>) => {
+  const explicit =
+    parsePrice(payload.sale_price) ??
+    parsePrice(payload.sale_price_eur) ??
+    parsePrice((payload.prices as Record<string, unknown> | undefined)?.SALE_EUR);
+  if (explicit !== null) return explicit;
+
+  const compareAt = parsePrice(payload.compareAt);
+  const activePrice = parsePrice(payload.price);
+  if (compareAt !== null && activePrice !== null && activePrice < compareAt) return activePrice;
+  return null;
+};
+
+const parseSalePriceUsd = (payload: Record<string, unknown>) =>
+  parsePrice(payload.sale_price_usd) ??
+  parsePrice((payload.prices as Record<string, unknown> | undefined)?.SALE_USD);
+
 const parseVariantOptionFromAttributes = (attributes: unknown) => {
   if (!Array.isArray(attributes)) return { optionName: undefined as string | undefined, optionValue: undefined as string | undefined };
   for (const raw of attributes as Array<Record<string, unknown>>) {
@@ -52,11 +97,13 @@ const parseVariantOption = (variant: Record<string, unknown>, fallbackOptionName
   const optionName =
     (typeof variant.option_name === "string" && variant.option_name.trim()) ||
     (typeof variant.optionName === "string" && variant.optionName.trim()) ||
+    (typeof variant.optionName1 === "string" && variant.optionName1.trim()) ||
     fallbackOptionName ||
     undefined;
   const optionValue =
     (typeof variant.option_value === "string" && variant.option_value.trim()) ||
     (typeof variant.optionValue === "string" && variant.optionValue.trim()) ||
+    (typeof variant.option1 === "string" && variant.option1.trim()) ||
     (typeof variant.option === "string" && variant.option.trim()) ||
     undefined;
 
@@ -77,11 +124,13 @@ const parseDirectOptionFields = (payload: Record<string, unknown>, fallbackOptio
   const optionName =
     (typeof payload.option_name === "string" && payload.option_name.trim()) ||
     (typeof payload.optionName === "string" && payload.optionName.trim()) ||
+    (typeof payload.optionName1 === "string" && payload.optionName1.trim()) ||
     fallbackOptionName ||
     undefined;
   const optionValue =
     (typeof payload.option_value === "string" && payload.option_value.trim()) ||
     (typeof payload.optionValue === "string" && payload.optionValue.trim()) ||
+    (typeof payload.option1 === "string" && payload.option1.trim()) ||
     (typeof payload.option === "string" && payload.option.trim()) ||
     undefined;
 
@@ -127,6 +176,17 @@ const toIsoString = (value: unknown) => {
 };
 
 const resolveCategory = (payload: Record<string, unknown>) => {
+  if (Array.isArray(payload.collections) && payload.collections.length > 0) {
+    const first = payload.collections[0] as unknown;
+    if (typeof first === "string" && first.trim().length > 0) return first.trim();
+    if (first && typeof first === "object") {
+      const entry = first as { handle?: string; name?: string; key?: string; slug?: string };
+      if (typeof entry.handle === "string" && entry.handle.trim().length > 0) return entry.handle.trim();
+      if (typeof entry.key === "string" && entry.key.trim().length > 0) return entry.key.trim();
+      if (typeof entry.slug === "string" && entry.slug.trim().length > 0) return entry.slug.trim();
+      if (typeof entry.name === "string" && entry.name.trim().length > 0) return entry.name.trim();
+    }
+  }
   if (typeof payload.category === "string" && payload.category.trim().length > 0) {
     return payload.category.trim();
   }
@@ -313,6 +373,7 @@ const toWooLikeProduct = (
     optionValue?: string | null;
     sku: string;
     slug: string;
+    collection?: string | null;
     category: string | null;
     name: string;
     description: string | null;
@@ -390,6 +451,8 @@ const toWooLikeProduct = (
       ? [product.imageUrl]
       : [];
 
+  const grouping = resolveGroupingValue(product.collection, product.category);
+
   return {
     id: product.wooId ?? product.id,
     uuid: product.id,
@@ -401,8 +464,9 @@ const toWooLikeProduct = (
     name: product.name,
     status: product.visibilityStatus,
     description: product.description,
-    category: product.category,
-    categories: product.category ? [{ name: product.category }] : [],
+    collection: grouping,
+    category: grouping,
+    categories: grouping ? [{ name: grouping }] : [],
     attributes,
     meta_data: product.ean ? [{ key: "ean", value: product.ean }] : [],
     manage_stock: true,
@@ -715,6 +779,7 @@ connectorRoutes.get("/products/:parentId/variations", async (c) => {
       optionValue: products.optionValue,
       sku: products.sku,
       slug: products.slug,
+      collection: products.collection,
       category: products.category,
       name: products.name,
       description: products.description,
@@ -781,6 +846,7 @@ connectorRoutes.get("/products/:id", async (c) => {
       optionValue: products.optionValue,
       sku: products.sku,
       slug: products.slug,
+      collection: products.collection,
       category: products.category,
       name: products.name,
       description: products.description,
@@ -843,7 +909,7 @@ connectorRoutes.get("/products", async (c) => {
     status === "any" ? sql`true` : eq(products.visibilityStatus, status),
     sku ? eq(products.sku, sku) : sql`true`,
     search
-      ? sql`(${products.name} ILIKE ${`%${search}%`} OR ${products.sku} ILIKE ${`%${search}%`} OR ${products.category} ILIKE ${`%${search}%`})`
+      ? sql`(${products.name} ILIKE ${`%${search}%`} OR ${products.sku} ILIKE ${`%${search}%`} OR COALESCE(${products.collection}, ${products.category}) ILIKE ${`%${search}%`})`
       : sql`true`,
   );
 
@@ -857,6 +923,7 @@ connectorRoutes.get("/products", async (c) => {
       optionValue: products.optionValue,
       sku: products.sku,
       slug: products.slug,
+      collection: products.collection,
       category: products.category,
       name: products.name,
       description: products.description,
@@ -991,16 +1058,26 @@ connectorRoutes.post("/products/:id", async (c) => {
   if (!body) return c.json(connectorError("Invalid JSON body"), 400);
 
   const updatePayload: Partial<typeof products.$inferInsert> = {};
+  const normalizedStatus = normalizeVisibilityStatus(body.status);
 
   if (typeof body.name === "string") updatePayload.name = body.name;
+  else if (typeof body.title === "string") updatePayload.name = body.title;
   if (typeof body.slug === "string") updatePayload.slug = body.slug;
   if (typeof body.description === "string") updatePayload.description = body.description;
   if (typeof body.sku === "string") updatePayload.sku = body.sku;
-  if (typeof body.status === "string") updatePayload.visibilityStatus = body.status;
-  if (typeof body.stock_quantity === "number") updatePayload.stockQty = Math.max(0, Math.trunc(body.stock_quantity));
-  if (typeof body.in_stock === "boolean" && body.in_stock === false) updatePayload.stockQty = 0;
+  if (normalizedStatus) updatePayload.visibilityStatus = normalizedStatus;
+  if (
+    typeof body.stock_quantity === "number" ||
+    typeof body.stock === "number" ||
+    (typeof body.in_stock === "boolean" && body.in_stock === false)
+  ) {
+    updatePayload.stockQty = parseStockQuantity(body);
+  }
   const resolvedCategory = resolveCategory(body);
-  if (resolvedCategory !== undefined) updatePayload.category = resolvedCategory;
+  if (resolvedCategory !== undefined) {
+    updatePayload.collection = resolvedCategory;
+    updatePayload.category = resolvedCategory;
+  }
   const resolvedImageUrls = resolveImageUrls(body);
   if (resolvedImageUrls.length > 0) {
     updatePayload.imageUrl = resolvedImageUrls[0];
@@ -1045,6 +1122,7 @@ connectorRoutes.post("/products/:id", async (c) => {
       isVariant: products.isVariant,
       name: products.name,
       slug: products.slug,
+      collection: products.collection,
       category: products.category,
       visibilityStatus: products.visibilityStatus,
       imageUrl: products.imageUrl,
@@ -1072,20 +1150,10 @@ connectorRoutes.post("/products/:id", async (c) => {
     .limit(1);
   if (!resolvedProduct) return c.json(connectorError("Product not found", 404), 404);
 
-  const priceEur =
-    parsePrice(body.regular_price) ??
-    parsePrice(body.price_eur) ??
-    parsePrice((body.prices as Record<string, unknown> | undefined)?.EUR);
-  const priceUsd =
-    parsePrice(body.price_usd) ??
-    parsePrice((body.prices as Record<string, unknown> | undefined)?.USD);
-  const salePriceEur =
-    parsePrice(body.sale_price) ??
-    parsePrice(body.sale_price_eur) ??
-    parsePrice((body.prices as Record<string, unknown> | undefined)?.SALE_EUR);
-  const salePriceUsd =
-    parsePrice(body.sale_price_usd) ??
-    parsePrice((body.prices as Record<string, unknown> | undefined)?.SALE_USD);
+  const priceEur = parseRegularPrice(body);
+  const priceUsd = parseUsdPrice(body);
+  const salePriceEur = parseSalePriceEur(body);
+  const salePriceUsd = parseSalePriceUsd(body);
 
   if (salePriceEur !== null) updatePayload.salePriceEur = salePriceEur.toFixed(2);
   if (salePriceUsd !== null) updatePayload.salePriceUsd = salePriceUsd.toFixed(2);
@@ -1107,7 +1175,8 @@ connectorRoutes.post("/products/:id", async (c) => {
 
   const variantsInput = parseVariantsInput(body);
   const fallbackOptionName = parseFirstOptionName(body);
-  const replaceVariants = body.replace_variants === true || body.replace_variations === true;
+  const replaceVariants =
+    body.replace_variants === true || body.replace_variations === true || body.replaceVariants === true;
   if (variantsInput.length > 0) {
     const parentId = resolvedProduct.id;
     const parentMappedDefaults: Partial<typeof products.$inferInsert> = {
@@ -1138,6 +1207,8 @@ connectorRoutes.post("/products/:id", async (c) => {
       const variantName =
         typeof variant.name === "string" && variant.name.trim()
           ? variant.name.trim()
+          : typeof variant.title === "string" && variant.title.trim()
+            ? variant.title.trim()
           : option.optionValue
             ? `${resolvedProduct.name} - ${option.optionValue}`
             : `${resolvedProduct.name} - ${variantSku}`;
@@ -1145,24 +1216,15 @@ connectorRoutes.post("/products/:id", async (c) => {
         typeof variant.slug === "string" && variant.slug.trim()
           ? variant.slug.trim()
           : slugify(variantName || variantSku);
-      const variantStockQty =
-        typeof variant.stock_quantity === "number"
-          ? Math.max(0, Math.trunc(variant.stock_quantity))
-          : variant.in_stock === false
-            ? 0
-            : 0;
+      const variantStockQty = parseStockQuantity(variant);
       const variantImageUrls = resolveImageUrls(variant);
       const variantMappedRaw = extractMappedProductFieldsFromAttributes(variant.attributes);
       const variantMappedAttrs = { ...parentMappedDefaults, ...variantMappedRaw };
       const variantExtraRaw = extractExtraAttributesFromAttributes(variant.attributes, variantMappedRaw);
       const variantExtraAttrs = mergeExtraAttributes(parentExtraDefaults, variantExtraRaw);
-      const variantSaleEur =
-        parsePrice(variant.sale_price) ??
-        parsePrice(variant.sale_price_eur) ??
-        parsePrice((variant.prices as Record<string, unknown> | undefined)?.SALE_EUR);
-      const variantSaleUsd =
-        parsePrice(variant.sale_price_usd) ??
-        parsePrice((variant.prices as Record<string, unknown> | undefined)?.SALE_USD);
+      const variantSaleEur = parseSalePriceEur(variant);
+      const variantSaleUsd = parseSalePriceUsd(variant);
+      const variantStatus = normalizeVisibilityStatus(variant.status) ?? resolvedProduct.visibilityStatus;
       const insertValues: typeof products.$inferInsert = {
         wooId:
           typeof variant.id === "number"
@@ -1176,16 +1238,14 @@ connectorRoutes.post("/products/:id", async (c) => {
         optionValue: option.optionValue ?? null,
         sku: variantSku,
         slug: variantSlug,
-        category: resolvedProduct.category ?? null,
+        collection: resolvedProduct.collection ?? resolvedProduct.category ?? null,
+        category: resolvedProduct.collection ?? resolvedProduct.category ?? null,
         name: variantName,
         description:
           typeof variant.description === "string"
             ? variant.description
             : resolvedProduct.description ?? null,
-        visibilityStatus:
-          typeof variant.status === "string"
-            ? variant.status
-            : resolvedProduct.visibilityStatus,
+        visibilityStatus: variantStatus,
         brand:
           typeof variant.brand === "string" && variant.brand.trim()
             ? variant.brand.trim()
@@ -1216,16 +1276,14 @@ connectorRoutes.post("/products/:id", async (c) => {
         optionName: option.optionName ?? null,
         optionValue: option.optionValue ?? null,
         slug: variantSlug,
-        category: resolvedProduct.category ?? null,
+        collection: resolvedProduct.collection ?? resolvedProduct.category ?? null,
+        category: resolvedProduct.collection ?? resolvedProduct.category ?? null,
         name: variantName,
         description:
           typeof variant.description === "string"
             ? variant.description
             : resolvedProduct.description ?? null,
-        visibilityStatus:
-          typeof variant.status === "string"
-            ? variant.status
-            : resolvedProduct.visibilityStatus,
+        visibilityStatus: variantStatus,
         brand:
           typeof variant.brand === "string" && variant.brand.trim()
             ? variant.brand.trim()
@@ -1245,13 +1303,8 @@ connectorRoutes.post("/products/:id", async (c) => {
       keepVariantIds.push(saved.id);
       variantIds.push(saved.wooId ?? saved.id);
 
-      const variantEur =
-        parsePrice(variant.regular_price) ??
-        parsePrice(variant.price_eur) ??
-        parsePrice((variant.prices as Record<string, unknown> | undefined)?.EUR);
-      const variantUsd =
-        parsePrice(variant.price_usd) ??
-        parsePrice((variant.prices as Record<string, unknown> | undefined)?.USD);
+      const variantEur = parseRegularPrice(variant);
+      const variantUsd = parseUsdPrice(variant);
       if (variantEur !== null) await upsertPrice(c, saved.id, "EUR", variantEur);
       if (variantUsd !== null) await upsertPrice(c, saved.id, "USD", variantUsd);
     }
@@ -1282,7 +1335,12 @@ connectorRoutes.post("/products", async (c) => {
   if (!body) return c.json(connectorError("Invalid JSON body"), 400);
 
   const sku = typeof body.sku === "string" ? body.sku.trim() : "";
-  const name = typeof body.name === "string" ? body.name.trim() : "";
+  const name =
+    typeof body.name === "string" && body.name.trim().length > 0
+      ? body.name.trim()
+      : typeof body.title === "string" && body.title.trim().length > 0
+        ? body.title.trim()
+        : "";
   if (!sku || !name) return c.json(connectorError("sku and name are required"), 400);
 
   const slug =
@@ -1293,6 +1351,7 @@ connectorRoutes.post("/products", async (c) => {
   const resolvedImageUrls = resolveImageUrls(body);
   const mappedFromAttributes = extractMappedProductFieldsFromAttributes(body.attributes);
   const extraFromAttributes = extractExtraAttributesFromAttributes(body.attributes, mappedFromAttributes);
+  const normalizedStatus = normalizeVisibilityStatus(body.status) ?? "publish";
 
   let brand: string | undefined;
   if (Array.isArray(body.attributes)) {
@@ -1319,13 +1378,8 @@ connectorRoutes.post("/products", async (c) => {
     const eanMeta = (body.meta_data as Array<{ key?: string; value?: string }>).find((x) => x.key === "ean");
     if (eanMeta?.value) ean = String(eanMeta.value);
   }
-  const salePriceEur =
-    parsePrice(body.sale_price) ??
-    parsePrice(body.sale_price_eur) ??
-    parsePrice((body.prices as Record<string, unknown> | undefined)?.SALE_EUR);
-  const salePriceUsd =
-    parsePrice(body.sale_price_usd) ??
-    parsePrice((body.prices as Record<string, unknown> | undefined)?.SALE_USD);
+  const salePriceEur = parseSalePriceEur(body);
+  const salePriceUsd = parseSalePriceUsd(body);
 
   const insertValues: typeof products.$inferInsert = {
     wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : null,
@@ -1341,7 +1395,8 @@ connectorRoutes.post("/products", async (c) => {
     slug,
     name,
     description: typeof body.description === "string" ? body.description : null,
-    visibilityStatus: typeof body.status === "string" ? body.status : "publish",
+    visibilityStatus: normalizedStatus,
+    collection: category ?? null,
     category: category ?? null,
     brand: brand ?? null,
     ean: ean ?? null,
@@ -1349,12 +1404,7 @@ connectorRoutes.post("/products", async (c) => {
     ...(salePriceUsd !== null ? { salePriceUsd: salePriceUsd.toFixed(2) } : {}),
     ...mappedFromAttributes,
     ...(extraFromAttributes.length > 0 ? { extraAttributes: extraFromAttributes } : {}),
-    stockQty:
-      typeof body.stock_quantity === "number"
-        ? Math.max(0, Math.trunc(body.stock_quantity))
-        : body.in_stock === false
-          ? 0
-          : 0,
+    stockQty: parseStockQuantity(body),
     imageUrl: resolvedImageUrls[0] ?? null,
     imageUrls: resolvedImageUrls,
   };
@@ -1371,7 +1421,8 @@ connectorRoutes.post("/products", async (c) => {
     slug,
     name,
     description: typeof body.description === "string" ? body.description : null,
-    visibilityStatus: typeof body.status === "string" ? body.status : "publish",
+    visibilityStatus: normalizedStatus,
+    collection: category ?? null,
     category: category ?? null,
     brand: brand ?? null,
     ean: ean ?? null,
@@ -1385,13 +1436,8 @@ connectorRoutes.post("/products", async (c) => {
   };
   const created = await upsertProductBySku(c, sku, insertValues, updateValues);
 
-  const priceEur =
-    parsePrice(body.regular_price) ??
-    parsePrice(body.price_eur) ??
-    parsePrice((body.prices as Record<string, unknown> | undefined)?.EUR);
-  const priceUsd =
-    parsePrice(body.price_usd) ??
-    parsePrice((body.prices as Record<string, unknown> | undefined)?.USD);
+  const priceEur = parseRegularPrice(body);
+  const priceUsd = parseUsdPrice(body);
 
   if (priceEur !== null) {
     await upsertPrice(c, created.id, "EUR", priceEur);
@@ -1415,6 +1461,8 @@ connectorRoutes.post("/products", async (c) => {
     const variantName =
       typeof variant.name === "string" && variant.name.trim()
         ? variant.name.trim()
+        : typeof variant.title === "string" && variant.title.trim()
+          ? variant.title.trim()
         : option.optionValue
           ? `${name} - ${option.optionValue}`
           : `${name} - ${variantSku}`;
@@ -1422,24 +1470,15 @@ connectorRoutes.post("/products", async (c) => {
       typeof variant.slug === "string" && variant.slug.trim()
         ? variant.slug.trim()
         : slugify(variantName || variantSku);
-    const variantStockQty =
-      typeof variant.stock_quantity === "number"
-        ? Math.max(0, Math.trunc(variant.stock_quantity))
-        : variant.in_stock === false
-          ? 0
-          : 0;
+    const variantStockQty = parseStockQuantity(variant);
     const variantImageUrls = resolveImageUrls(variant);
     const variantMappedRaw = extractMappedProductFieldsFromAttributes(variant.attributes);
     const variantMappedAttrs = { ...parentMappedDefaults, ...variantMappedRaw };
     const variantExtraRaw = extractExtraAttributesFromAttributes(variant.attributes, variantMappedRaw);
     const variantExtraAttrs = mergeExtraAttributes(parentExtraDefaults, variantExtraRaw);
-    const variantSaleEur =
-      parsePrice(variant.sale_price) ??
-      parsePrice(variant.sale_price_eur) ??
-      parsePrice((variant.prices as Record<string, unknown> | undefined)?.SALE_EUR);
-    const variantSaleUsd =
-      parsePrice(variant.sale_price_usd) ??
-      parsePrice((variant.prices as Record<string, unknown> | undefined)?.SALE_USD);
+    const variantSaleEur = parseSalePriceEur(variant);
+    const variantSaleUsd = parseSalePriceUsd(variant);
+    const variantStatus = normalizeVisibilityStatus(variant.status) ?? "publish";
 
     const variantInsertValues: typeof products.$inferInsert = {
       wooId:
@@ -1454,10 +1493,11 @@ connectorRoutes.post("/products", async (c) => {
       optionValue: option.optionValue ?? null,
       sku: variantSku,
       slug: variantSlug,
+      collection: category ?? null,
       category: category ?? null,
       name: variantName,
       description: typeof variant.description === "string" ? variant.description : null,
-      visibilityStatus: typeof variant.status === "string" ? variant.status : "publish",
+      visibilityStatus: variantStatus,
       brand:
         typeof variant.brand === "string" && variant.brand.trim()
           ? variant.brand.trim()
@@ -1482,10 +1522,11 @@ connectorRoutes.post("/products", async (c) => {
       optionName: option.optionName ?? null,
       optionValue: option.optionValue ?? null,
       slug: variantSlug,
+      collection: category ?? null,
       category: category ?? null,
       name: variantName,
       description: typeof variant.description === "string" ? variant.description : null,
-      visibilityStatus: typeof variant.status === "string" ? variant.status : "publish",
+      visibilityStatus: variantStatus,
       brand:
         typeof variant.brand === "string" && variant.brand.trim()
           ? variant.brand.trim()
@@ -1501,13 +1542,8 @@ connectorRoutes.post("/products", async (c) => {
     };
     const savedVariant = await upsertProductBySku(c, variantSku, variantInsertValues, variantUpdateValues);
 
-    const variantEur =
-      parsePrice(variant.regular_price) ??
-      parsePrice(variant.price_eur) ??
-      parsePrice((variant.prices as Record<string, unknown> | undefined)?.EUR);
-    const variantUsd =
-      parsePrice(variant.price_usd) ??
-      parsePrice((variant.prices as Record<string, unknown> | undefined)?.USD);
+    const variantEur = parseRegularPrice(variant);
+    const variantUsd = parseUsdPrice(variant);
     if (variantEur !== null) await upsertPrice(c, savedVariant.id, "EUR", variantEur);
     if (variantUsd !== null) await upsertPrice(c, savedVariant.id, "USD", variantUsd);
     variantIds.push(savedVariant.wooId ?? savedVariant.id);

@@ -21,6 +21,7 @@ export const catalogRoutes = new Hono<AppContext>();
 catalogRoutes.get("/products", async (c) => {
   const featured = c.req.query("featured") === "true";
   const sort = c.req.query("sort");
+  const collectionFilter = c.req.query("collection")?.trim() || c.req.query("category")?.trim();
   const currency = currencySchema.safeParse(c.req.query("currency") ?? "EUR");
   if (!currency.success) {
     return c.json({ error: "invalid currency" }, 400);
@@ -30,7 +31,7 @@ catalogRoutes.get("/products", async (c) => {
     featuredOnly: featured,
     search: c.req.query("q")?.trim(),
     category: c.req.query("category")?.trim(),
-    collection: c.req.query("collection")?.trim(),
+    collection: collectionFilter,
     keyboardLayout: c.req.query("keyboard_layout")?.trim(),
     usage: c.req.query("usage")?.trim(),
     screenSize: c.req.query("screen_size")?.trim(),

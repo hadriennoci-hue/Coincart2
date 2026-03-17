@@ -7,7 +7,7 @@
   "types": "src/index.ts",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "cf:dev": "wrangler dev",
+    "cf:dev": "powershell -ExecutionPolicy Bypass -File ..\\..\\scripts\\run-with-root-env.ps1 pnpm exec wrangler dev",
     "cf:deploy": "wrangler deploy",
     "build": "echo build-api",
     "typecheck": "tsc -p tsconfig.json --noEmit"

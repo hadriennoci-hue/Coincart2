@@ -1,9 +1,10 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { AddToCartButton } from "../../../components/AddToCartButton";
 import { ProductVariantSelect } from "../../../components/ProductVariantSelect";
 import { ProductImageGallery } from "../../../components/ProductImageGallery";
-import { fetchProductBySlug, fetchProducts, type Currency } from "../../../lib/api";
+import { fetchProductBySlug, type Currency } from "../../../lib/api";
+import { collectionByKey } from "../../../lib/collections";
 import { fmtPrice } from "../../../lib/format";
 
 export const runtime = 'edge';
@@ -48,23 +49,26 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   const product = await fetchProductBySlug(slug, currency);
   if (!product) return notFound();
 
-  const allProducts = await fetchProducts(currency, false);
-  const productNameKey = product.name.trim().toLowerCase();
-  const productCategoryKey = (product.category || "").trim().toLowerCase();
-  const variantOptions = allProducts
-    .filter((item) => {
-      if (!item.keyboardLayout) return false;
-      const itemNameKey = item.name.trim().toLowerCase();
-      const itemCategoryKey = (item.category || "").trim().toLowerCase();
-      return itemNameKey === productNameKey && itemCategoryKey === productCategoryKey;
-    })
+  const variants = Array.isArray(product.variants) ? product.variants : [];
+  if (!product.isVariant && variants.length > 0) {
+    const defaultVariant = variants.find((item) => item.stockQty > 0) ?? variants[0];
+    if (defaultVariant) {
+      redirect(`/product/${defaultVariant.slug}?currency=${currency}`);
+    }
+  }
+
+  const variantLabel =
+    product.optionName ||
+    variants.find((item) => item.optionName)?.optionName ||
+    "Variant";
+  const variantOptions = variants
     .map((item) => ({
       slug: item.slug,
-      keyboardLayout: item.keyboardLayout as string,
+      label: item.optionValue || item.keyboardLayout || item.name,
       sku: item.sku,
     }))
-    .sort((a, b) => a.keyboardLayout.localeCompare(b.keyboardLayout));
-  const hasVariants = variantOptions.length > 1;
+    .sort((a, b) => a.label.localeCompare(b.label));
+  const hasVariants = variantOptions.length > 0;
 
   const imageGallery =
     Array.isArray(product.imageUrls) && product.imageUrls.length > 0
@@ -80,6 +84,8 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+  const collectionLabel =
+    collectionByKey[collectionKey as keyof typeof collectionByKey]?.label || product.collection || product.category;
   const attributeValueMap = new Map<string, string>();
   if (product.brand) attributeValueMap.set("brand", product.brand);
   if (product.cpu) attributeValueMap.set("cpu", product.cpu);
@@ -208,9 +214,9 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
 
         {/* Right: All product info */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {product.category && (
+          {collectionLabel && (
             <span className="badge badge-teal" style={{ alignSelf: "flex-start" }}>
-              {product.category}
+              {collectionLabel}
             </span>
           )}
 
@@ -266,6 +272,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             <ProductVariantSelect
               currency={currency}
               currentSlug={product.slug}
+              label={variantLabel}
               options={variantOptions}
             />
           )}

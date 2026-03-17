@@ -10,7 +10,7 @@ export const runtime = "edge";
 
 export const metadata: Metadata = {
   title: "Search",
-  description: "Search Coincart products by category, specs, and usage.",
+  description: "Search Coincart products by collection, specs, and usage.",
   robots: {
     index: false,
     follow: true,

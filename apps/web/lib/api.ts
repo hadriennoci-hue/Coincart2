@@ -59,6 +59,10 @@ const toErrorMessage = (value: unknown, fallback: string) => {
 
 export type Product = {
   id: string;
+  parentProductId?: string | null;
+  isVariant?: boolean;
+  optionName?: string | null;
+  optionValue?: string | null;
   sku: string;
   slug: string;
   category?: string | null;
@@ -89,6 +93,37 @@ export type Product = {
   price: number;
   promoPrice?: number | null;
   currency: Currency;
+  variants?: Array<{
+    id: string;
+    parentProductId?: string | null;
+    isVariant?: boolean;
+    optionName?: string | null;
+    optionValue?: string | null;
+    sku: string;
+    slug: string;
+    category?: string | null;
+    collection?: string | null;
+    name: string;
+    description?: string | null;
+    imageUrl?: string | null;
+    imageUrls?: string[];
+    cpu?: string | null;
+    gpu?: string | null;
+    keyboardLayout?: string | null;
+    usage?: string | null;
+    screenSize?: string | null;
+    displayType?: string | null;
+    resolution?: string | null;
+    maxResolution?: string | null;
+    refreshRate?: number | null;
+    ramMemory?: number | null;
+    ssdSize?: number | null;
+    storage?: string | null;
+    featured: boolean;
+    stockQty: number;
+    price: number;
+    currency: Currency;
+  }>;
 };
 
 export type Order = {
@@ -192,10 +227,12 @@ const applyClientFilters = (
       (item) =>
         item.name.toLowerCase().includes(q) ||
         item.sku.toLowerCase().includes(q) ||
-        (item.category || "").toLowerCase().includes(q),
+        (item.collection || item.category || "").toLowerCase().includes(q),
     );
   }
-  if (filters.category) out = out.filter((item) => (item.category || "") === filters.category);
+  if (filters.category) {
+    out = out.filter((item) => (item.collection || item.category || "") === filters.category);
+  }
   if (filters.collection) {
     const expected = toCollectionKey(filters.collection);
     out = out.filter((item) => toCollectionKey(item.collection || item.category) === expected);
@@ -234,10 +271,14 @@ const normalizeProduct = (raw: Partial<Product>): Product => {
   return {
   ...(raw as Product),
   id: String(raw.id || ""),
+  parentProductId: (raw as Product).parentProductId ?? null,
+  isVariant: Boolean((raw as Product).isVariant),
+  optionName: (raw as Product).optionName ?? null,
+  optionValue: (raw as Product).optionValue ?? null,
   sku: String(raw.sku || ""),
   slug: String(raw.slug || ""),
-  category: raw.category ?? null,
-  collection: (raw as Product).collection ?? null,
+  category: (raw as Product).collection ?? raw.category ?? null,
+  collection: (raw as Product).collection ?? raw.category ?? null,
   brand: (raw as Product).brand ?? null,
   name: String(raw.name || ""),
   description: raw.description ?? null,
@@ -277,6 +318,10 @@ const normalizeProduct = (raw: Partial<Product>): Product => {
   price: toNumber(raw.price, 0),
   promoPrice: toOptionalNumber((raw as Product).promoPrice),
   currency: raw.currency === "USD" ? "USD" : "EUR",
+  variants: Array.isArray((raw as Product).variants)
+    ? ((raw as Product).variants as Partial<Product>[])
+        .map(normalizeProduct)
+    : [],
   };
 };
 
@@ -308,10 +353,12 @@ const applyDummyFilters = (
       (item) =>
         item.name.toLowerCase().includes(q) ||
         item.sku.toLowerCase().includes(q) ||
-        (item.category || "").toLowerCase().includes(q),
+        (item.collection || item.category || "").toLowerCase().includes(q),
     );
   }
-  if (filters?.category) out = out.filter((item) => item.category === filters.category);
+  if (filters?.category) {
+    out = out.filter((item) => (item.collection || item.category) === filters.category);
+  }
   if (filters?.collection) out = out.filter((item) => item.collection === filters.collection);
   if (filters?.cpu) out = out.filter((item) => item.cpu === filters.cpu);
   if (filters?.gpu) out = out.filter((item) => item.gpu === filters.gpu);

@@ -20,12 +20,14 @@ import type {
 
 type Db = ReturnType<typeof createDb>;
 
-const toCollectionKey = (category?: string | null) =>
-  (category ?? "")
+const toCollectionKey = (value?: string | null) =>
+  (value ?? "")
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+
+const resolveGroupingValue = (collection?: string | null, category?: string | null) => collection ?? category ?? null;
 
 const normalizeImageUrls = (value: unknown): string[] => {
   if (!Array.isArray(value)) return [];
@@ -105,6 +107,7 @@ export const startSyncJob = async (db: Db, source: string) => {
 
 export const applySyncItems = async (db: Db, input: SyncItemsRequest) => {
   for (const item of input.items) {
+    const grouping = item.collection ?? item.category ?? null;
     const imageUrls = normalizeImageUrls(item.imageUrls);
     const primaryImageUrl = item.imageUrl ?? imageUrls[0] ?? null;
     const [product] = await db
@@ -112,7 +115,8 @@ export const applySyncItems = async (db: Db, input: SyncItemsRequest) => {
       .values({
         sku: item.sku,
         slug: item.slug,
-        category: item.category,
+        collection: grouping,
+        category: grouping,
         name: item.name,
         description: item.description,
         imageUrl: primaryImageUrl,
@@ -138,7 +142,8 @@ export const applySyncItems = async (db: Db, input: SyncItemsRequest) => {
         target: products.sku,
         set: {
           slug: item.slug,
-          category: item.category,
+          collection: grouping,
+          category: grouping,
           name: item.name,
           description: item.description,
           imageUrl: primaryImageUrl,
@@ -506,6 +511,7 @@ export const listProducts = async (db: Db, currency: Currency, featuredOnly = fa
       id: products.id,
       sku: products.sku,
       slug: products.slug,
+      collection: products.collection,
       category: products.category,
       name: products.name,
       description: products.description,
@@ -544,6 +550,8 @@ export const listProducts = async (db: Db, currency: Currency, featuredOnly = fa
   return rows.map((row) => ({
     ...row,
     imageUrls: normalizeImageUrls(row.imageUrls),
+    collection: resolveGroupingValue(row.collection, row.category),
+    category: resolveGroupingValue(row.collection, row.category),
     price: Number(row.price),
   }));
 };
@@ -574,9 +582,10 @@ export const listProductsWithFilters = async (
     sql`${products.stockQty} > 0`,
     filters.featuredOnly ? eq(products.featured, true) : sql`true`,
     filters.search
-      ? sql`(${products.name} ILIKE ${`%${filters.search}%`} OR ${products.sku} ILIKE ${`%${filters.search}%`} OR ${products.category} ILIKE ${`%${filters.search}%`})`
+      ? sql`(${products.name} ILIKE ${`%${filters.search}%`} OR ${products.sku} ILIKE ${`%${filters.search}%`} OR COALESCE(${products.collection}, ${products.category}) ILIKE ${`%${filters.search}%`})`
       : sql`true`,
-    filters.category ? eq(products.category, filters.category) : sql`true`,
+    filters.category ? sql`COALESCE(${products.collection}, ${products.category}) = ${filters.category}` : sql`true`,
+    filters.collection ? sql`COALESCE(${products.collection}, ${products.category}) = ${filters.collection}` : sql`true`,
     filters.keyboardLayout ? eq(products.keyboardLayout, filters.keyboardLayout) : sql`true`,
     filters.usage ? eq(products.usage, filters.usage) : sql`true`,
     filters.screenSize ? eq(products.screenSize, filters.screenSize) : sql`true`,
@@ -601,6 +610,7 @@ export const listProductsWithFilters = async (
       id: products.id,
       sku: products.sku,
       slug: products.slug,
+      collection: products.collection,
       category: products.category,
       name: products.name,
       description: products.description,
@@ -631,13 +641,10 @@ export const listProductsWithFilters = async (
   let items = rows.map((row) => ({
     ...row,
     imageUrls: normalizeImageUrls(row.imageUrls),
-    collection: toCollectionKey(row.category),
+    collection: toCollectionKey(resolveGroupingValue(row.collection, row.category)),
+    category: resolveGroupingValue(row.collection, row.category),
     price: Number(row.price),
   }));
-  if (filters.collection) {
-    const expectedCollection = filters.collection.toLowerCase().trim();
-    items = items.filter((item) => item.collection === expectedCollection);
-  }
   return items;
 };
 
@@ -650,6 +657,7 @@ export const listTopSellingProducts = async (db: Db, currency: Currency, limit =
       id: products.id,
       sku: products.sku,
       slug: products.slug,
+      collection: products.collection,
       category: products.category,
       name: products.name,
       description: products.description,
@@ -717,7 +725,8 @@ export const listTopSellingProducts = async (db: Db, currency: Currency, limit =
   return rows.map((row) => ({
     ...row,
     imageUrls: normalizeImageUrls(row.imageUrls),
-    collection: toCollectionKey(row.category),
+    collection: toCollectionKey(resolveGroupingValue(row.collection, row.category)),
+    category: resolveGroupingValue(row.collection, row.category),
     price: Number(row.price),
     soldQty: Number(row.soldQty ?? 0),
   }));
@@ -727,8 +736,13 @@ export const getProductBySlug = async (db: Db, slug: string, currency: Currency)
   const rows = await db
     .select({
       id: products.id,
+      parentProductId: products.parentProductId,
+      isVariant: products.isVariant,
+      optionName: products.optionName,
+      optionValue: products.optionValue,
       sku: products.sku,
       slug: products.slug,
+      collection: products.collection,
       category: products.category,
       name: products.name,
       description: products.description,
@@ -757,17 +771,71 @@ export const getProductBySlug = async (db: Db, slug: string, currency: Currency)
       and(
         eq(products.slug, slug),
         eq(productPrices.currency, currency),
-        eq(products.isVariant, false),
         eq(products.visibilityStatus, "publish"),
       ),
     );
 
   if (!rows[0]) return null;
+  const product = rows[0];
+  const parentId = product.parentProductId ?? product.id;
+
+  const variantRows = await db
+    .select({
+      id: products.id,
+      parentProductId: products.parentProductId,
+      isVariant: products.isVariant,
+      optionName: products.optionName,
+      optionValue: products.optionValue,
+      sku: products.sku,
+      slug: products.slug,
+      collection: products.collection,
+      category: products.category,
+      name: products.name,
+      description: products.description,
+      imageUrl: products.imageUrl,
+      imageUrls: products.imageUrls,
+      cpu: products.cpu,
+      gpu: products.gpu,
+      keyboardLayout: products.keyboardLayout,
+      usage: products.usage,
+      screenSize: products.screenSize,
+      displayType: products.displayType,
+      resolution: products.resolution,
+      maxResolution: products.maxResolution,
+      refreshRate: products.refreshRate,
+      ramMemory: products.ramMemory,
+      ssdSize: products.ssdSize,
+      storage: products.storage,
+      featured: products.featured,
+      stockQty: products.stockQty,
+      price: productPrices.amount,
+      currency: productPrices.currency,
+    })
+    .from(products)
+    .innerJoin(productPrices, eq(productPrices.productId, products.id))
+    .where(
+      and(
+        eq(products.parentProductId, parentId),
+        eq(products.isVariant, true),
+        eq(products.visibilityStatus, "publish"),
+        eq(productPrices.currency, currency),
+      ),
+    )
+    .orderBy(asc(products.name));
+
   return {
-    ...rows[0],
-    imageUrls: normalizeImageUrls(rows[0].imageUrls),
-    collection: toCollectionKey(rows[0].category),
-    price: Number(rows[0].price),
+    ...product,
+    imageUrls: normalizeImageUrls(product.imageUrls),
+    collection: toCollectionKey(resolveGroupingValue(product.collection, product.category)),
+    category: resolveGroupingValue(product.collection, product.category),
+    price: Number(product.price),
+    variants: variantRows.map((row) => ({
+      ...row,
+      imageUrls: normalizeImageUrls(row.imageUrls),
+      collection: toCollectionKey(resolveGroupingValue(row.collection, row.category)),
+      category: resolveGroupingValue(row.collection, row.category),
+      price: Number(row.price),
+    })),
   };
 };
 
@@ -778,6 +846,7 @@ export const getProductsBySkus = async (db: Db, skus: string[], currency: Curren
       id: products.id,
       sku: products.sku,
       slug: products.slug,
+      collection: products.collection,
       category: products.category,
       name: products.name,
       imageUrl: products.imageUrl,
@@ -805,7 +874,8 @@ export const getProductsBySkus = async (db: Db, skus: string[], currency: Curren
   return rows.map((row) => ({
     ...row,
     imageUrls: normalizeImageUrls(row.imageUrls),
-    collection: toCollectionKey(row.category),
+    collection: toCollectionKey(resolveGroupingValue(row.collection, row.category)),
+    category: resolveGroupingValue(row.collection, row.category),
     price: Number(row.price),
   }));
 };
@@ -822,6 +892,7 @@ export const listCollectionsWithCounts = async (db: Db) => {
       .orderBy(asc(productCollections.label)),
     db
       .select({
+        collection: products.collection,
         category: products.category,
       })
       .from(products)
@@ -830,14 +901,14 @@ export const listCollectionsWithCounts = async (db: Db) => {
           eq(products.isVariant, false),
           eq(products.visibilityStatus, "publish"),
           sql`${products.stockQty} > 0`,
-          sql`${products.category} IS NOT NULL`,
+          sql`COALESCE(${products.collection}, ${products.category}) IS NOT NULL`,
         ),
       ),
   ]);
 
   const counts = new Map<string, number>();
   for (const row of countRows) {
-    const key = toCollectionKey(row.category);
+    const key = toCollectionKey(resolveGroupingValue(row.collection, row.category));
     if (!key) continue;
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
