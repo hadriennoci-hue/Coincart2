@@ -3,6 +3,7 @@ node_modules/
 .next/
 apps/web/.next/
 *.log
+*.tsbuildinfo
 *.tmp
 .coincart.env.local
 tools/
