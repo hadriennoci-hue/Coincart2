@@ -19,6 +19,8 @@ export const products = pgTable("products", {
   isVariant: boolean("is_variant").notNull().default(false),
   optionName: varchar("option_name", { length: 120 }),
   optionValue: varchar("option_value", { length: 160 }),
+  optionName2: varchar("option_name_2", { length: 120 }),
+  optionValue2: varchar("option_value_2", { length: 160 }),
   sku: varchar("sku", { length: 120 }).notNull().unique(),
   slug: varchar("slug", { length: 160 }).notNull().unique(),
   collection: varchar("collection", { length: 120 }),

@@ -75,7 +75,9 @@ const parseSalePriceUsd = (payload: Record<string, unknown>) =>
   parsePrice((payload.prices as Record<string, unknown> | undefined)?.SALE_USD);
 
 const parseVariantOptionFromAttributes = (attributes: unknown) => {
-  if (!Array.isArray(attributes)) return { optionName: undefined as string | undefined, optionValue: undefined as string | undefined };
+  const result = { optionName: undefined as string | undefined, optionValue: undefined as string | undefined, optionName2: undefined as string | undefined, optionValue2: undefined as string | undefined };
+  if (!Array.isArray(attributes)) return result;
+  const found: Array<{ name: string; value: string }> = [];
   for (const raw of attributes as Array<Record<string, unknown>>) {
     const name = typeof raw?.name === "string" ? raw.name.trim() : "";
     if (!name || name.toLowerCase() === "brand") continue;
@@ -85,9 +87,14 @@ const parseVariantOptionFromAttributes = (attributes: unknown) => {
         : Array.isArray(raw?.options) && typeof raw.options[0] === "string"
           ? String(raw.options[0]).trim()
           : "";
-    if (option) return { optionName: name, optionValue: option };
+    if (option) {
+      found.push({ name, value: option });
+      if (found.length === 2) break;
+    }
   }
-  return { optionName: undefined, optionValue: undefined };
+  if (found[0]) { result.optionName = found[0].name; result.optionValue = found[0].value; }
+  if (found[1]) { result.optionName2 = found[1].name; result.optionValue2 = found[1].value; }
+  return result;
 };
 
 const parseVariantOption = (variant: Record<string, unknown>, fallbackOptionName?: string) => {
@@ -106,18 +113,22 @@ const parseVariantOption = (variant: Record<string, unknown>, fallbackOptionName
     (typeof variant.option1 === "string" && variant.option1.trim()) ||
     (typeof variant.option === "string" && variant.option.trim()) ||
     undefined;
+  const optionName2 =
+    (typeof variant.optionName2 === "string" && variant.optionName2.trim()) || undefined;
+  const optionValue2 =
+    (typeof variant.option2 === "string" && variant.option2.trim()) || undefined;
 
-  if (optionName && optionValue) return { optionName, optionValue };
+  if (optionName && optionValue) return { optionName, optionValue, optionName2, optionValue2 };
 
   if (variant.options && typeof variant.options === "object" && !Array.isArray(variant.options)) {
     const entries = Object.entries(variant.options as Record<string, unknown>);
     const [first] = entries;
     if (first && typeof first[0] === "string" && typeof first[1] === "string") {
-      return { optionName: first[0].trim(), optionValue: first[1].trim() };
+      return { optionName: first[0].trim(), optionValue: first[1].trim(), optionName2, optionValue2 };
     }
   }
 
-  return { optionName: optionName || undefined, optionValue: optionValue || undefined };
+  return { optionName: optionName || undefined, optionValue: optionValue || undefined, optionName2, optionValue2 };
 };
 
 const parseDirectOptionFields = (payload: Record<string, unknown>, fallbackOptionName?: string) => {
@@ -133,18 +144,22 @@ const parseDirectOptionFields = (payload: Record<string, unknown>, fallbackOptio
     (typeof payload.option1 === "string" && payload.option1.trim()) ||
     (typeof payload.option === "string" && payload.option.trim()) ||
     undefined;
+  const optionName2 =
+    (typeof payload.optionName2 === "string" && payload.optionName2.trim()) || undefined;
+  const optionValue2 =
+    (typeof payload.option2 === "string" && payload.option2.trim()) || undefined;
 
-  if (optionName && optionValue) return { optionName, optionValue };
+  if (optionName && optionValue) return { optionName, optionValue, optionName2, optionValue2 };
 
   if (payload.options && typeof payload.options === "object" && !Array.isArray(payload.options)) {
     const entries = Object.entries(payload.options as Record<string, unknown>);
     const [first] = entries;
     if (first && typeof first[0] === "string" && typeof first[1] === "string") {
-      return { optionName: first[0].trim(), optionValue: first[1].trim() };
+      return { optionName: first[0].trim(), optionValue: first[1].trim(), optionName2, optionValue2 };
     }
   }
 
-  return { optionName: optionName || undefined, optionValue: optionValue || undefined };
+  return { optionName: optionName || undefined, optionValue: optionValue || undefined, optionName2, optionValue2 };
 };
 
 const parseVariantsInput = (body: Record<string, unknown>) => {
@@ -371,6 +386,8 @@ const toWooLikeProduct = (
     isVariant?: boolean;
     optionName?: string | null;
     optionValue?: string | null;
+    optionName2?: string | null;
+    optionValue2?: string | null;
     sku: string;
     slug: string;
     collection?: string | null;
@@ -406,6 +423,7 @@ const toWooLikeProduct = (
 ) => {
   const attributes: Array<Record<string, unknown>> = [];
   if (product.optionName && product.optionValue) attributes.push({ name: product.optionName, option: product.optionValue });
+  if (product.optionName2 && product.optionValue2) attributes.push({ name: product.optionName2, option: product.optionValue2 });
   if (product.brand) attributes.push({ name: "Brand", options: [product.brand] });
 
   const attrFromColumn = (name: string, value: unknown) => {
@@ -777,6 +795,8 @@ connectorRoutes.get("/products/:parentId/variations", async (c) => {
       isVariant: products.isVariant,
       optionName: products.optionName,
       optionValue: products.optionValue,
+      optionName2: products.optionName2,
+      optionValue2: products.optionValue2,
       sku: products.sku,
       slug: products.slug,
       collection: products.collection,
@@ -844,6 +864,8 @@ connectorRoutes.get("/products/:id", async (c) => {
       isVariant: products.isVariant,
       optionName: products.optionName,
       optionValue: products.optionValue,
+      optionName2: products.optionName2,
+      optionValue2: products.optionValue2,
       sku: products.sku,
       slug: products.slug,
       collection: products.collection,
@@ -921,6 +943,8 @@ connectorRoutes.get("/products", async (c) => {
       isVariant: products.isVariant,
       optionName: products.optionName,
       optionValue: products.optionValue,
+      optionName2: products.optionName2,
+      optionValue2: products.optionValue2,
       sku: products.sku,
       slug: products.slug,
       collection: products.collection,
@@ -1105,6 +1129,8 @@ connectorRoutes.post("/products/:id", async (c) => {
   const directOption = parseDirectOptionFields(body);
   if (directOption.optionName) updatePayload.optionName = directOption.optionName;
   if (directOption.optionValue) updatePayload.optionValue = directOption.optionValue;
+  if (directOption.optionName2) updatePayload.optionName2 = directOption.optionName2;
+  if (directOption.optionValue2) updatePayload.optionValue2 = directOption.optionValue2;
 
   if (Array.isArray(body.meta_data)) {
     const eanMeta = (body.meta_data as Array<{ key?: string; value?: string }>).find((x) => x.key === "ean");
@@ -1236,6 +1262,8 @@ connectorRoutes.post("/products/:id", async (c) => {
         isVariant: true,
         optionName: option.optionName ?? null,
         optionValue: option.optionValue ?? null,
+        optionName2: option.optionName2 ?? null,
+        optionValue2: option.optionValue2 ?? null,
         sku: variantSku,
         slug: variantSlug,
         collection: resolvedProduct.collection ?? resolvedProduct.category ?? null,
@@ -1275,6 +1303,8 @@ connectorRoutes.post("/products/:id", async (c) => {
         isVariant: true,
         optionName: option.optionName ?? null,
         optionValue: option.optionValue ?? null,
+        optionName2: option.optionName2 ?? null,
+        optionValue2: option.optionValue2 ?? null,
         slug: variantSlug,
         collection: resolvedProduct.collection ?? resolvedProduct.category ?? null,
         category: resolvedProduct.collection ?? resolvedProduct.category ?? null,
@@ -1389,6 +1419,8 @@ connectorRoutes.post("/products", async (c) => {
           isVariant,
           optionName: directVariantOption.optionName ?? null,
           optionValue: directVariantOption.optionValue ?? null,
+          optionName2: directVariantOption.optionName2 ?? null,
+          optionValue2: directVariantOption.optionValue2 ?? null,
         }
       : {}),
     sku,
@@ -1416,6 +1448,8 @@ connectorRoutes.post("/products", async (c) => {
           isVariant,
           optionName: directVariantOption.optionName ?? null,
           optionValue: directVariantOption.optionValue ?? null,
+          optionName2: directVariantOption.optionName2 ?? null,
+          optionValue2: directVariantOption.optionValue2 ?? null,
         }
       : {}),
     slug,
@@ -1491,6 +1525,8 @@ connectorRoutes.post("/products", async (c) => {
       isVariant: true,
       optionName: option.optionName ?? null,
       optionValue: option.optionValue ?? null,
+      optionName2: option.optionName2 ?? null,
+      optionValue2: option.optionValue2 ?? null,
       sku: variantSku,
       slug: variantSlug,
       collection: category ?? null,
@@ -1521,6 +1557,8 @@ connectorRoutes.post("/products", async (c) => {
       isVariant: true,
       optionName: option.optionName ?? null,
       optionValue: option.optionValue ?? null,
+      optionName2: option.optionName2 ?? null,
+      optionValue2: option.optionValue2 ?? null,
       slug: variantSlug,
       collection: category ?? null,
       category: category ?? null,
