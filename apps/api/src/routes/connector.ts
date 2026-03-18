@@ -1235,9 +1235,11 @@ connectorRoutes.post("/products/:id", async (c) => {
           ? variant.name.trim()
           : typeof variant.title === "string" && variant.title.trim()
             ? variant.title.trim()
-          : option.optionValue
-            ? `${resolvedProduct.name} - ${option.optionValue}`
-            : `${resolvedProduct.name} - ${variantSku}`;
+          : option.optionValue && option.optionValue2
+            ? `${resolvedProduct.name} - ${option.optionValue} / ${option.optionValue2}`
+            : option.optionValue
+              ? `${resolvedProduct.name} - ${option.optionValue}`
+              : `${resolvedProduct.name} - ${variantSku}`;
       const variantSlug =
         typeof variant.slug === "string" && variant.slug.trim()
           ? variant.slug.trim()
@@ -1497,9 +1499,11 @@ connectorRoutes.post("/products", async (c) => {
         ? variant.name.trim()
         : typeof variant.title === "string" && variant.title.trim()
           ? variant.title.trim()
-        : option.optionValue
-          ? `${name} - ${option.optionValue}`
-          : `${name} - ${variantSku}`;
+        : option.optionValue && option.optionValue2
+          ? `${name} - ${option.optionValue} / ${option.optionValue2}`
+          : option.optionValue
+            ? `${name} - ${option.optionValue}`
+            : `${name} - ${variantSku}`;
     const variantSlug =
       typeof variant.slug === "string" && variant.slug.trim()
         ? variant.slug.trim()
