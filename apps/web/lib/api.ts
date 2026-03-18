@@ -63,6 +63,8 @@ export type Product = {
   isVariant?: boolean;
   optionName?: string | null;
   optionValue?: string | null;
+  optionName2?: string | null;
+  optionValue2?: string | null;
   sku: string;
   slug: string;
   category?: string | null;
@@ -99,6 +101,8 @@ export type Product = {
     isVariant?: boolean;
     optionName?: string | null;
     optionValue?: string | null;
+    optionName2?: string | null;
+    optionValue2?: string | null;
     sku: string;
     slug: string;
     category?: string | null;
@@ -307,6 +311,8 @@ const normalizeProduct = (raw: Partial<Product>): Product => {
   isVariant: Boolean((raw as Product).isVariant),
   optionName: (raw as Product).optionName ?? null,
   optionValue: (raw as Product).optionValue ?? null,
+  optionName2: (raw as Product).optionName2 ?? null,
+  optionValue2: (raw as Product).optionValue2 ?? null,
   sku: String(raw.sku || ""),
   slug: String(raw.slug || ""),
   category: (raw as Product).collection ?? raw.category ?? null,

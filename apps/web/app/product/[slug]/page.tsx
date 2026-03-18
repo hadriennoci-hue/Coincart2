@@ -91,14 +91,17 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
     product.optionName ||
     variants.find((item) => item.optionName)?.optionName ||
     "Variant";
-  const variantOptions = variants
-    .map((item) => ({
-      slug: item.slug,
-      label: item.optionValue || item.keyboardLayout || item.name,
-      sku: item.sku,
-    }))
-    .sort((a, b) => a.label.localeCompare(b.label));
-  const hasVariants = variantOptions.length > 0;
+  const variantLabel2 =
+    product.optionName2 ||
+    variants.find((item) => item.optionName2)?.optionName2 ||
+    null;
+  const variantEntries = variants.map((item) => ({
+    slug: item.slug,
+    sku: item.sku,
+    optionValue: item.optionValue || item.keyboardLayout || item.name,
+    optionValue2: item.optionValue2 ?? null,
+  }));
+  const hasVariants = variantEntries.length > 0;
 
   const imageGallery =
     Array.isArray(product.imageUrls) && product.imageUrls.length > 0
@@ -304,7 +307,8 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
               currency={currency}
               currentSlug={product.slug}
               label={variantLabel}
-              options={variantOptions}
+              label2={variantLabel2}
+              variants={variantEntries}
             />
           )}
 
