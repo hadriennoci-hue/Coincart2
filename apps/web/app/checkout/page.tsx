@@ -389,23 +389,24 @@ export default function CheckoutPage() {
                   {summaryRows.map((line) => (
                     <div
                       key={line.sku}
-                      style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}
+                      style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-                        <span style={{ fontSize: "0.75rem", color: "var(--muted)", flexShrink: 0 }}>x{line.quantity}</span>
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: 6, minWidth: 0 }}>
+                        <span style={{ fontSize: "0.75rem", color: "var(--muted)", flexShrink: 0, paddingTop: 1 }}>x{line.quantity}</span>
                         <span
                           style={{
                             fontSize: "0.8rem",
                             color: "var(--text)",
                             overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
                           }}
                         >
-                          {line.name.length > 28 ? line.name.slice(0, 27) + "..." : line.name}
+                          {line.name}
                         </span>
                       </div>
-                      <span style={{ fontSize: "0.8rem", fontWeight: 600, flexShrink: 0, color: "var(--muted)" }}>
+                      <span style={{ fontSize: "0.8rem", fontWeight: 600, flexShrink: 0, color: "var(--muted)", paddingTop: 1 }}>
                         {fmtPrice(line.lineTotal, currency)}
                       </span>
                     </div>
