@@ -44,6 +44,7 @@ Prerequisites:
 - Copy `apps/api/.env.example` to `apps/api/.env`
 - Copy `apps/api/.dev.vars.example` to `apps/api/.dev.vars` for local BTCPay/worker secrets
 - Copy `apps/web/.env.example` to `apps/web/.env.local`
+- `apps/api/.env` is for local development only. The default `postgres://coincart:coincart@localhost:5432/coincart` is the old local dummy/dev database, not production.
 
 4. Run API:
 - `pnpm dev:api`
@@ -61,7 +62,7 @@ See [CLOUDFLARE_DEPLOY.md](./CLOUDFLARE_DEPLOY.md) for Git-based auto-deploy of 
 
 ## Session Handoff (Quick Context)
 
-Updated: 2026-03-13
+Updated: 2026-03-17
 
 ### Current runtime topology
 - Frontend: `apps/web` (Next.js) on Cloudflare Pages / Edge runtime.
@@ -76,6 +77,7 @@ Updated: 2026-03-13
 - Main SQL database (production): Neon Postgres (Cloud-hosted).
 - Role: products, prices, orders, mappings, sync logs, attributes, collections.
 - Connection string is managed as `DATABASE_URL` in runtime secrets (not committed).
+- The real production catalog is not stored in `apps/api/.env`; that file is only a local dev fallback.
 - Cloudflare R2 bucket: `coincart2`.
 - Role: image object storage behind `img.coincart.store`.
 - Verified custom domain binding:
@@ -104,6 +106,11 @@ Updated: 2026-03-13
 - Cart speed was improved with local snapshot-first behavior.
 - Cart price bug fixed:
 - if live API price is missing/zero, cart now falls back to valid snapshot price instead of `0`.
+- Product image gallery fix applied on 2026-03-17:
+- deployed API commit `ed3e461`
+- confirmed production Worker reads from Neon, not local localhost Postgres
+- applied `packages/db/migrations/0015_product_image_gallery.sql` on the live Neon database
+- `products.image_urls` now exists in production and catalog product endpoints return `imageUrls`
 
 ### Known caveats still relevant
 - Coincart connector/variant flow had prior inconsistencies (parent/variant modeling and flaky 500s).
