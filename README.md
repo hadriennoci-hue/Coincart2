@@ -44,7 +44,7 @@ Prerequisites:
 - Copy `apps/api/.env.example` to `apps/api/.env`
 - Copy `apps/api/.dev.vars.example` to `apps/api/.dev.vars` for local BTCPay/worker secrets
 - Copy `apps/web/.env.example` to `apps/web/.env.local`
-- `apps/api/.env` is for local development only. The default `postgres://coincart:coincart@localhost:5432/coincart` is the old local dummy/dev database, not production.
+- `apps/api/.env` is for local development only.
 
 4. Run API:
 - `pnpm dev:api`
