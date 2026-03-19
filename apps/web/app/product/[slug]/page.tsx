@@ -195,6 +195,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
     const name = attribute.name.trim();
     const options = attribute.options.map((item) => item.trim()).filter(Boolean);
     if (!name || options.length === 0) continue;
+    if (name.toLowerCase() === "color") continue;
     if (name.toLowerCase() === "tag" || name.toLowerCase() === "tags") {
       derivedTags.push(...options);
       continue;

@@ -302,7 +302,7 @@ const extractExtraAttributesFromAttributes = (
     const name = typeof raw?.name === "string" ? raw.name.trim() : "";
     if (!name) continue;
     const key = normalizeAttrKey(name);
-    if (key === "brand") continue;
+    if (key === "brand" || key === "color") continue;
     if (mappedKeys.has(key) || (key === "ram_memory" && mappedKeys.has("ram")) || (key === "display_size" && mappedKeys.has("screen_size")) || (key === "screen_type" && mappedKeys.has("display_type")) || (key === "panel_type" && mappedKeys.has("display_type")) || (key === "screen_resolution" && mappedKeys.has("resolution")) || (key === "storage_capacity" && mappedKeys.has("storage"))) {
       continue;
     }
