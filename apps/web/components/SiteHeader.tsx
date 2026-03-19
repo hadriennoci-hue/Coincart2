@@ -41,7 +41,7 @@ export function SiteHeader() {
           position: "relative",
           whiteSpace: "nowrap",
         }}>
-          <span>Use <b>COINCART10</b> for 10% off — Valid through December 31, 2026</span>
+          <span>Use <b>COINCART5</b> for 5% off — Valid through December 31, 2026</span>
           <button
             onClick={() => setShowBar(false)}
             aria-label="Dismiss"

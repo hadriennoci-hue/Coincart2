@@ -1,7 +1,7 @@
 "use client";
 
 const COUPON_KEY = "coincart.coupon.v1";
-const SUPPORTED_COUPON = "COINCART10";
+const SUPPORTED_COUPON = "COINCART5";
 
 const normalizeCoupon = (value: string | null | undefined) => String(value || "").trim().toUpperCase();
 
@@ -27,5 +27,5 @@ export const isSupportedCoupon = (code: string | null) =>
 
 export const computeCouponDiscount = (total: number, code: string | null) => {
   if (!isSupportedCoupon(code)) return 0;
-  return total * 0.1;
+  return total * 0.05;
 };

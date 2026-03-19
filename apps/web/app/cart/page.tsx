@@ -280,7 +280,7 @@ export default function CartPage() {
             </label>
             {isSupportedCoupon(appliedCoupon) && (
               <div className="small text-success" style={{ marginTop: 6 }}>
-                Coupon COINCART10 applied - 10% off
+                Coupon COINCART5 applied - 5% off
               </div>
             )}
             {appliedCoupon && !isSupportedCoupon(appliedCoupon) && (
