@@ -102,7 +102,7 @@ export function FlipCard({
 
   const priceBlock = hasPromo ? (
     <>
-      <span style={{ textDecoration: "line-through", opacity: 0.55, marginRight: 6 }}>
+      <span style={{ textDecoration: "line-through", color: "var(--muted)", marginRight: 6 }}>
         {fmtPrice(price, currency)}
       </span>
       <span>{fmtPrice(displayPrice, currency)}</span>
@@ -146,7 +146,7 @@ export function FlipCard({
               <div className="card-title" style={{ marginBottom: 0, fontSize: "0.875rem" }}>{name}</div>
             </div>
             <div className="product-card-footer">
-              <span className="product-card-price" style={hasPromo ? { fontSize: "0.78rem", fontWeight: 700 } : undefined}>{priceBlock}</span>
+              <span className="product-card-price">{priceBlock}</span>
               <span className={stockQty > 0 ? "badge badge-green" : "badge badge-error"}>
                 {stockQty > 0 ? "In Stock" : "Out of Stock"}
               </span>
