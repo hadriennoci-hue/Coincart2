@@ -9,7 +9,21 @@ import {
 } from "@coincart/db";
 import type { AppContext } from "../types";
 
-const connectorError = (message: string, status = 400) => ({ error: message, status });
+type ConnectorStatusCode = 400 | 401 | 404 | 409 | 500 | 503;
+
+const connectorError = (
+  message: string,
+  status: ConnectorStatusCode = 400,
+  options?: {
+    code?: string;
+    details?: Record<string, unknown>;
+  },
+) => ({
+  error: message,
+  status,
+  ...(options?.code ? { code: options.code } : {}),
+  ...(options?.details ? { details: options.details } : {}),
+});
 
 const slugify = (value: string) =>
   value
@@ -39,10 +53,23 @@ const normalizeVisibilityStatus = (value: unknown) => {
   return normalized;
 };
 
+const normalizeStockStatus = (value: unknown) => {
+  if (typeof value !== "string") return undefined;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return undefined;
+  if (["instock", "in_stock", "in-stock"].includes(normalized)) return "instock";
+  if (["outofstock", "out_of_stock", "out-of-stock"].includes(normalized)) return "outofstock";
+  if (["onbackorder", "on_backorder", "on-backorder"].includes(normalized)) return "onbackorder";
+  return normalized;
+};
+
 const parseStockQuantity = (payload: Record<string, unknown>) => {
   if (typeof payload.stock_quantity === "number") return Math.max(0, Math.trunc(payload.stock_quantity));
   if (typeof payload.stock === "number") return Math.max(0, Math.trunc(payload.stock));
   if (typeof payload.in_stock === "boolean" && payload.in_stock === false) return 0;
+  const stockStatus = normalizeStockStatus(payload.stock_status);
+  if (stockStatus === "outofstock") return 0;
+  if (stockStatus === "instock") return 1;
   return 0;
 };
 
@@ -628,6 +655,130 @@ const upsertProductBySku = async (
     .where(eq(products.id, existing.id))
     .returning({ id: products.id, wooId: products.wooId });
   return updated;
+};
+
+const validateConnectorProductCreatePayload = (body: Record<string, unknown>) => {
+  const sku = typeof body.sku === "string" ? body.sku.trim() : "";
+  const name =
+    typeof body.name === "string" && body.name.trim().length > 0
+      ? body.name.trim()
+      : typeof body.title === "string" && body.title.trim().length > 0
+        ? body.title.trim()
+        : "";
+  if (!sku || !name) {
+    return connectorError("sku and name are required", 400, { code: "missing_required_fields" });
+  }
+
+  if (body.attributes !== undefined && !Array.isArray(body.attributes)) {
+    return connectorError("attributes must be an array", 400, { code: "invalid_attributes" });
+  }
+
+  if (body.images !== undefined && !Array.isArray(body.images)) {
+    return connectorError("images must be an array", 400, { code: "invalid_images" });
+  }
+
+  if (body.meta_data !== undefined && !Array.isArray(body.meta_data)) {
+    return connectorError("meta_data must be an array", 400, { code: "invalid_meta_data" });
+  }
+
+  if (body.parent_id !== undefined && typeof body.parent_id !== "string" && typeof body.parent_id !== "number") {
+    return connectorError("parent_id must be a string or number", 400, { code: "invalid_parent_id" });
+  }
+
+  if (body.regular_price !== undefined && parsePrice(body.regular_price) === null) {
+    return connectorError("regular_price must be numeric", 400, { code: "invalid_regular_price" });
+  }
+
+  if (body.price_eur !== undefined && parsePrice(body.price_eur) === null) {
+    return connectorError("price_eur must be numeric", 400, { code: "invalid_price_eur" });
+  }
+
+  if (body.price_usd !== undefined && parsePrice(body.price_usd) === null) {
+    return connectorError("price_usd must be numeric", 400, { code: "invalid_price_usd" });
+  }
+
+  if (body.stock_quantity !== undefined && typeof body.stock_quantity !== "number") {
+    return connectorError("stock_quantity must be numeric", 400, { code: "invalid_stock_quantity" });
+  }
+
+  if (body.stock !== undefined && typeof body.stock !== "number") {
+    return connectorError("stock must be numeric", 400, { code: "invalid_stock" });
+  }
+
+  if (body.type !== undefined) {
+    const normalizedType = typeof body.type === "string" ? body.type.trim().toLowerCase() : "";
+    if (normalizedType && !["simple", "variable", "variation"].includes(normalizedType)) {
+      return connectorError("type must be simple, variable, or variation", 400, { code: "invalid_type" });
+    }
+  }
+
+  if (body.stock_status !== undefined) {
+    const stockStatus = normalizeStockStatus(body.stock_status);
+    if (stockStatus && !["instock", "outofstock", "onbackorder"].includes(stockStatus)) {
+      return connectorError("stock_status must be instock, outofstock, or onbackorder", 400, {
+        code: "invalid_stock_status",
+      });
+    }
+  }
+
+  return null;
+};
+
+const classifyConnectorCreateError = (error: unknown) => {
+  const err = error as {
+    code?: string;
+    constraint?: string;
+    detail?: string;
+    message?: string;
+  };
+
+  if (err?.code === "23505") {
+    if (err.constraint === "products_slug_unique") {
+      return connectorError("slug already exists", 409, {
+        code: "slug_conflict",
+        details: {
+          constraint: err.constraint,
+          detail: err.detail ?? null,
+        },
+      });
+    }
+    if (err.constraint === "products_sku_unique") {
+      return connectorError("sku already exists", 409, {
+        code: "sku_conflict",
+        details: {
+          constraint: err.constraint,
+          detail: err.detail ?? null,
+        },
+      });
+    }
+    return connectorError("unique constraint violation", 409, {
+      code: "unique_violation",
+      details: {
+        constraint: err.constraint ?? null,
+        detail: err.detail ?? null,
+      },
+    });
+  }
+
+  if (err?.code === "22001") {
+    return connectorError("one or more fields exceed the database length limit", 400, {
+      code: "value_too_long",
+      details: {
+        detail: err.detail ?? err.message ?? null,
+      },
+    });
+  }
+
+  if (err?.code === "22P02") {
+    return connectorError("one or more fields have an invalid format", 400, {
+      code: "invalid_field_format",
+      details: {
+        detail: err.detail ?? err.message ?? null,
+      },
+    });
+  }
+
+  return null;
 };
 
 export const connectorRoutes = new Hono<AppContext>();
@@ -1366,6 +1517,9 @@ connectorRoutes.post("/products", async (c) => {
   const body = (await c.req.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body) return c.json(connectorError("Invalid JSON body"), 400);
 
+  const validationError = validateConnectorProductCreatePayload(body);
+  if (validationError) return c.json(validationError, validationError.status);
+
   const sku = typeof body.sku === "string" ? body.sku.trim() : "";
   const name =
     typeof body.name === "string" && body.name.trim().length > 0
@@ -1373,223 +1527,245 @@ connectorRoutes.post("/products", async (c) => {
       : typeof body.title === "string" && body.title.trim().length > 0
         ? body.title.trim()
         : "";
-  if (!sku || !name) return c.json(connectorError("sku and name are required"), 400);
-
   const slug =
     typeof body.slug === "string" && body.slug.trim().length > 0 ? body.slug.trim() : slugify(name || sku);
 
-  const category = resolveCategory(body);
-  const fallbackOptionName = parseFirstOptionName(body);
-  const resolvedImageUrls = resolveImageUrls(body);
-  const mappedFromAttributes = extractMappedProductFieldsFromAttributes(body.attributes);
-  const extraFromAttributes = extractExtraAttributesFromAttributes(body.attributes, mappedFromAttributes);
-  const normalizedStatus = normalizeVisibilityStatus(body.status) ?? "publish";
+  try {
+    const category = resolveCategory(body);
+    const fallbackOptionName = parseFirstOptionName(body);
+    const resolvedImageUrls = resolveImageUrls(body);
+    const mappedFromAttributes = extractMappedProductFieldsFromAttributes(body.attributes);
+    const extraFromAttributes = extractExtraAttributesFromAttributes(body.attributes, mappedFromAttributes);
+    const normalizedStatus = normalizeVisibilityStatus(body.status) ?? "publish";
 
-  let brand: string | undefined;
-  if (Array.isArray(body.attributes)) {
-    const brandAttr = (body.attributes as Array<{ name?: string; options?: string[] }>).find(
-      (x) => x.name?.toLowerCase() === "brand",
-    );
-    if (brandAttr?.options?.[0]) brand = brandAttr.options[0];
-  }
+    let brand: string | undefined;
+    if (Array.isArray(body.attributes)) {
+      const brandAttr = (body.attributes as Array<{ name?: string; options?: string[] }>).find(
+        (x) => x.name?.toLowerCase() === "brand",
+      );
+      if (brandAttr?.options?.[0]) brand = brandAttr.options[0];
+    }
 
-  let parentProductId: string | null = null;
-  if (typeof body.parent_id === "string" || typeof body.parent_id === "number") {
-    const parentParsed = parseProductId(String(body.parent_id));
-    const parentResolved = await resolveByParsedId(c, parentParsed);
-    if (!parentResolved) return c.json(connectorError("parent_id not found", 404), 404);
-    parentProductId = parentResolved.id;
-  }
-  const directVariantOption = parseDirectOptionFields(body, fallbackOptionName);
-  const isVariant = Boolean(parentProductId);
-  const shouldPersistVariantFields =
-    isVariant || Boolean(directVariantOption.optionName || directVariantOption.optionValue);
+    let parentProductId: string | null = null;
+    if (typeof body.parent_id === "string" || typeof body.parent_id === "number") {
+      const parentParsed = parseProductId(String(body.parent_id));
+      const parentResolved = await resolveByParsedId(c, parentParsed);
+      if (!parentResolved) return c.json(connectorError("parent_id not found", 404), 404);
+      parentProductId = parentResolved.id;
+    }
+    const directVariantOption = parseDirectOptionFields(body, fallbackOptionName);
+    const isVariant = Boolean(parentProductId);
+    const shouldPersistVariantFields =
+      isVariant || Boolean(directVariantOption.optionName || directVariantOption.optionValue);
 
-  let ean: string | undefined;
-  if (Array.isArray(body.meta_data)) {
-    const eanMeta = (body.meta_data as Array<{ key?: string; value?: string }>).find((x) => x.key === "ean");
-    if (eanMeta?.value) ean = String(eanMeta.value);
-  }
-  const salePriceEur = parseSalePriceEur(body);
-  const salePriceUsd = parseSalePriceUsd(body);
+    let ean: string | undefined;
+    if (Array.isArray(body.meta_data)) {
+      const eanMeta = (body.meta_data as Array<{ key?: string; value?: string }>).find((x) => x.key === "ean");
+      if (eanMeta?.value) ean = String(eanMeta.value);
+    }
+    const salePriceEur = parseSalePriceEur(body);
+    const salePriceUsd = parseSalePriceUsd(body);
 
-  const insertValues: typeof products.$inferInsert = {
-    wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : null,
-    ...(shouldPersistVariantFields
-      ? {
-          parentProductId,
-          isVariant,
-          optionName: directVariantOption.optionName ?? null,
-          optionValue: directVariantOption.optionValue ?? null,
-          optionName2: directVariantOption.optionName2 ?? null,
-          optionValue2: directVariantOption.optionValue2 ?? null,
-        }
-      : {}),
-    sku,
-    slug,
-    name,
-    description: typeof body.description === "string" ? body.description : null,
-    visibilityStatus: normalizedStatus,
-    collection: category ?? null,
-    category: category ?? null,
-    brand: brand ?? null,
-    ean: ean ?? null,
-    ...(salePriceEur !== null ? { salePriceEur: salePriceEur.toFixed(2) } : {}),
-    ...(salePriceUsd !== null ? { salePriceUsd: salePriceUsd.toFixed(2) } : {}),
-    ...mappedFromAttributes,
-    ...(extraFromAttributes.length > 0 ? { extraAttributes: extraFromAttributes } : {}),
-    stockQty: parseStockQuantity(body),
-    imageUrl: resolvedImageUrls[0] ?? null,
-    imageUrls: resolvedImageUrls,
-  };
-  const updateValues: Partial<typeof products.$inferInsert> = {
-    wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : undefined,
-    ...(shouldPersistVariantFields
-      ? {
-          parentProductId,
-          isVariant,
-          optionName: directVariantOption.optionName ?? null,
-          optionValue: directVariantOption.optionValue ?? null,
-          optionName2: directVariantOption.optionName2 ?? null,
-          optionValue2: directVariantOption.optionValue2 ?? null,
-        }
-      : {}),
-    slug,
-    name,
-    description: typeof body.description === "string" ? body.description : null,
-    visibilityStatus: normalizedStatus,
-    collection: category ?? null,
-    category: category ?? null,
-    brand: brand ?? null,
-    ean: ean ?? null,
-    ...(salePriceEur !== null ? { salePriceEur: salePriceEur.toFixed(2) } : {}),
-    ...(salePriceUsd !== null ? { salePriceUsd: salePriceUsd.toFixed(2) } : {}),
-    ...mappedFromAttributes,
-    ...(extraFromAttributes.length > 0 ? { extraAttributes: extraFromAttributes } : {}),
-    ...(resolvedImageUrls.length > 0
-      ? { imageUrl: resolvedImageUrls[0], imageUrls: resolvedImageUrls }
-      : {}),
-  };
-  const created = await upsertProductBySku(c, sku, insertValues, updateValues);
-
-  const priceEur = parseRegularPrice(body);
-  const priceUsd = parseUsdPrice(body);
-
-  if (priceEur !== null) {
-    await upsertPrice(c, created.id, "EUR", priceEur);
-  }
-  if (priceUsd !== null) {
-    await upsertPrice(c, created.id, "USD", priceUsd);
-  }
-  const variantsInput = parseVariantsInput(body);
-  if (variantsInput.length === 0) {
-    return c.json({ created: true, id: created.wooId ?? created.id }, 201);
-  }
-
-  const parentMappedDefaults = mappedFromAttributes;
-  const parentExtraDefaults = extraFromAttributes;
-  const variantIds: Array<string | number> = [];
-  for (const variant of variantsInput) {
-    const variantSku = typeof variant.sku === "string" ? variant.sku.trim() : "";
-    if (!variantSku) continue;
-
-    const option = parseVariantOption(variant, fallbackOptionName);
-    const variantName =
-      typeof variant.name === "string" && variant.name.trim()
-        ? variant.name.trim()
-        : typeof variant.title === "string" && variant.title.trim()
-          ? variant.title.trim()
-        : option.optionValue && option.optionValue2
-          ? `${name} - ${option.optionValue} / ${option.optionValue2}`
-          : option.optionValue
-            ? `${name} - ${option.optionValue}`
-            : `${name} - ${variantSku}`;
-    const variantSlug =
-      typeof variant.slug === "string" && variant.slug.trim()
-        ? variant.slug.trim()
-        : slugify(variantName || variantSku);
-    const variantStockQty = parseStockQuantity(variant);
-    const variantImageUrls = resolveImageUrls(variant);
-    const variantMappedRaw = extractMappedProductFieldsFromAttributes(variant.attributes);
-    const variantMappedAttrs = { ...parentMappedDefaults, ...variantMappedRaw };
-    const variantExtraRaw = extractExtraAttributesFromAttributes(variant.attributes, variantMappedRaw);
-    const variantExtraAttrs = mergeExtraAttributes(parentExtraDefaults, variantExtraRaw);
-    const variantSaleEur = parseSalePriceEur(variant);
-    const variantSaleUsd = parseSalePriceUsd(variant);
-    const variantStatus = normalizeVisibilityStatus(variant.status) ?? "publish";
-
-    const variantInsertValues: typeof products.$inferInsert = {
-      wooId:
-        typeof variant.id === "number"
-          ? variant.id
-          : typeof variant.woo_id === "number"
-            ? variant.woo_id
-            : null,
-      parentProductId: created.id,
-      isVariant: true,
-      optionName: option.optionName ?? null,
-      optionValue: option.optionValue ?? null,
-      optionName2: option.optionName2 ?? null,
-      optionValue2: option.optionValue2 ?? null,
-      sku: variantSku,
-      slug: variantSlug,
+    const insertValues: typeof products.$inferInsert = {
+      wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : null,
+      ...(shouldPersistVariantFields
+        ? {
+            parentProductId,
+            isVariant,
+            optionName: directVariantOption.optionName ?? null,
+            optionValue: directVariantOption.optionValue ?? null,
+            optionName2: directVariantOption.optionName2 ?? null,
+            optionValue2: directVariantOption.optionValue2 ?? null,
+          }
+        : {}),
+      sku,
+      slug,
+      name,
+      description: typeof body.description === "string" ? body.description : null,
+      visibilityStatus: normalizedStatus,
       collection: category ?? null,
       category: category ?? null,
-      name: variantName,
-      description: typeof variant.description === "string" ? variant.description : null,
-      visibilityStatus: variantStatus,
-      brand:
-        typeof variant.brand === "string" && variant.brand.trim()
-          ? variant.brand.trim()
-          : brand ?? null,
-      ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
-      ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
-      ...variantMappedAttrs,
-      ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
-      stockQty: variantStockQty,
-      imageUrl: variantImageUrls[0] ?? null,
-      imageUrls: variantImageUrls,
+      brand: brand ?? null,
+      ean: ean ?? null,
+      ...(salePriceEur !== null ? { salePriceEur: salePriceEur.toFixed(2) } : {}),
+      ...(salePriceUsd !== null ? { salePriceUsd: salePriceUsd.toFixed(2) } : {}),
+      ...mappedFromAttributes,
+      ...(extraFromAttributes.length > 0 ? { extraAttributes: extraFromAttributes } : {}),
+      stockQty: parseStockQuantity(body),
+      imageUrl: resolvedImageUrls[0] ?? null,
+      imageUrls: resolvedImageUrls,
     };
-    const variantUpdateValues: Partial<typeof products.$inferInsert> = {
-      wooId:
-        typeof variant.id === "number"
-          ? variant.id
-          : typeof variant.woo_id === "number"
-            ? variant.woo_id
-            : undefined,
-      parentProductId: created.id,
-      isVariant: true,
-      optionName: option.optionName ?? null,
-      optionValue: option.optionValue ?? null,
-      optionName2: option.optionName2 ?? null,
-      optionValue2: option.optionValue2 ?? null,
-      slug: variantSlug,
+    const updateValues: Partial<typeof products.$inferInsert> = {
+      wooId: typeof body.id === "number" ? body.id : typeof body.woo_id === "number" ? body.woo_id : undefined,
+      ...(shouldPersistVariantFields
+        ? {
+            parentProductId,
+            isVariant,
+            optionName: directVariantOption.optionName ?? null,
+            optionValue: directVariantOption.optionValue ?? null,
+            optionName2: directVariantOption.optionName2 ?? null,
+            optionValue2: directVariantOption.optionValue2 ?? null,
+          }
+        : {}),
+      slug,
+      name,
+      description: typeof body.description === "string" ? body.description : null,
+      visibilityStatus: normalizedStatus,
       collection: category ?? null,
       category: category ?? null,
-      name: variantName,
-      description: typeof variant.description === "string" ? variant.description : null,
-      visibilityStatus: variantStatus,
-      brand:
-        typeof variant.brand === "string" && variant.brand.trim()
-          ? variant.brand.trim()
-          : brand ?? null,
-      ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
-      ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
-      ...variantMappedAttrs,
-      ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
-      stockQty: variantStockQty,
-      ...(variantImageUrls.length > 0
-        ? { imageUrl: variantImageUrls[0], imageUrls: variantImageUrls }
+      brand: brand ?? null,
+      ean: ean ?? null,
+      ...(salePriceEur !== null ? { salePriceEur: salePriceEur.toFixed(2) } : {}),
+      ...(salePriceUsd !== null ? { salePriceUsd: salePriceUsd.toFixed(2) } : {}),
+      ...mappedFromAttributes,
+      ...(extraFromAttributes.length > 0 ? { extraAttributes: extraFromAttributes } : {}),
+      ...(resolvedImageUrls.length > 0
+        ? { imageUrl: resolvedImageUrls[0], imageUrls: resolvedImageUrls }
         : {}),
     };
-    const savedVariant = await upsertProductBySku(c, variantSku, variantInsertValues, variantUpdateValues);
+    const created = await upsertProductBySku(c, sku, insertValues, updateValues);
 
-    const variantEur = parseRegularPrice(variant);
-    const variantUsd = parseUsdPrice(variant);
-    if (variantEur !== null) await upsertPrice(c, savedVariant.id, "EUR", variantEur);
-    if (variantUsd !== null) await upsertPrice(c, savedVariant.id, "USD", variantUsd);
-    variantIds.push(savedVariant.wooId ?? savedVariant.id);
+    const priceEur = parseRegularPrice(body);
+    const priceUsd = parseUsdPrice(body);
+
+    if (priceEur !== null) {
+      await upsertPrice(c, created.id, "EUR", priceEur);
+    }
+    if (priceUsd !== null) {
+      await upsertPrice(c, created.id, "USD", priceUsd);
+    }
+    const variantsInput = parseVariantsInput(body);
+    if (variantsInput.length === 0) {
+      return c.json({ created: true, id: created.wooId ?? created.id }, 201);
+    }
+
+    const parentMappedDefaults = mappedFromAttributes;
+    const parentExtraDefaults = extraFromAttributes;
+    const variantIds: Array<string | number> = [];
+    for (const variant of variantsInput) {
+      const variantSku = typeof variant.sku === "string" ? variant.sku.trim() : "";
+      if (!variantSku) continue;
+
+      const option = parseVariantOption(variant, fallbackOptionName);
+      const variantName =
+        typeof variant.name === "string" && variant.name.trim()
+          ? variant.name.trim()
+          : typeof variant.title === "string" && variant.title.trim()
+            ? variant.title.trim()
+          : option.optionValue && option.optionValue2
+            ? `${name} - ${option.optionValue} / ${option.optionValue2}`
+            : option.optionValue
+              ? `${name} - ${option.optionValue}`
+              : `${name} - ${variantSku}`;
+      const variantSlug =
+        typeof variant.slug === "string" && variant.slug.trim()
+          ? variant.slug.trim()
+          : slugify(variantName || variantSku);
+      const variantStockQty = parseStockQuantity(variant);
+      const variantImageUrls = resolveImageUrls(variant);
+      const variantMappedRaw = extractMappedProductFieldsFromAttributes(variant.attributes);
+      const variantMappedAttrs = { ...parentMappedDefaults, ...variantMappedRaw };
+      const variantExtraRaw = extractExtraAttributesFromAttributes(variant.attributes, variantMappedRaw);
+      const variantExtraAttrs = mergeExtraAttributes(parentExtraDefaults, variantExtraRaw);
+      const variantSaleEur = parseSalePriceEur(variant);
+      const variantSaleUsd = parseSalePriceUsd(variant);
+      const variantStatus = normalizeVisibilityStatus(variant.status) ?? "publish";
+
+      const variantInsertValues: typeof products.$inferInsert = {
+        wooId:
+          typeof variant.id === "number"
+            ? variant.id
+            : typeof variant.woo_id === "number"
+              ? variant.woo_id
+              : null,
+        parentProductId: created.id,
+        isVariant: true,
+        optionName: option.optionName ?? null,
+        optionValue: option.optionValue ?? null,
+        optionName2: option.optionName2 ?? null,
+        optionValue2: option.optionValue2 ?? null,
+        sku: variantSku,
+        slug: variantSlug,
+        collection: category ?? null,
+        category: category ?? null,
+        name: variantName,
+        description: typeof variant.description === "string" ? variant.description : null,
+        visibilityStatus: variantStatus,
+        brand:
+          typeof variant.brand === "string" && variant.brand.trim()
+            ? variant.brand.trim()
+            : brand ?? null,
+        ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
+        ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
+        ...variantMappedAttrs,
+        ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
+        stockQty: variantStockQty,
+        imageUrl: variantImageUrls[0] ?? null,
+        imageUrls: variantImageUrls,
+      };
+      const variantUpdateValues: Partial<typeof products.$inferInsert> = {
+        wooId:
+          typeof variant.id === "number"
+            ? variant.id
+            : typeof variant.woo_id === "number"
+              ? variant.woo_id
+              : undefined,
+        parentProductId: created.id,
+        isVariant: true,
+        optionName: option.optionName ?? null,
+        optionValue: option.optionValue ?? null,
+        optionName2: option.optionName2 ?? null,
+        optionValue2: option.optionValue2 ?? null,
+        slug: variantSlug,
+        collection: category ?? null,
+        category: category ?? null,
+        name: variantName,
+        description: typeof variant.description === "string" ? variant.description : null,
+        visibilityStatus: variantStatus,
+        brand:
+          typeof variant.brand === "string" && variant.brand.trim()
+            ? variant.brand.trim()
+            : brand ?? null,
+        ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
+        ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
+        ...variantMappedAttrs,
+        ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
+        stockQty: variantStockQty,
+        ...(variantImageUrls.length > 0
+          ? { imageUrl: variantImageUrls[0], imageUrls: variantImageUrls }
+          : {}),
+      };
+      const savedVariant = await upsertProductBySku(c, variantSku, variantInsertValues, variantUpdateValues);
+
+      const variantEur = parseRegularPrice(variant);
+      const variantUsd = parseUsdPrice(variant);
+      if (variantEur !== null) await upsertPrice(c, savedVariant.id, "EUR", variantEur);
+      if (variantUsd !== null) await upsertPrice(c, savedVariant.id, "USD", variantUsd);
+      variantIds.push(savedVariant.wooId ?? savedVariant.id);
+    }
+
+    return c.json({ created: true, id: created.wooId ?? created.id, variant_ids: variantIds }, 201);
+  } catch (error) {
+    const classifiedError = classifyConnectorCreateError(error);
+    console.error("Connector product create failed", {
+      sku,
+      slug,
+      parentId: body.parent_id ?? null,
+      type: body.type ?? null,
+      category: resolveCategory(body) ?? null,
+      payload: body,
+      error,
+    });
+
+    if (classifiedError) {
+      return c.json(classifiedError, classifiedError.status);
+    }
+
+    return c.json(
+      connectorError("Product create failed", 500, {
+        code: "product_create_failed",
+      }),
+      500,
+    );
   }
-
-  return c.json({ created: true, id: created.wooId ?? created.id, variant_ids: variantIds }, 201);
 });
