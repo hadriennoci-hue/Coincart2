@@ -394,6 +394,10 @@ footer { position: relative; z-index: 1; }
   display: flex;
   flex-direction: column;
 }
+.flip-card-front .product-card-img,
+.flip-card-front .product-card-img-placeholder {
+  background: #fff;
+}
 .flip-card-front:hover { border-color: var(--primary); }
 .flip-card-back {
   background: var(--surface-2);
