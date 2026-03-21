@@ -55,8 +55,22 @@ export const createApp = ({
     .filter(Boolean);
 
   const app = new Hono<AppContext>();
-  app.onError((err, c) => {
-    console.error("Unhandled API error:", err);
+  app.onError(async (err, c) => {
+    let rawBody: string | null = null;
+    try {
+      if (!c.req.raw.bodyUsed) {
+        rawBody = await c.req.text();
+      }
+    } catch {
+      rawBody = null;
+    }
+
+    console.error("Unhandled API error:", {
+      method: c.req.method,
+      url: c.req.url,
+      rawBody,
+      error: err,
+    });
     return c.json({ error: "Internal Server Error" }, 500);
   });
   app.use(

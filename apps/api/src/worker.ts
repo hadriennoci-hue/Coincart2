@@ -20,6 +20,15 @@ type Env = {
 let cachedApp: ReturnType<typeof createApp> | null = null;
 let cachedKey = "";
 
+const shouldCaptureRequestBody = (request: Request) => {
+  if (!["POST", "PUT"].includes(request.method.toUpperCase())) return false;
+  const url = new URL(request.url);
+  return (
+    url.pathname === "/v1/connector/products" ||
+    url.pathname === "/wp-json/wc/v3/products"
+  );
+};
+
 const getApp = (env: Env) => {
   const resolvedKey = env.COINCART_KEY || env.WOO_CONSUMER_KEY;
   const resolvedSecret = env.COINCART_SECRET || env.WOO_CONSUMER_SECRET;
@@ -46,17 +55,30 @@ const getApp = (env: Env) => {
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    const rawBody =
+      shouldCaptureRequestBody(request) ? await request.clone().text().catch(() => null) : null;
+
     try {
       return await getApp(env).fetch(request, env, ctx);
     } catch (error) {
       // Recover from stale runtime/db state by rebuilding app bindings once.
-      console.error("Worker fetch failed, retrying with fresh app instance:", error);
+      console.error("Worker fetch failed, retrying with fresh app instance:", {
+        method: request.method,
+        url: request.url,
+        rawBody,
+        error,
+      });
       cachedApp = null;
       cachedKey = "";
       try {
         return await getApp(env).fetch(request, env, ctx);
       } catch (retryError) {
-        console.error("Worker fetch retry failed:", retryError);
+        console.error("Worker fetch retry failed:", {
+          method: request.method,
+          url: request.url,
+          rawBody,
+          error: retryError,
+        });
         return new Response(JSON.stringify({ error: "Internal Server Error" }), {
           status: 500,
           headers: { "content-type": "application/json; charset=utf-8" },
