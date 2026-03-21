@@ -1232,285 +1232,310 @@ connectorRoutes.post("/products/:id", async (c) => {
   const body = (await c.req.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body) return c.json(connectorError("Invalid JSON body"), 400);
 
-  const updatePayload: Partial<typeof products.$inferInsert> = {};
-  const normalizedStatus = normalizeVisibilityStatus(body.status);
+  try {
+    const updatePayload: Partial<typeof products.$inferInsert> = {};
+    const normalizedStatus = normalizeVisibilityStatus(body.status);
 
-  if (typeof body.name === "string") updatePayload.name = body.name;
-  else if (typeof body.title === "string") updatePayload.name = body.title;
-  if (typeof body.slug === "string") updatePayload.slug = body.slug;
-  if (typeof body.description === "string") updatePayload.description = body.description;
-  if (typeof body.sku === "string") updatePayload.sku = body.sku;
-  if (normalizedStatus) updatePayload.visibilityStatus = normalizedStatus;
-  if (
-    typeof body.stock_quantity === "number" ||
-    typeof body.stock === "number" ||
-    (typeof body.in_stock === "boolean" && body.in_stock === false)
-  ) {
-    updatePayload.stockQty = parseStockQuantity(body);
-  }
-  const resolvedCategory = resolveCategory(body);
-  if (resolvedCategory !== undefined) {
-    updatePayload.collection = resolvedCategory;
-    updatePayload.category = resolvedCategory;
-  }
-  const resolvedImageUrls = resolveImageUrls(body);
-  if (resolvedImageUrls.length > 0) {
-    updatePayload.imageUrl = resolvedImageUrls[0];
-    updatePayload.imageUrls = resolvedImageUrls;
-  }
-  const mappedFromAttributes = extractMappedProductFieldsFromAttributes(body.attributes);
-  const extraFromAttributes = extractExtraAttributesFromAttributes(body.attributes, mappedFromAttributes);
-  Object.assign(updatePayload, mappedFromAttributes);
-  if (extraFromAttributes.length > 0) updatePayload.extraAttributes = extraFromAttributes;
+    if (typeof body.name === "string") updatePayload.name = body.name;
+    else if (typeof body.title === "string") updatePayload.name = body.title;
+    if (typeof body.slug === "string") updatePayload.slug = body.slug;
+    if (typeof body.description === "string") updatePayload.description = body.description;
+    if (typeof body.sku === "string") updatePayload.sku = body.sku;
+    if (normalizedStatus) updatePayload.visibilityStatus = normalizedStatus;
+    if (
+      typeof body.stock_quantity === "number" ||
+      typeof body.stock === "number" ||
+      (typeof body.in_stock === "boolean" && body.in_stock === false)
+    ) {
+      updatePayload.stockQty = parseStockQuantity(body);
+    }
+    const resolvedCategory = resolveCategory(body);
+    if (resolvedCategory !== undefined) {
+      updatePayload.collection = resolvedCategory;
+      updatePayload.category = resolvedCategory;
+    }
+    const resolvedImageUrls = resolveImageUrls(body);
+    if (resolvedImageUrls.length > 0) {
+      updatePayload.imageUrl = resolvedImageUrls[0];
+      updatePayload.imageUrls = resolvedImageUrls;
+    }
+    const mappedFromAttributes = extractMappedProductFieldsFromAttributes(body.attributes);
+    const extraFromAttributes = extractExtraAttributesFromAttributes(body.attributes, mappedFromAttributes);
+    Object.assign(updatePayload, mappedFromAttributes);
+    if (extraFromAttributes.length > 0) updatePayload.extraAttributes = extraFromAttributes;
 
-  if (typeof body.parent_id === "string" || typeof body.parent_id === "number") {
-    const parentParsed = parseProductId(String(body.parent_id));
-    const parentResolved = await resolveByParsedId(c, parentParsed);
-    if (!parentResolved) return c.json(connectorError("parent_id not found", 404), 404);
-    updatePayload.parentProductId = parentResolved.id;
-    updatePayload.isVariant = true;
-  }
-
-  if (Array.isArray(body.attributes)) {
-    const brandAttr = (body.attributes as Array<{ name?: string; options?: string[] }>).find(
-      (x) => x.name?.toLowerCase() === "brand",
-    );
-    if (brandAttr?.options?.[0]) updatePayload.brand = brandAttr.options[0];
-  }
-  const directOption = parseDirectOptionFields(body);
-  if (directOption.optionName) updatePayload.optionName = directOption.optionName;
-  if (directOption.optionValue) updatePayload.optionValue = directOption.optionValue;
-  if (directOption.optionName2) updatePayload.optionName2 = directOption.optionName2;
-  if (directOption.optionValue2) updatePayload.optionValue2 = directOption.optionValue2;
-
-  if (Array.isArray(body.meta_data)) {
-    const eanMeta = (body.meta_data as Array<{ key?: string; value?: string }>).find((x) => x.key === "ean");
-    if (eanMeta?.value) updatePayload.ean = String(eanMeta.value);
-  }
-
-  const resolved = await resolveByParsedId(c, parsedId);
-  if (!resolved) return c.json(connectorError("Product not found", 404), 404);
-
-  const [resolvedProduct] = await c.var.db
-    .select({
-      id: products.id,
-      wooId: products.wooId,
-      parentProductId: products.parentProductId,
-      isVariant: products.isVariant,
-      name: products.name,
-      slug: products.slug,
-      collection: products.collection,
-      category: products.category,
-      visibilityStatus: products.visibilityStatus,
-      imageUrl: products.imageUrl,
-      imageUrls: products.imageUrls,
-      brand: products.brand,
-      description: products.description,
-      cpu: products.cpu,
-      gpu: products.gpu,
-      keyboardLayout: products.keyboardLayout,
-      usage: products.usage,
-      screenSize: products.screenSize,
-      displayType: products.displayType,
-      resolution: products.resolution,
-      maxResolution: products.maxResolution,
-      refreshRate: products.refreshRate,
-      ramMemory: products.ramMemory,
-      ssdSize: products.ssdSize,
-      storage: products.storage,
-      salePriceEur: products.salePriceEur,
-      salePriceUsd: products.salePriceUsd,
-      extraAttributes: products.extraAttributes,
-    })
-    .from(products)
-    .where(eq(products.id, resolved.id))
-    .limit(1);
-  if (!resolvedProduct) return c.json(connectorError("Product not found", 404), 404);
-
-  const priceEur = parseRegularPrice(body);
-  const priceUsd = parseUsdPrice(body);
-  const salePriceEur = parseSalePriceEur(body);
-  const salePriceUsd = parseSalePriceUsd(body);
-
-  if (salePriceEur !== null) updatePayload.salePriceEur = salePriceEur.toFixed(2);
-  if (salePriceUsd !== null) updatePayload.salePriceUsd = salePriceUsd.toFixed(2);
-
-  if (Object.keys(updatePayload).length > 0) {
-    await c.var.db
-      .update(products)
-      .set({ ...updatePayload, updatedAt: new Date() })
-      .where(eq(products.id, resolved.id));
-  }
-
-  if (priceEur !== null) {
-    await upsertPrice(c, resolved.id, "EUR", priceEur);
-  }
-
-  if (priceUsd !== null) {
-    await upsertPrice(c, resolved.id, "USD", priceUsd);
-  }
-
-  const variantsInput = parseVariantsInput(body);
-  const fallbackOptionName = parseFirstOptionName(body);
-  const replaceVariants =
-    body.replace_variants === true || body.replace_variations === true || body.replaceVariants === true;
-  if (variantsInput.length > 0) {
-    const parentId = resolvedProduct.id;
-    const parentMappedDefaults: Partial<typeof products.$inferInsert> = {
-      cpu: resolvedProduct.cpu ?? undefined,
-      gpu: resolvedProduct.gpu ?? undefined,
-      keyboardLayout: resolvedProduct.keyboardLayout ?? undefined,
-      usage: resolvedProduct.usage ?? undefined,
-      screenSize: resolvedProduct.screenSize ?? undefined,
-      displayType: resolvedProduct.displayType ?? undefined,
-      resolution: resolvedProduct.resolution ?? undefined,
-      maxResolution: resolvedProduct.maxResolution ?? undefined,
-      refreshRate: resolvedProduct.refreshRate ?? undefined,
-      ramMemory: resolvedProduct.ramMemory ?? undefined,
-      ssdSize: resolvedProduct.ssdSize ?? undefined,
-      storage: resolvedProduct.storage ?? undefined,
-    };
-    const parentExtraDefaults = Array.isArray(resolvedProduct.extraAttributes)
-      ? (resolvedProduct.extraAttributes as Array<{ name: string; options: string[] }>)
-      : [];
-    const keepVariantIds: string[] = [];
-    const variantIds: Array<string | number> = [];
-
-    for (const variant of variantsInput) {
-      const variantSku = typeof variant.sku === "string" ? variant.sku.trim() : "";
-      if (!variantSku) continue;
-
-      const option = parseVariantOption(variant, fallbackOptionName);
-      const variantName =
-        typeof variant.name === "string" && variant.name.trim()
-          ? variant.name.trim()
-          : typeof variant.title === "string" && variant.title.trim()
-            ? variant.title.trim()
-          : option.optionValue && option.optionValue2
-            ? `${resolvedProduct.name} - ${option.optionValue} / ${option.optionValue2}`
-            : option.optionValue
-              ? `${resolvedProduct.name} - ${option.optionValue}`
-              : `${resolvedProduct.name} - ${variantSku}`;
-      const variantSlug =
-        typeof variant.slug === "string" && variant.slug.trim()
-          ? variant.slug.trim()
-          : slugify(variantName || variantSku);
-      const variantStockQty = parseStockQuantity(variant);
-      const variantImageUrls = resolveImageUrls(variant);
-      const variantMappedRaw = extractMappedProductFieldsFromAttributes(variant.attributes);
-      const variantMappedAttrs = { ...parentMappedDefaults, ...variantMappedRaw };
-      const variantExtraRaw = extractExtraAttributesFromAttributes(variant.attributes, variantMappedRaw);
-      const variantExtraAttrs = mergeExtraAttributes(parentExtraDefaults, variantExtraRaw);
-      const variantSaleEur = parseSalePriceEur(variant);
-      const variantSaleUsd = parseSalePriceUsd(variant);
-      const variantStatus = normalizeVisibilityStatus(variant.status) ?? resolvedProduct.visibilityStatus;
-      const insertValues: typeof products.$inferInsert = {
-        wooId:
-          typeof variant.id === "number"
-            ? variant.id
-            : typeof variant.woo_id === "number"
-              ? variant.woo_id
-              : null,
-        parentProductId: parentId,
-        isVariant: true,
-        optionName: option.optionName ?? null,
-        optionValue: option.optionValue ?? null,
-        optionName2: option.optionName2 ?? null,
-        optionValue2: option.optionValue2 ?? null,
-        sku: variantSku,
-        slug: variantSlug,
-        collection: resolvedProduct.collection ?? resolvedProduct.category ?? null,
-        category: resolvedProduct.collection ?? resolvedProduct.category ?? null,
-        name: variantName,
-        description:
-          typeof variant.description === "string"
-            ? variant.description
-            : resolvedProduct.description ?? null,
-        visibilityStatus: variantStatus,
-        brand:
-          typeof variant.brand === "string" && variant.brand.trim()
-            ? variant.brand.trim()
-            : resolvedProduct.brand ?? null,
-        ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
-        ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
-        ...variantMappedAttrs,
-        ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
-        stockQty: variantStockQty,
-        imageUrl: variantImageUrls[0] ?? resolvedProduct.imageUrl ?? null,
-        imageUrls: variantImageUrls.length > 0
-          ? variantImageUrls
-          : Array.isArray(resolvedProduct.imageUrls)
-            ? resolvedProduct.imageUrls
-            : resolvedProduct.imageUrl
-              ? [resolvedProduct.imageUrl]
-              : [],
-      };
-      const updateValues: Partial<typeof products.$inferInsert> = {
-        wooId:
-          typeof variant.id === "number"
-            ? variant.id
-            : typeof variant.woo_id === "number"
-              ? variant.woo_id
-              : undefined,
-        parentProductId: parentId,
-        isVariant: true,
-        optionName: option.optionName ?? null,
-        optionValue: option.optionValue ?? null,
-        optionName2: option.optionName2 ?? null,
-        optionValue2: option.optionValue2 ?? null,
-        slug: variantSlug,
-        collection: resolvedProduct.collection ?? resolvedProduct.category ?? null,
-        category: resolvedProduct.collection ?? resolvedProduct.category ?? null,
-        name: variantName,
-        description:
-          typeof variant.description === "string"
-            ? variant.description
-            : resolvedProduct.description ?? null,
-        visibilityStatus: variantStatus,
-        brand:
-          typeof variant.brand === "string" && variant.brand.trim()
-            ? variant.brand.trim()
-            : resolvedProduct.brand ?? null,
-        ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
-        ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
-        ...variantMappedAttrs,
-        ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
-        stockQty: variantStockQty,
-        ...(variantImageUrls.length > 0
-          ? { imageUrl: variantImageUrls[0], imageUrls: variantImageUrls }
-          : {}),
-      };
-
-      const saved = await upsertProductBySku(c, variantSku, insertValues, updateValues);
-
-      keepVariantIds.push(saved.id);
-      variantIds.push(saved.wooId ?? saved.id);
-
-      const variantEur = parseRegularPrice(variant);
-      const variantUsd = parseUsdPrice(variant);
-      if (variantEur !== null) await upsertPrice(c, saved.id, "EUR", variantEur);
-      if (variantUsd !== null) await upsertPrice(c, saved.id, "USD", variantUsd);
+    if (typeof body.parent_id === "string" || typeof body.parent_id === "number") {
+      const parentParsed = parseProductId(String(body.parent_id));
+      const parentResolved = await resolveByParsedId(c, parentParsed);
+      if (!parentResolved) return c.json(connectorError("parent_id not found", 404), 404);
+      updatePayload.parentProductId = parentResolved.id;
+      updatePayload.isVariant = true;
     }
 
-    if (replaceVariants) {
-      if (keepVariantIds.length === 0) {
-        await c.var.db.delete(products).where(eq(products.parentProductId, parentId));
-      } else {
-        await c.var.db
-          .delete(products)
-          .where(
-            and(
-              eq(products.parentProductId, parentId),
-              sql`${products.id} NOT IN (${sql.join(keepVariantIds.map((id) => sql`${id}`), sql`,`)})`,
-            ),
-          );
+    if (Array.isArray(body.attributes)) {
+      const brandAttr = (body.attributes as Array<{ name?: string; options?: string[] }>).find(
+        (x) => x.name?.toLowerCase() === "brand",
+      );
+      if (brandAttr?.options?.[0]) updatePayload.brand = brandAttr.options[0];
+    }
+    const directOption = parseDirectOptionFields(body);
+    if (directOption.optionName) updatePayload.optionName = directOption.optionName;
+    if (directOption.optionValue) updatePayload.optionValue = directOption.optionValue;
+    if (directOption.optionName2) updatePayload.optionName2 = directOption.optionName2;
+    if (directOption.optionValue2) updatePayload.optionValue2 = directOption.optionValue2;
+
+    if (Array.isArray(body.meta_data)) {
+      const eanMeta = (body.meta_data as Array<{ key?: string; value?: string }>).find((x) => x.key === "ean");
+      if (eanMeta?.value) updatePayload.ean = String(eanMeta.value);
+    }
+
+    const resolved = await resolveByParsedId(c, parsedId);
+    if (!resolved) return c.json(connectorError("Product not found", 404), 404);
+
+    const [resolvedProduct] = await c.var.db
+      .select({
+        id: products.id,
+        wooId: products.wooId,
+        parentProductId: products.parentProductId,
+        isVariant: products.isVariant,
+        name: products.name,
+        slug: products.slug,
+        collection: products.collection,
+        category: products.category,
+        visibilityStatus: products.visibilityStatus,
+        imageUrl: products.imageUrl,
+        imageUrls: products.imageUrls,
+        brand: products.brand,
+        description: products.description,
+        cpu: products.cpu,
+        gpu: products.gpu,
+        keyboardLayout: products.keyboardLayout,
+        usage: products.usage,
+        screenSize: products.screenSize,
+        displayType: products.displayType,
+        resolution: products.resolution,
+        maxResolution: products.maxResolution,
+        refreshRate: products.refreshRate,
+        ramMemory: products.ramMemory,
+        ssdSize: products.ssdSize,
+        storage: products.storage,
+        salePriceEur: products.salePriceEur,
+        salePriceUsd: products.salePriceUsd,
+        extraAttributes: products.extraAttributes,
+      })
+      .from(products)
+      .where(eq(products.id, resolved.id))
+      .limit(1);
+    if (!resolvedProduct) return c.json(connectorError("Product not found", 404), 404);
+
+    const priceEur = parseRegularPrice(body);
+    const priceUsd = parseUsdPrice(body);
+    const salePriceEur = parseSalePriceEur(body);
+    const salePriceUsd = parseSalePriceUsd(body);
+
+    if (salePriceEur !== null) updatePayload.salePriceEur = salePriceEur.toFixed(2);
+    if (salePriceUsd !== null) updatePayload.salePriceUsd = salePriceUsd.toFixed(2);
+
+    if (Object.keys(updatePayload).length > 0) {
+      await c.var.db
+        .update(products)
+        .set({ ...updatePayload, updatedAt: new Date() })
+        .where(eq(products.id, resolved.id));
+    }
+
+    if (priceEur !== null) {
+      await upsertPrice(c, resolved.id, "EUR", priceEur);
+    }
+
+    if (priceUsd !== null) {
+      await upsertPrice(c, resolved.id, "USD", priceUsd);
+    }
+
+    const variantsInput = parseVariantsInput(body);
+    const fallbackOptionName = parseFirstOptionName(body);
+    const replaceVariants =
+      body.replace_variants === true || body.replace_variations === true || body.replaceVariants === true;
+    if (variantsInput.length > 0) {
+      const parentId = resolvedProduct.id;
+      const parentMappedDefaults: Partial<typeof products.$inferInsert> = {
+        cpu: resolvedProduct.cpu ?? undefined,
+        gpu: resolvedProduct.gpu ?? undefined,
+        keyboardLayout: resolvedProduct.keyboardLayout ?? undefined,
+        usage: resolvedProduct.usage ?? undefined,
+        screenSize: resolvedProduct.screenSize ?? undefined,
+        displayType: resolvedProduct.displayType ?? undefined,
+        resolution: resolvedProduct.resolution ?? undefined,
+        maxResolution: resolvedProduct.maxResolution ?? undefined,
+        refreshRate: resolvedProduct.refreshRate ?? undefined,
+        ramMemory: resolvedProduct.ramMemory ?? undefined,
+        ssdSize: resolvedProduct.ssdSize ?? undefined,
+        storage: resolvedProduct.storage ?? undefined,
+      };
+      const parentExtraDefaults = Array.isArray(resolvedProduct.extraAttributes)
+        ? (resolvedProduct.extraAttributes as Array<{ name: string; options: string[] }>)
+        : [];
+      const keepVariantIds: string[] = [];
+      const variantIds: Array<string | number> = [];
+
+      for (const variant of variantsInput) {
+        const variantSku = typeof variant.sku === "string" ? variant.sku.trim() : "";
+        if (!variantSku) continue;
+
+        const option = parseVariantOption(variant, fallbackOptionName);
+        const variantName =
+          typeof variant.name === "string" && variant.name.trim()
+            ? variant.name.trim()
+            : typeof variant.title === "string" && variant.title.trim()
+              ? variant.title.trim()
+              : option.optionValue && option.optionValue2
+                ? `${resolvedProduct.name} - ${option.optionValue} / ${option.optionValue2}`
+                : option.optionValue
+                  ? `${resolvedProduct.name} - ${option.optionValue}`
+                  : `${resolvedProduct.name} - ${variantSku}`;
+        const variantSlug =
+          typeof variant.slug === "string" && variant.slug.trim()
+            ? variant.slug.trim()
+            : slugify(variantName || variantSku);
+        const variantStockQty = parseStockQuantity(variant);
+        const variantImageUrls = resolveImageUrls(variant);
+        const variantMappedRaw = extractMappedProductFieldsFromAttributes(variant.attributes);
+        const variantMappedAttrs = { ...parentMappedDefaults, ...variantMappedRaw };
+        const variantExtraRaw = extractExtraAttributesFromAttributes(variant.attributes, variantMappedRaw);
+        const variantExtraAttrs = mergeExtraAttributes(parentExtraDefaults, variantExtraRaw);
+        const variantSaleEur = parseSalePriceEur(variant);
+        const variantSaleUsd = parseSalePriceUsd(variant);
+        const variantStatus = normalizeVisibilityStatus(variant.status) ?? resolvedProduct.visibilityStatus;
+        const insertValues: typeof products.$inferInsert = {
+          wooId:
+            typeof variant.id === "number"
+              ? variant.id
+              : typeof variant.woo_id === "number"
+                ? variant.woo_id
+                : null,
+          parentProductId: parentId,
+          isVariant: true,
+          optionName: option.optionName ?? null,
+          optionValue: option.optionValue ?? null,
+          optionName2: option.optionName2 ?? null,
+          optionValue2: option.optionValue2 ?? null,
+          sku: variantSku,
+          slug: variantSlug,
+          collection: resolvedProduct.collection ?? resolvedProduct.category ?? null,
+          category: resolvedProduct.collection ?? resolvedProduct.category ?? null,
+          name: variantName,
+          description:
+            typeof variant.description === "string"
+              ? variant.description
+              : resolvedProduct.description ?? null,
+          visibilityStatus: variantStatus,
+          brand:
+            typeof variant.brand === "string" && variant.brand.trim()
+              ? variant.brand.trim()
+              : resolvedProduct.brand ?? null,
+          ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
+          ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
+          ...variantMappedAttrs,
+          ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
+          stockQty: variantStockQty,
+          imageUrl: variantImageUrls[0] ?? resolvedProduct.imageUrl ?? null,
+          imageUrls: variantImageUrls.length > 0
+            ? variantImageUrls
+            : Array.isArray(resolvedProduct.imageUrls)
+              ? resolvedProduct.imageUrls
+              : resolvedProduct.imageUrl
+                ? [resolvedProduct.imageUrl]
+                : [],
+        };
+        const updateValues: Partial<typeof products.$inferInsert> = {
+          wooId:
+            typeof variant.id === "number"
+              ? variant.id
+              : typeof variant.woo_id === "number"
+                ? variant.woo_id
+                : undefined,
+          parentProductId: parentId,
+          isVariant: true,
+          optionName: option.optionName ?? null,
+          optionValue: option.optionValue ?? null,
+          optionName2: option.optionName2 ?? null,
+          optionValue2: option.optionValue2 ?? null,
+          slug: variantSlug,
+          collection: resolvedProduct.collection ?? resolvedProduct.category ?? null,
+          category: resolvedProduct.collection ?? resolvedProduct.category ?? null,
+          name: variantName,
+          description:
+            typeof variant.description === "string"
+              ? variant.description
+              : resolvedProduct.description ?? null,
+          visibilityStatus: variantStatus,
+          brand:
+            typeof variant.brand === "string" && variant.brand.trim()
+              ? variant.brand.trim()
+              : resolvedProduct.brand ?? null,
+          ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
+          ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
+          ...variantMappedAttrs,
+          ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
+          stockQty: variantStockQty,
+          ...(variantImageUrls.length > 0
+            ? { imageUrl: variantImageUrls[0], imageUrls: variantImageUrls }
+            : {}),
+        };
+
+        const saved = await upsertProductBySku(c, variantSku, insertValues, updateValues);
+
+        keepVariantIds.push(saved.id);
+        variantIds.push(saved.wooId ?? saved.id);
+
+        const variantEur = parseRegularPrice(variant);
+        const variantUsd = parseUsdPrice(variant);
+        if (variantEur !== null) await upsertPrice(c, saved.id, "EUR", variantEur);
+        if (variantUsd !== null) await upsertPrice(c, saved.id, "USD", variantUsd);
       }
+
+      if (replaceVariants) {
+        if (keepVariantIds.length === 0) {
+          await c.var.db.delete(products).where(eq(products.parentProductId, parentId));
+        } else {
+          await c.var.db
+            .delete(products)
+            .where(
+              and(
+                eq(products.parentProductId, parentId),
+                sql`${products.id} NOT IN (${sql.join(keepVariantIds.map((id) => sql`${id}`), sql`,`)})`,
+              ),
+            );
+        }
+      }
+
+      return c.json({ updated: true, id: resolved.wooId ?? resolved.id, variant_ids: variantIds });
     }
 
-    return c.json({ updated: true, id: resolved.wooId ?? resolved.id, variant_ids: variantIds });
-  }
+    return c.json({ updated: true, id: resolved.wooId ?? resolved.id });
+  } catch (error) {
+    const classifiedError = classifyConnectorCreateError(error);
+    console.error("Connector product update failed", {
+      idParam,
+      sku: typeof body.sku === "string" ? body.sku.trim() : null,
+      slug: typeof body.slug === "string" ? body.slug.trim() : null,
+      parentId: body.parent_id ?? null,
+      type: body.type ?? null,
+      category: resolveCategory(body) ?? null,
+      payload: body,
+      error,
+    });
 
-  return c.json({ updated: true, id: resolved.wooId ?? resolved.id });
+    if (classifiedError) {
+      return c.json(classifiedError, classifiedError.status);
+    }
+
+    return c.json(
+      connectorError("Product update failed", 500, {
+        code: "product_update_failed",
+      }),
+      500,
+    );
+  }
 });
 
 connectorRoutes.post("/products", async (c) => {
