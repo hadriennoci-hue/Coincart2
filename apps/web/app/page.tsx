@@ -211,7 +211,7 @@ export default async function Home({
             </div>
           </div>
           <div className="product-grid">
-            {(promotions.length > 0 ? promotions : topSellingFallback).map((item) => (
+            {promotions.map((item) => (
               <FlipCard
                 key={`promo-${item.id}`}
                 name={item.name}
