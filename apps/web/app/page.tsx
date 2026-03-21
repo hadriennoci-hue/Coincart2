@@ -110,8 +110,8 @@ export default async function Home({
         : [];
   const promotions = latestItems
     .filter((item) => typeof item.promoPrice === "number" && item.promoPrice > 0)
-    .slice(0, 4);
-  const topSellingFallback = latestItems.slice(0, 4);
+    .slice(0, 8);
+  const topSellingFallback = latestItems.slice(0, 8);
   const topSelling = topSellingFallback;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://coincart-web.pages.dev";
   const homeJsonLd = {
