@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Armchair, Backpack, Headphones, TabletSmartphone } from "lucide-react";
 import { fetchCollections, fetchProducts, type Currency } from "../lib/api";
 import { collectionByKey, collectionMeta } from "../lib/collections";
 import { FlipCard } from "../components/ui/FlipCard";
@@ -52,14 +53,15 @@ export const runtime = "edge";
 
 const HOME_HERO_SKU = process.env.NEXT_PUBLIC_HERO_SKU || "LT-GRY-14-A14-US";
 
-const COLLECTION_ICONS: Record<string, string> = {
-  cases: "\u{1F4E6}",
+const COLLECTION_ICONS = {
+  audio: <Headphones size={34} strokeWidth={1.9} aria-hidden />,
+  cases: <Backpack size={34} strokeWidth={1.9} aria-hidden />,
   desktops: "\u{1F5A5}\u{FE0F}",
   displays: "\u{1F4FA}",
   "input-devices": "\u{2328}\u{FE0F}",
   laptops: "\u{1F4BB}",
-  lifestyle: "\u{1F31F}",
-  tablets: "\u{1F4F1}",
+  lifestyle: <Armchair size={34} strokeWidth={1.9} aria-hidden />,
+  tablets: <TabletSmartphone size={34} strokeWidth={1.9} aria-hidden />,
 };
 
 export default async function Home({

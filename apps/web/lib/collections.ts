@@ -1,4 +1,5 @@
 export type CollectionKey =
+  | "audio"
   | "cases"
   | "desktops"
   | "displays"
@@ -13,6 +14,12 @@ export const collectionMeta: Array<{
   icon: string;
   intro: string;
 }> = [
+  {
+    key: "audio",
+    label: "Audio",
+    icon: "AU",
+    intro: "Headsets, earbuds, and audio gear for work, gaming, and everyday use.",
+  },
   {
     key: "cases",
     label: "Cases",
