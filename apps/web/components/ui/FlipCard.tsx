@@ -156,15 +156,14 @@ export function FlipCard({
           {/* Back */}
           <div className="flip-card-back">
             <p style={{ fontWeight: 700, fontSize: "0.9375rem", color: "var(--text)", lineHeight: 1.3, margin: 0 }}>{name}</p>
-            {sku && <p className="caption" style={{ margin: "2px 0 0" }}>{sku}</p>}
             {isLaptop ? (
               <div className="flip-card-specs">
+                {displayGpu && <div className="flip-spec-row"><span>GPU</span><span>{displayGpu}</span></div>}
                 {displayScreenSize && <div className="flip-spec-row"><span>Screen</span><span>{displayScreenSize}</span></div>}
                 {displayResolution && <div className="flip-spec-row"><span>Resolution</span><span>{displayResolution}</span></div>}
                 {displayCpu && <div className="flip-spec-row"><span>CPU</span><span>{displayCpu}</span></div>}
                 {displayRamMemory && <div className="flip-spec-row"><span>RAM</span><span>{displayRamMemory} GB</span></div>}
                 {displayStorage && <div className="flip-spec-row"><span>Storage</span><span>{displayStorage}</span></div>}
-                {displayGpu && <div className="flip-spec-row"><span>GPU</span><span>{displayGpu}</span></div>}
                 {brand && <div className="flip-spec-row"><span>Brand</span><span>{brand}</span></div>}
               </div>
             ) : isDisplay ? (
