@@ -51,6 +51,16 @@ const allTestimonials: Testimonial[] = [
 export const runtime = "edge";
 
 const HOME_HERO_SKU = process.env.NEXT_PUBLIC_HERO_SKU || "NH.QW0EH.003";
+const TOP_SELLING_SKUS = [
+  "GP.HDS11.01P",
+  "GP.HDS11.01L",
+  "UM.QX1EE.307",
+  "DP.Z4EWW.P01",
+  "GP.MCE11.039",
+  "GP.MCE11.03S",
+  "HP.EXPBG.020",
+  "NH.QVEEB.004",
+] as const;
 
 const COLLECTION_ICONS = {
   audio: "\u{1F3A7}",
@@ -69,11 +79,12 @@ export default async function Home({
   searchParams: Promise<{ currency?: Currency }>;
 }) {
   const { currency = "EUR" } = await searchParams;
-  const [items, latestItems, rawCollections, heroItems] = await Promise.all([
+  const [items, latestItems, rawCollections, heroItems, topSellingItems] = await Promise.all([
     fetchProducts(currency, false),
     fetchProducts(currency, false, { sort: "newest" }),
     fetchCollections(currency),
     fetchProductsBySkus([HOME_HERO_SKU], currency),
+    fetchProductsBySkus([...TOP_SELLING_SKUS], currency),
   ]);
   const collections = rawCollections.length > 0
     ? rawCollections
@@ -117,7 +128,7 @@ export default async function Home({
     .filter((item) => typeof item.promoPrice === "number" && item.promoPrice > 0)
     .slice(0, 8);
   const topSellingFallback = latestItems.slice(0, 8);
-  const topSelling = topSellingFallback;
+  const topSelling = topSellingItems.length > 0 ? topSellingItems : topSellingFallback;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://coincart-web.pages.dev";
   const homeJsonLd = {
     "@context": "https://schema.org",
