@@ -723,9 +723,10 @@ export const listProductsWithFilters = async (
   filters: ListProductFilters,
 ) => {
   const promoPriceColumn = getPromoPriceColumn(currency);
+  const includeVariantsInSearch = Boolean(filters.search?.trim());
   const where = and(
     eq(productPrices.currency, currency),
-    eq(products.isVariant, false),
+    includeVariantsInSearch ? sql`true` : eq(products.isVariant, false),
     eq(products.visibilityStatus, "publish"),
     hasSellableInventory,
     filters.featuredOnly ? eq(products.featured, true) : sql`true`,
