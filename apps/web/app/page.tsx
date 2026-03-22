@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fetchCollections, fetchProducts, type Currency } from "../lib/api";
+import { fetchCollections, fetchProducts, fetchProductsBySkus, type Currency } from "../lib/api";
 import { collectionByKey, collectionMeta } from "../lib/collections";
 import { FlipCard } from "../components/ui/FlipCard";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
@@ -69,9 +69,12 @@ export default async function Home({
   searchParams: Promise<{ currency?: Currency }>;
 }) {
   const { currency = "EUR" } = await searchParams;
-  const items = await fetchProducts(currency, false);
-  const latestItems = await fetchProducts(currency, false, { sort: "newest" });
-  const rawCollections = await fetchCollections(currency);
+  const [items, latestItems, rawCollections, heroItems] = await Promise.all([
+    fetchProducts(currency, false),
+    fetchProducts(currency, false, { sort: "newest" }),
+    fetchCollections(currency),
+    fetchProductsBySkus([HOME_HERO_SKU], currency),
+  ]);
   const collections = rawCollections.length > 0
     ? rawCollections
     : collectionMeta.map((entry) => ({
@@ -81,6 +84,7 @@ export default async function Home({
         productCount: items.filter((p) => (p.collection || "").trim() === entry.key).length,
       }));
   const hero =
+    heroItems[0] ??
     items.find((item) => item.sku === HOME_HERO_SKU) ??
     items.find((item) => item.collection === "laptops") ??
     items[0];
