@@ -50,7 +50,7 @@ const allTestimonials: Testimonial[] = [
 
 export const runtime = "edge";
 
-const HOME_HERO_SKU = process.env.NEXT_PUBLIC_HERO_SKU || "NH.QYXEK.00A";
+const HOME_HERO_SKU = process.env.NEXT_PUBLIC_HERO_SKU || "NH.QW0EH.003";
 
 const COLLECTION_ICONS = {
   audio: "\u{1F3A7}",
