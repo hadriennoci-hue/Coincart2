@@ -108,12 +108,7 @@ const parseVariantOptionFromAttributes = (attributes: unknown) => {
   for (const raw of attributes as Array<Record<string, unknown>>) {
     const name = typeof raw?.name === "string" ? raw.name.trim() : "";
     if (!name || name.toLowerCase() === "brand") continue;
-    const option =
-      typeof raw?.option === "string"
-        ? raw.option.trim()
-        : Array.isArray(raw?.options) && typeof raw.options[0] === "string"
-          ? String(raw.options[0]).trim()
-          : "";
+    const option = toAttributeOptions(raw)[0] ?? "";
     if (option) {
       found.push({ name, value: option });
       if (found.length === 2) break;
@@ -254,6 +249,28 @@ const parseIntFromUnknown = (value: unknown) => {
 
 const normalizeAttrKey = (value: string) => value.trim().toLowerCase().replace(/[\s-]+/g, "_");
 
+const toAttributeScalar = (value: unknown): string => {
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  if (typeof value === "boolean") return value ? "true" : "false";
+  return "";
+};
+
+const toAttributeOptions = (raw: Record<string, unknown>): string[] => {
+  const fromOptions = Array.isArray(raw?.options)
+    ? raw.options
+        .map((item) => toAttributeScalar(item))
+        .filter((item): item is string => item.length > 0)
+    : [];
+  if (fromOptions.length > 0) return fromOptions;
+
+  const singular = toAttributeScalar(raw?.option);
+  if (singular) return [singular];
+
+  const fallbackValue = toAttributeScalar(raw?.value);
+  return fallbackValue ? [fallbackValue] : [];
+};
+
 const extractMappedProductFieldsFromAttributes = (attributes: unknown) => {
   const mapped: Partial<typeof products.$inferInsert> = {};
   if (!Array.isArray(attributes)) return mapped;
@@ -264,14 +281,7 @@ const extractMappedProductFieldsFromAttributes = (attributes: unknown) => {
     const rawName = typeof raw?.name === "string" ? raw.name : "";
     const key = normalizeAttrKey(rawName);
     if (!key) continue;
-    const firstOption =
-      typeof raw?.option === "string"
-        ? raw.option.trim()
-        : Array.isArray(raw?.options) && typeof raw.options[0] === "string"
-          ? String(raw.options[0]).trim()
-          : typeof raw?.value === "string"
-            ? raw.value.trim()
-            : "";
+    const firstOption = toAttributeOptions(raw)[0] ?? "";
     if (!firstOption) continue;
 
     if (["cpu", "processor", "processor_model"].includes(key)) mapped.cpu = firstOption;
@@ -334,14 +344,7 @@ const extractExtraAttributesFromAttributes = (
       continue;
     }
 
-    const options =
-      Array.isArray(raw?.options)
-        ? (raw.options.filter((x): x is string => typeof x === "string" && x.trim().length > 0).map((x) => x.trim()) as string[])
-        : typeof raw?.option === "string" && raw.option.trim()
-          ? [raw.option.trim()]
-          : typeof raw?.value === "string" && raw.value.trim()
-            ? [raw.value.trim()]
-            : [];
+    const options = toAttributeOptions(raw);
     if (options.length === 0) continue;
 
     const dedupeKey = `${name.toLowerCase()}::${options.join("|").toLowerCase()}`;
@@ -1276,7 +1279,11 @@ connectorRoutes.post("/products/:id", async (c) => {
       const brandAttr = (body.attributes as Array<{ name?: string; options?: string[] }>).find(
         (x) => x.name?.toLowerCase() === "brand",
       );
-      if (brandAttr?.options?.[0]) updatePayload.brand = brandAttr.options[0];
+      const brandValue =
+        brandAttr && typeof brandAttr === "object"
+          ? toAttributeOptions(brandAttr as Record<string, unknown>)[0]
+          : "";
+      if (brandValue) updatePayload.brand = brandValue;
     }
     const directOption = parseDirectOptionFields(body);
     if (directOption.optionName) updatePayload.optionName = directOption.optionName;
@@ -1568,7 +1575,11 @@ connectorRoutes.post("/products", async (c) => {
       const brandAttr = (body.attributes as Array<{ name?: string; options?: string[] }>).find(
         (x) => x.name?.toLowerCase() === "brand",
       );
-      if (brandAttr?.options?.[0]) brand = brandAttr.options[0];
+      const brandValue =
+        brandAttr && typeof brandAttr === "object"
+          ? toAttributeOptions(brandAttr as Record<string, unknown>)[0]
+          : "";
+      if (brandValue) brand = brandValue;
     }
 
     let parentProductId: string | null = null;
