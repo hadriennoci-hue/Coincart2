@@ -1064,19 +1064,29 @@ export const getProductsBySkus = async (db: Db, skus: string[], currency: Curren
   const rows = await db
     .select({
       id: products.id,
+      parentProductId: products.parentProductId,
       sku: products.sku,
       slug: products.slug,
       collection: products.collection,
       category: products.category,
+      brand: products.brand,
       name: products.name,
+      description: products.description,
       imageUrl: products.imageUrl,
       imageUrls: products.imageUrls,
+      cpu: products.cpu,
+      gpu: products.gpu,
       keyboardLayout: products.keyboardLayout,
       usage: products.usage,
       screenSize: products.screenSize,
+      displayType: products.displayType,
+      resolution: products.resolution,
       ramMemory: products.ramMemory,
       ssdSize: products.ssdSize,
+      storage: products.storage,
       maxResolution: products.maxResolution,
+      refreshRate: products.refreshRate,
+      extraAttributes: products.extraAttributes,
       stockQty: products.stockQty,
       price: productPrices.amount,
       promoPrice: promoPriceColumn,
@@ -1092,14 +1102,62 @@ export const getProductsBySkus = async (db: Db, skus: string[], currency: Curren
       ),
     );
 
-  return rows.map((row) => ({
-    ...row,
-    imageUrls: normalizeImageUrls(row.imageUrls),
-    collection: toCollectionKey(resolveGroupingValue(row.collection, row.category)),
-    category: resolveGroupingValue(row.collection, row.category),
-    price: Number(row.price),
-    promoPrice: row.promoPrice === null ? null : Number(row.promoPrice),
-  }));
+  const parentIds = Array.from(
+    new Set(
+      rows
+        .map((row) => row.parentProductId)
+        .filter((value): value is string => Boolean(value)),
+    ),
+  );
+
+  const [parentRows, representativeVariantFallbacks] = await Promise.all([
+    parentIds.length === 0
+      ? Promise.resolve([])
+      : db
+          .select({
+            id: products.id,
+            description: products.description,
+            imageUrl: products.imageUrl,
+            imageUrls: products.imageUrls,
+            brand: products.brand,
+            cpu: products.cpu,
+            gpu: products.gpu,
+            keyboardLayout: products.keyboardLayout,
+            usage: products.usage,
+            screenSize: products.screenSize,
+            displayType: products.displayType,
+            resolution: products.resolution,
+            maxResolution: products.maxResolution,
+            refreshRate: products.refreshRate,
+            ramMemory: products.ramMemory,
+            ssdSize: products.ssdSize,
+            storage: products.storage,
+            extraAttributes: products.extraAttributes,
+          })
+          .from(products)
+          .where(inArray(products.id, parentIds)),
+    loadRepresentativeVariantFallbacks(db, parentIds, currency),
+  ]);
+
+  const parentMap = new Map(parentRows.map((row) => [row.id, row]));
+
+  return rows.map((row) => {
+    const parentProduct = row.parentProductId ? parentMap.get(row.parentProductId) : null;
+    const variantFallback = row.parentProductId ? representativeVariantFallbacks.get(row.parentProductId) : null;
+    const mergedRow = withFieldFallback(
+      row,
+      parentProduct ? withFieldFallback(parentProduct, variantFallback as typeof parentProduct | null) : variantFallback as typeof row | null,
+    );
+
+    return {
+      ...mergedRow,
+      imageUrls: normalizeImageUrls(mergedRow.imageUrls),
+      collection: toCollectionKey(resolveGroupingValue(mergedRow.collection, mergedRow.category)),
+      category: resolveGroupingValue(mergedRow.collection, mergedRow.category),
+      price: Number(row.price),
+      promoPrice: row.promoPrice === null ? null : Number(row.promoPrice),
+    };
+  });
 };
 
 export const listCollectionsWithCounts = async (db: Db) => {
