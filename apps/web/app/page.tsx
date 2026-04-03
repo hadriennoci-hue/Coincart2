@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { fetchCollections, fetchProducts, fetchProductsBySkus, type Currency } from "../lib/api";
-import { collectionByKey, collectionMeta, isLaptopCollectionKey, isDisplayCollectionKey } from "../lib/collections";
+import { fetchProducts, fetchProductsBySkus, type Currency } from "../lib/api";
+import { collectionByKey, isLaptopCollectionKey, isDisplayCollectionKey } from "../lib/collections";
 import { FlipCard } from "../components/ui/FlipCard";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
 import { PredatorHero } from "../components/ui/PredatorHero";
@@ -62,57 +62,18 @@ const TOP_SELLING_SKUS = [
   "NH.QVEEB.004",
 ] as const;
 
-const COLLECTION_ICONS = {
-  accessories: "\u{1F9F0}",
-  audio: "\u{1F3A7}",
-  cameras: "\u{1F4F7}",
-  connectivity: "\u{1F517}",
-  controllers: "\u{1F3AE}",
-  desktops: "\u{1F5A5}\u{FE0F}",
-  "docking-stations": "\u{1F50C}",
-  "electric-scooters": "\u{1F6F4}",
-  "foldable-monitors": "\u{1F5BC}\u{FE0F}",
-  "gaming-chairs": "\u{1FA91}",
-  "gaming-consoles": "\u{1F579}\u{FE0F}",
-  "gaming-desks": "\u{1F5C4}\u{FE0F}",
-  "gaming-laptops": "\u{1F4BB}",
-  "gaming-monitors": "\u{1F5A5}\u{FE0F}",
-  "graphics-cards": "\u{1F3AE}",
-  "headsets-earbuds": "\u{1F3A7}",
-  keyboards: "\u{2328}\u{FE0F}",
-  "laptop-bags": "\u{1F392}",
-  mice: "\u{1F5B1}\u{FE0F}",
-  monitors: "\u{1F4FA}",
-  projectors: "\u{1F4FD}\u{FE0F}",
-  storage: "\u{1F4BE}",
-  "ultrawide-monitors": "\u{1F5A5}\u{FE0F}",
-  webcams: "\u{1F4F9}",
-  "work-laptops": "\u{1F4BC}",
-};
-
 export default async function Home({
   searchParams,
 }: {
   searchParams: Promise<{ currency?: Currency }>;
 }) {
   const { currency = "EUR" } = await searchParams;
-  const [items, latestItems, rawCollections, heroItems, topSellingItems] = await Promise.all([
+  const [items, latestItems, heroItems, topSellingItems] = await Promise.all([
     fetchProducts(currency, false),
     fetchProducts(currency, false, { sort: "newest" }),
-    fetchCollections(currency),
     fetchProductsBySkus([HOME_HERO_SKU], currency),
     fetchProductsBySkus([...TOP_SELLING_SKUS], currency),
   ]);
-  const collections = collectionMeta
-    .map((entry) => ({
-      id: entry.key,
-      key: entry.key,
-      label: entry.label,
-      productCount:
-        rawCollections.find((item) => item.key === entry.key)?.productCount ||
-        items.filter((p) => (p.collection || "").trim() === entry.key).length,
-    }))
-    .filter((entry) => entry.productCount > 0);
   const hero =
     heroItems[0] ??
     items.find((item) => item.sku === HOME_HERO_SKU) ??
@@ -223,22 +184,6 @@ export default async function Home({
       </div>
 
       <div className="container" style={{ paddingTop: 24 }}>
-        <section style={{ marginBottom: 40 }}>
-          <div className="category-grid">
-            {collections.map(({ key, label, productCount }) => (
-              <a
-                key={key}
-                className="category-card"
-                href={`/search?currency=${currency}&collection=${encodeURIComponent(key)}`}
-              >
-                <div className="category-icon">{COLLECTION_ICONS[key] || "\u{1F4C1}"}</div>
-                <div className="category-label">{label}</div>
-                <div className="caption">{productCount} products</div>
-              </a>
-            ))}
-          </div>
-        </section>
-
         <section id="promotions" style={{ marginBottom: 48 }}>
           <div style={{ textAlign: "center", marginBottom: 24 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, border: "1px solid var(--border)", borderRadius: 8, padding: "4px 16px", fontSize: "0.8rem", color: "var(--muted)" }}>
