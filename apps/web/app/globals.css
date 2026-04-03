@@ -1197,6 +1197,9 @@ footer { position: relative; z-index: 1; }
   .flip-card-back { display: none; }
   /* Fix portrait images on mobile */
   .product-card-img, .product-card-img-placeholder { height: 120px !important; }
+  .flip-card-front .product-card-body { height: 60px !important; }
+  .flip-card-front .product-card-footer { justify-content: flex-start; height: 40px; }
+  .flip-card-front .product-card-footer .badge { display: none; }
   .product-grid { align-items: start; }
 }
 
