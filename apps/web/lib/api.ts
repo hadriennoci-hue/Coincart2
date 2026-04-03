@@ -187,6 +187,17 @@ const toOptionalNumber = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const normalizeDisplayPricing = (price: number, promoPrice: number | null) => {
+  if (promoPrice === null || promoPrice <= 0) {
+    return { price, promoPrice: null };
+  }
+  // Some connector pushes invert the two values. Normalize them for storefront display.
+  if (promoPrice > price) {
+    return { price: promoPrice, promoPrice: price };
+  }
+  return { price, promoPrice };
+};
+
 const toCollectionKey = (value?: string | null) =>
   (value ?? "")
     .trim()
@@ -333,6 +344,10 @@ const normalizeProduct = (raw: Partial<Product>): Product => {
       ? [normalizedPrimary]
       : [];
 
+  const normalizedPrice = toNumber(raw.price, 0);
+  const normalizedPromoPrice = toOptionalNumber((raw as Product).promoPrice);
+  const { price, promoPrice } = normalizeDisplayPricing(normalizedPrice, normalizedPromoPrice);
+
   return {
   ...(raw as Product),
   id: String(raw.id || ""),
@@ -382,8 +397,8 @@ const normalizeProduct = (raw: Partial<Product>): Product => {
   bestSeller: Boolean((raw as Product).bestSeller),
   stockQty: toNumber(raw.stockQty, 0),
   soldQty: toNumber((raw as Product).soldQty, 0),
-  price: toNumber(raw.price, 0),
-  promoPrice: toOptionalNumber((raw as Product).promoPrice),
+  price,
+  promoPrice,
   currency: raw.currency === "USD" ? "USD" : "EUR",
   variants: Array.isArray((raw as Product).variants)
     ? ((raw as Product).variants as Partial<Product>[])
