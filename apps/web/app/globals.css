@@ -1282,8 +1282,8 @@ footer { position: relative; z-index: 1; }
   .search-filter-form {
     display: none;
     position: fixed;
-    top: 15px; left: 0; right: 0;
-    max-height: 90vh;
+    top: calc(var(--navbar-h) + 15px); left: 0; right: 0;
+    max-height: calc(100vh - (var(--navbar-h) + 25px));
     overflow-y: auto;
     z-index: 200;
     border-radius: 0 0 12px 12px;
