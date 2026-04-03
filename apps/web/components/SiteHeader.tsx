@@ -402,12 +402,6 @@ export function SiteHeader() {
         <>
           <button type="button" className="header-mobile-backdrop" aria-label="Close menu" onClick={closeMobileMenu} />
           <div className="header-mobile-drawer">
-            <div className="header-mobile-drawer-top">
-              <button type="button" className="header-mobile-close" aria-label="Close menu" onClick={closeMobileMenu}>
-                <X size={18} />
-              </button>
-            </div>
-
             <div className="header-mobile-nav">
               <button type="button" className="header-mobile-parent header-mobile-parent--static">
                 <span>Laptops</span>
