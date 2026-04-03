@@ -124,7 +124,6 @@ export function SiteHeader() {
   const [showBar, setShowBar] = useState(true);
   const [desktopMenu, setDesktopMenu] = useState<DesktopMenuKey>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileLaptopsOpen, setMobileLaptopsOpen] = useState(true);
 
   useEffect(() => {
     const sync = () => {
@@ -404,31 +403,21 @@ export function SiteHeader() {
           <button type="button" className="header-mobile-backdrop" aria-label="Close menu" onClick={closeMobileMenu} />
           <div className="header-mobile-drawer">
             <div className="header-mobile-drawer-top">
-              <div className="header-mobile-title">Menu</div>
               <button type="button" className="header-mobile-close" aria-label="Close menu" onClick={closeMobileMenu}>
                 <X size={18} />
               </button>
             </div>
 
             <div className="header-mobile-nav">
-              <button
-                type="button"
-                className="header-mobile-parent"
-                onClick={() => setMobileLaptopsOpen((value) => !value)}
-              >
+              <button type="button" className="header-mobile-parent header-mobile-parent--static">
                 <span>Laptops</span>
-                <ChevronDown size={16} className={mobileLaptopsOpen ? "is-open" : ""} />
               </button>
-
-              {mobileLaptopsOpen && (
-                <div className="header-mobile-subnav">
-                  <Link href="/search?collection=gaming-laptops" onClick={closeMobileMenu}>Gaming</Link>
-                  <Link href="/search?collection=work-laptops" onClick={closeMobileMenu}>Work</Link>
-                  <Link href="/search?group=laptops" onClick={closeMobileMenu}>View all</Link>
-                </div>
-              )}
+              <div className="header-mobile-subnav">
+                <Link href="/search?collection=gaming-laptops" onClick={closeMobileMenu}>Gaming</Link>
+                <Link href="/search?collection=work-laptops" onClick={closeMobileMenu}>Work</Link>
+                <Link href="/search?group=laptops" onClick={closeMobileMenu}>View all</Link>
+              </div>
               <Link href="/search?group=desktops" className="header-mobile-link" onClick={closeMobileMenu}>Desktops</Link>
-              <Link href="/#promotions" className="header-mobile-link" onClick={closeMobileMenu}>Deals</Link>
 
               <button type="button" className="header-mobile-parent header-mobile-parent--static">
                 <span>Monitors</span>
@@ -449,6 +438,7 @@ export function SiteHeader() {
                 <Link href="/search?collection=keyboards" onClick={closeMobileMenu}>Keyboards</Link>
                 <Link href="/search?collection=headsets-earbuds" onClick={closeMobileMenu}>Audio</Link>
               </div>
+              <Link href="/#promotions" className="header-mobile-link" onClick={closeMobileMenu}>Deals</Link>
 
             </div>
           </div>

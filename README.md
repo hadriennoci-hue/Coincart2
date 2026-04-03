@@ -126,3 +126,4 @@ Updated: 2026-03-17
 - `apps/api/.dev.vars` can also hold local BTCPay secrets for `wrangler dev` and `pnpm dev:api`.
 - Do not commit tokens, keys, DB URLs.
 - This shell has working GitHub access via `gh` with repo/workflow scopes and working Cloudflare access, so inspect Actions runs, deployments, and failures directly when debugging release/runtime issues.
+- The Cloudflare token is stored in `.coincart.env.local`; use it to check every deployment you do.
