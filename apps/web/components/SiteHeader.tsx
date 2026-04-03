@@ -227,7 +227,7 @@ export function SiteHeader() {
               style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}
               onClick={closeMobileMenu}
             >
-              <img src="/coincart-logo-mark.png" alt="Coincart" style={{ height: 54, width: "auto", display: "block" }} />
+              <img src="/coincart-logo-mark.png" alt="Coincart" style={{ height: 68, width: "auto", display: "block" }} />
               <span className="header-logo-text" style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "0.01em" }}>
                 Coincart
               </span>
