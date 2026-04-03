@@ -6,7 +6,7 @@ import {
   getDummyProductsBySkus,
   listDummyProducts,
 } from "./dummyCatalog";
-import { collectionMeta, type CollectionKey } from "./collections";
+import { collectionMeta, displayCollectionKeys, laptopCollectionKeys, type CollectionKey } from "./collections";
 
 const defaultApiBase =
   process.env.NODE_ENV === "production"
@@ -194,6 +194,34 @@ const toCollectionKey = (value?: string | null) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+const accessoryCollectionKeys = [
+  "accessories",
+  "audio",
+  "cameras",
+  "connectivity",
+  "controllers",
+  "docking-stations",
+  "graphics-cards",
+  "headsets-earbuds",
+  "keyboards",
+  "laptop-bags",
+  "mice",
+  "storage",
+  "webcams",
+] as const satisfies CollectionKey[];
+
+type ProductGroupKey = "accessories" | "desktops" | "laptops" | "monitors";
+
+const productMatchesGroup = (item: Pick<Product, "collection" | "category">, group?: string) => {
+  const key = toCollectionKey(item.collection || item.category);
+  if (!group) return true;
+  if (group === "laptops") return laptopCollectionKeys.includes(key as (typeof laptopCollectionKeys)[number]);
+  if (group === "monitors") return displayCollectionKeys.includes(key as (typeof displayCollectionKeys)[number]);
+  if (group === "accessories") return accessoryCollectionKeys.includes(key as (typeof accessoryCollectionKeys)[number]);
+  if (group === "desktops") return key === "desktops";
+  return true;
+};
+
 const normalizeImageUrl = (value: unknown): string | null => {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
@@ -234,6 +262,7 @@ const deriveFieldsFromDescription = (description?: string | null) => {
 const applyClientFilters = (
   items: Product[],
   filters?: {
+    group?: ProductGroupKey;
     q?: string;
     category?: string;
     collection?: string;
@@ -270,6 +299,7 @@ const applyClientFilters = (
     const expected = toCollectionKey(filters.collection);
     out = out.filter((item) => toCollectionKey(item.collection || item.category) === expected);
   }
+  if (filters.group) out = out.filter((item) => productMatchesGroup(item, filters.group));
   if (filters.cpu) out = out.filter((item) => item.cpu === filters.cpu);
   if (filters.gpu) out = out.filter((item) => item.gpu === filters.gpu);
   if (filters.resolution) out = out.filter((item) => (item.resolution || item.maxResolution) === filters.resolution);
@@ -319,7 +349,7 @@ const normalizeProduct = (raw: Partial<Product>): Product => {
   brand: (raw as Product).brand ?? null,
   name: String(raw.name || ""),
   description,
-  imageUrl: normalizedPrimary,
+  imageUrl: normalizedPrimary ?? normalizedGallery[0] ?? null,
   imageUrls: normalizedGallery,
   cpu: raw.cpu ?? derived.cpu ?? null,
   gpu: raw.gpu ?? derived.gpu ?? null,
@@ -365,6 +395,7 @@ const normalizeProduct = (raw: Partial<Product>): Product => {
 const applyDummyFilters = (
   items: Product[],
   filters?: {
+    group?: ProductGroupKey;
     q?: string;
     category?: string;
     collection?: string;
@@ -397,6 +428,7 @@ const applyDummyFilters = (
     out = out.filter((item) => (item.collection || item.category) === filters.category);
   }
   if (filters?.collection) out = out.filter((item) => item.collection === filters.collection);
+  if (filters?.group) out = out.filter((item) => productMatchesGroup(item, filters.group));
   if (filters?.cpu) out = out.filter((item) => item.cpu === filters.cpu);
   if (filters?.gpu) out = out.filter((item) => item.gpu === filters.gpu);
   if (filters?.resolution) out = out.filter((item) => (item.resolution || item.maxResolution) === filters.resolution);
@@ -422,6 +454,7 @@ export const fetchProducts = async (
   currency: Currency,
   featured = false,
   filters?: {
+    group?: ProductGroupKey;
     q?: string;
     category?: string;
     collection?: string;

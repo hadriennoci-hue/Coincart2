@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { ChevronDown, Menu, Search, X } from "lucide-react";
 import { getCart } from "../lib/cart";
 
-type DesktopMenuKey = "laptops" | "monitors" | "accessories" | null;
+type DesktopMenuKey = "accessories" | "desktops" | "laptops" | "monitors" | null;
 
 const laptopMenuSections = [
   {
@@ -13,7 +13,7 @@ const laptopMenuSections = [
     links: [
       { label: "Gaming Laptops", href: "/search?collection=gaming-laptops" },
       { label: "Work Laptops", href: "/search?collection=work-laptops" },
-      { label: "View all laptops", href: "/search?q=laptop" },
+      { label: "View all laptops", href: "/search?group=laptops" },
     ],
   },
   {
@@ -23,43 +23,100 @@ const laptopMenuSections = [
       { label: "RTX 4060", href: "/search?q=RTX%204060" },
       { label: "RTX 4070", href: "/search?q=RTX%204070" },
       { label: "RTX 4080", href: "/search?q=RTX%204080" },
-      { label: "16GB RAM", href: "/search?ram_memory=16" },
-      { label: "1TB SSD", href: "/search?ssd_size=1000" },
+      { label: "16GB RAM", href: "/search?group=laptops&ram_memory=16" },
+      { label: "1TB SSD", href: "/search?group=laptops&ssd_size=1000" },
     ],
   },
   {
     title: "Shop by size",
     links: [
-      { label: '14"', href: "/search?collection=work-laptops&screen_size=14.0%22" },
-      { label: '15.6"', href: "/search?collection=gaming-laptops&screen_size=15.6%22" },
-      { label: '17"', href: "/search?collection=gaming-laptops&screen_size=17.3%22" },
+      { label: '14"', href: "/search?group=laptops&screen_size=14.0%22" },
+      { label: '15.6"', href: "/search?group=laptops&screen_size=15.6%22" },
+      { label: '17"', href: "/search?group=laptops&screen_size=17.3%22" },
     ],
   },
 ];
 
-const monitorMenuLinks = [
-  { label: "Gaming Monitors", href: "/search?collection=gaming-monitors" },
-  { label: "Monitors", href: "/search?collection=monitors" },
-  { label: "Ultrawide Monitors", href: "/search?collection=ultrawide-monitors" },
-  { label: "Foldable Monitors", href: "/search?collection=foldable-monitors" },
-  { label: "Projectors", href: "/search?collection=projectors" },
-  { label: "View all monitors", href: "/search?q=monitor" },
+const desktopMenuSections = [
+  {
+    title: "Shop desktops",
+    links: [
+      { label: "Desktop PCs", href: "/search?collection=desktops" },
+      { label: "Mini Desktops", href: "/search?group=desktops&q=mini" },
+      { label: "View all desktops", href: "/search?group=desktops" },
+    ],
+  },
+  {
+    title: "Popular setups",
+    links: [
+      { label: "Gaming", href: "/search?group=desktops&q=gaming" },
+      { label: "Office", href: "/search?group=desktops&q=office" },
+      { label: "Compact", href: "/search?group=desktops&q=small" },
+    ],
+  },
+  {
+    title: "Shop by use",
+    links: [
+      { label: "Home office", href: "/search?group=desktops&q=office" },
+      { label: "Family PC", href: "/search?group=desktops&q=home" },
+      { label: "Performance", href: "/search?group=desktops&q=performance" },
+    ],
+  },
 ];
 
-const accessoryMenuLinks = [
-  { label: "Graphics Cards", href: "/search?collection=graphics-cards" },
-  { label: "Mice", href: "/search?collection=mice" },
-  { label: "Keyboards", href: "/search?collection=keyboards" },
-  { label: "Headsets & Earbuds", href: "/search?collection=headsets-earbuds" },
-  { label: "Docking Stations", href: "/search?collection=docking-stations" },
-  { label: "Connectivity", href: "/search?collection=connectivity" },
-  { label: "Laptop Bags", href: "/search?collection=laptop-bags" },
-  { label: "View all accessories", href: "/search?collection=accessories" },
+const monitorMenuSections = [
+  {
+    title: "Shop monitors",
+    links: [
+      { label: "Gaming Monitors", href: "/search?collection=gaming-monitors" },
+      { label: "Monitors", href: "/search?collection=monitors" },
+      { label: "View all monitors", href: "/search?group=monitors" },
+    ],
+  },
+  {
+    title: "Specialized",
+    links: [
+      { label: "Ultrawide Monitors", href: "/search?collection=ultrawide-monitors" },
+      { label: "Foldable Monitors", href: "/search?collection=foldable-monitors" },
+      { label: "Projectors", href: "/search?collection=projectors" },
+    ],
+  },
+  {
+    title: "Shop by need",
+    links: [
+      { label: "High refresh", href: "/search?group=monitors&refresh_rate=144" },
+      { label: "4K displays", href: "/search?group=monitors&resolution=3840x2160" },
+      { label: "Large screens", href: "/search?group=monitors&screen_size=34.0%22" },
+    ],
+  },
 ];
 
-const primaryLinks = [
-  { label: "Desktops", href: "/search?collection=desktops" },
-  { label: "Deals", href: "/#promotions" },
+const accessoryMenuSections = [
+  {
+    title: "Shop accessories",
+    links: [
+      { label: "Graphics Cards", href: "/search?collection=graphics-cards" },
+      { label: "Mice", href: "/search?collection=mice" },
+      { label: "Keyboards", href: "/search?collection=keyboards" },
+      { label: "View all accessories", href: "/search?group=accessories" },
+    ],
+  },
+  {
+    title: "Desk setup",
+    links: [
+      { label: "Headsets & Earbuds", href: "/search?collection=headsets-earbuds" },
+      { label: "Docking Stations", href: "/search?collection=docking-stations" },
+      { label: "Connectivity", href: "/search?collection=connectivity" },
+    ],
+  },
+  {
+    title: "Carry and add-ons",
+    links: [
+      { label: "Laptop Bags", href: "/search?collection=laptop-bags" },
+      { label: "Storage", href: "/search?collection=storage" },
+      { label: "Webcams", href: "/search?collection=webcams" },
+    ],
+  },
 ];
 
 export function SiteHeader() {
@@ -208,9 +265,16 @@ export function SiteHeader() {
               </button>
             </div>
 
-            <Link href="/search?collection=desktops" className="header-nav-link">
-              Desktops
-            </Link>
+            <div
+              className="header-nav-group"
+              onMouseEnter={() => setDesktopMenu("desktops")}
+              onFocus={() => setDesktopMenu("desktops")}
+            >
+              <button type="button" className={`header-nav-trigger${desktopMenu === "desktops" ? " is-active" : ""}`}>
+                Desktops
+                <ChevronDown size={15} />
+              </button>
+            </div>
 
             <div
               className="header-nav-group"
@@ -259,7 +323,7 @@ export function SiteHeader() {
 
           {desktopMenu === "laptops" && (
             <div className="header-mega-panel header-mega-panel--wide">
-              <div className="header-mega-grid">
+              <div className="header-mega-grid header-mega-grid--three">
                 {laptopMenuSections.map((section) => (
                   <div key={section.title} className="header-mega-column">
                     <div className="header-mega-title">{section.title}</div>
@@ -272,37 +336,62 @@ export function SiteHeader() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
 
-                <Link href="/search?q=laptop" className="header-feature-card" onClick={closeDesktopMenu}>
-                  <span className="header-feature-kicker">Coincart picks</span>
-                  <strong>Shop the deepest inventory first</strong>
-                  <span>Browse gaming and work laptops with the strongest selection in the store.</span>
-                </Link>
+          {desktopMenu === "desktops" && (
+            <div className="header-mega-panel header-mega-panel--wide">
+              <div className="header-mega-grid header-mega-grid--three">
+                {desktopMenuSections.map((section) => (
+                  <div key={section.title} className="header-mega-column">
+                    <div className="header-mega-title">{section.title}</div>
+                    <div className="header-mega-links">
+                      {section.links.map((link) => (
+                        <Link key={link.label} href={link.href} className="header-mega-link" onClick={closeDesktopMenu}>
+                          {link.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
           {desktopMenu === "monitors" && (
-            <div className="header-mega-panel header-mega-panel--compact">
-              <div className="header-mega-title">Monitors</div>
-              <div className="header-mega-links">
-                {monitorMenuLinks.map((link) => (
-                  <Link key={link.label} href={link.href} className="header-mega-link" onClick={closeDesktopMenu}>
-                    {link.label}
-                  </Link>
+            <div className="header-mega-panel header-mega-panel--wide">
+              <div className="header-mega-grid header-mega-grid--three">
+                {monitorMenuSections.map((section) => (
+                  <div key={section.title} className="header-mega-column">
+                    <div className="header-mega-title">{section.title}</div>
+                    <div className="header-mega-links">
+                      {section.links.map((link) => (
+                        <Link key={link.label} href={link.href} className="header-mega-link" onClick={closeDesktopMenu}>
+                          {link.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
           )}
 
           {desktopMenu === "accessories" && (
-            <div className="header-mega-panel header-mega-panel--compact header-mega-panel--right">
-              <div className="header-mega-title">Accessories</div>
-              <div className="header-mega-links">
-                {accessoryMenuLinks.map((link) => (
-                  <Link key={link.label} href={link.href} className="header-mega-link" onClick={closeDesktopMenu}>
-                    {link.label}
-                  </Link>
+            <div className="header-mega-panel header-mega-panel--wide header-mega-panel--right">
+              <div className="header-mega-grid header-mega-grid--three">
+                {accessoryMenuSections.map((section) => (
+                  <div key={section.title} className="header-mega-column">
+                    <div className="header-mega-title">{section.title}</div>
+                    <div className="header-mega-links">
+                      {section.links.map((link) => (
+                        <Link key={link.label} href={link.href} className="header-mega-link" onClick={closeDesktopMenu}>
+                          {link.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -335,15 +424,11 @@ export function SiteHeader() {
                 <div className="header-mobile-subnav">
                   <Link href="/search?collection=gaming-laptops" onClick={closeMobileMenu}>Gaming</Link>
                   <Link href="/search?collection=work-laptops" onClick={closeMobileMenu}>Work</Link>
-                  <Link href="/search?q=laptop" onClick={closeMobileMenu}>View all</Link>
+                  <Link href="/search?group=laptops" onClick={closeMobileMenu}>View all</Link>
                 </div>
               )}
-
-              {primaryLinks.map((link) => (
-                <Link key={link.label} href={link.href} className="header-mobile-link" onClick={closeMobileMenu}>
-                  {link.label}
-                </Link>
-              ))}
+              <Link href="/search?group=desktops" className="header-mobile-link" onClick={closeMobileMenu}>Desktops</Link>
+              <Link href="/#promotions" className="header-mobile-link" onClick={closeMobileMenu}>Deals</Link>
 
               <button type="button" className="header-mobile-parent header-mobile-parent--static">
                 <span>Monitors</span>
@@ -352,7 +437,7 @@ export function SiteHeader() {
                 <Link href="/search?collection=gaming-monitors" onClick={closeMobileMenu}>Gaming</Link>
                 <Link href="/search?collection=monitors" onClick={closeMobileMenu}>Standard</Link>
                 <Link href="/search?collection=ultrawide-monitors" onClick={closeMobileMenu}>Ultrawide</Link>
-                <Link href="/search?q=monitor" onClick={closeMobileMenu}>View all</Link>
+                <Link href="/search?group=monitors" onClick={closeMobileMenu}>View all</Link>
               </div>
 
               <button type="button" className="header-mobile-parent header-mobile-parent--static">
@@ -365,9 +450,6 @@ export function SiteHeader() {
                 <Link href="/search?collection=headsets-earbuds" onClick={closeMobileMenu}>Audio</Link>
               </div>
 
-              <Link href="/cart" className="header-mobile-link" onClick={closeMobileMenu}>
-                Cart
-              </Link>
             </div>
           </div>
         </>

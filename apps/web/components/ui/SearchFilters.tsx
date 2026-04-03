@@ -8,6 +8,7 @@ import { isDisplayCollectionKey, isLaptopCollectionKey } from "../../lib/collect
 interface SearchFiltersProps {
   category: string;
   collection: string;
+  group: string;
   cpu: string;
   gpu: string;
   resolution: string;
@@ -37,6 +38,7 @@ interface SearchFiltersProps {
 export function SearchFilters({
   category,
   collection,
+  group,
   cpu,
   gpu,
   resolution,
@@ -110,6 +112,7 @@ export function SearchFilters({
         className={`search-filter-form${open ? " search-filter-form--open" : ""}`}
       >
         {q && <input type="hidden" name="q" value={q} />}
+        {group && <input type="hidden" name="group" value={group} />}
         <div className="search-filter-header">
           <span style={{ fontWeight: 700, fontSize: "0.875rem", display: "flex", alignItems: "center", gap: 8 }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.5 }}>

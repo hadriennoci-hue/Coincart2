@@ -22,6 +22,7 @@ export default async function SearchPage({
 }: {
   searchParams: Promise<{
     q?: string;
+    group?: "accessories" | "desktops" | "laptops" | "monitors";
     category?: string;
     collection?: string;
     cpu?: string;
@@ -47,6 +48,7 @@ export default async function SearchPage({
 
   const {
     q = "",
+    group = "",
     category = "",
     collection = "",
     cpu = "",
@@ -68,7 +70,7 @@ export default async function SearchPage({
   const collectionCountItems = await fetchProducts(currency, false);
 
   // Dynamic set for non-collection filters
-  const allItems = await fetchProducts(currency, false, { q, collection });
+  const allItems = await fetchProducts(currency, false, { q, group: group || undefined, collection });
 
   const collectionsMap = new Map<string, number>();
   for (const item of collectionCountItems) {
@@ -103,6 +105,7 @@ export default async function SearchPage({
   // Fetch filtered results
   const items = await fetchProducts(currency, false, {
     q,
+    group: group || undefined,
     category,
     collection,
     cpu,
@@ -141,6 +144,7 @@ export default async function SearchPage({
           ssd_size={ssd_size}
           max_resolution={max_resolution}
           q={q}
+          group={group}
           collections={collections}
           cpuOptions={cpuOptions}
           gpuOptions={gpuOptions}
@@ -166,6 +170,7 @@ export default async function SearchPage({
           <SortSelect
             sort={sort}
             q={q}
+            group={group}
             category={category}
             collection={collection}
             cpu={cpu}

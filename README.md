@@ -117,6 +117,8 @@ Updated: 2026-03-17
 - Worker observability previously showed request hangs on some connector GET paths.
 - Some image paths may still 404 until corresponding objects are uploaded to R2.
 - Production catalog imports currently come through `/v1/connector/products` rather than `/v1/sync/catalog`; when debugging partial imports, inspect connector create errors/logs first.
+- Homepage hero resolves its featured product via `/v1/catalog/products/by-skus` so child variant SKUs can be used there.
+- If hero specs/images look incomplete for a variant SKU, check `packages/core/src/services.ts#getProductsBySkus` first; that endpoint must return the same hero-relevant fields and parent/variant fallback behavior as the full product endpoint.
 
 ### Secrets and local state conventions
 - Keep secrets only in ignored files / env vars:

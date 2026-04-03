@@ -5,6 +5,7 @@ import { useRef } from "react";
 interface SortSelectProps {
   sort: string;
   q: string;
+  group: string;
   category: string;
   collection: string;
   cpu: string;
@@ -23,6 +24,7 @@ interface SortSelectProps {
 export function SortSelect({
   sort,
   q,
+  group,
   category,
   collection,
   cpu,
@@ -42,6 +44,7 @@ export function SortSelect({
   return (
     <form ref={formRef} method="get" action="/search" style={{ display: "flex", alignItems: "center", gap: 8 }}>
       {q && <input type="hidden" name="q" value={q} />}
+      {group && <input type="hidden" name="group" value={group} />}
       {category && <input type="hidden" name="category" value={category} />}
       {collection && <input type="hidden" name="collection" value={collection} />}
       {cpu && <input type="hidden" name="cpu" value={cpu} />}

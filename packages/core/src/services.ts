@@ -645,6 +645,7 @@ export const listProducts = async (db: Db, currency: Currency, featuredOnly = fa
   const rows = await db
     .select({
       id: products.id,
+      parentProductId: products.parentProductId,
       sku: products.sku,
       slug: products.slug,
       collection: products.collection,
@@ -756,6 +757,7 @@ export const listProductsWithFilters = async (
   const rows = await db
     .select({
       id: products.id,
+      parentProductId: products.parentProductId,
       sku: products.sku,
       slug: products.slug,
       collection: products.collection,
@@ -789,14 +791,54 @@ export const listProductsWithFilters = async (
     .where(where)
     .orderBy(orderBy);
 
-  const variantFallbacks = await loadRepresentativeVariantFallbacks(
-    db,
-    rows.map((row) => row.id),
-    currency,
+  const parentIds = Array.from(
+    new Set(
+      rows
+        .map((row) => row.parentProductId)
+        .filter((value): value is string => Boolean(value)),
+    ),
   );
 
+  const [parentRows, representativeVariantFallbacks] = await Promise.all([
+    parentIds.length === 0
+      ? Promise.resolve([])
+      : db
+          .select({
+            id: products.id,
+            description: products.description,
+            imageUrl: products.imageUrl,
+            imageUrls: products.imageUrls,
+            brand: products.brand,
+            cpu: products.cpu,
+            gpu: products.gpu,
+            keyboardLayout: products.keyboardLayout,
+            usage: products.usage,
+            screenSize: products.screenSize,
+            displayType: products.displayType,
+            resolution: products.resolution,
+            maxResolution: products.maxResolution,
+            refreshRate: products.refreshRate,
+            ramMemory: products.ramMemory,
+            ssdSize: products.ssdSize,
+            storage: products.storage,
+            extraAttributes: products.extraAttributes,
+          })
+          .from(products)
+          .where(inArray(products.id, parentIds)),
+    loadRepresentativeVariantFallbacks(db, rows.map((row) => row.id), currency),
+  ]);
+
+  const parentMap = new Map(parentRows.map((row) => [row.id, row]));
+
   let items = rows.map((rawRow) => {
-    const row = withFieldFallback(rawRow, variantFallbacks.get(rawRow.id) as typeof rawRow | undefined);
+    const parentProduct = rawRow.parentProductId ? parentMap.get(rawRow.parentProductId) : null;
+    const representativeVariantFallback = representativeVariantFallbacks.get(rawRow.id);
+    const row = withFieldFallback(
+      rawRow,
+      parentProduct
+        ? withFieldFallback(parentProduct, representativeVariantFallback as typeof parentProduct | null)
+        : representativeVariantFallback as typeof rawRow | undefined,
+    );
     return {
       ...row,
       collection: toCollectionKey(resolveGroupingValue(row.collection, row.category)),
