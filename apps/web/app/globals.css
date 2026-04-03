@@ -1282,7 +1282,7 @@ footer { position: relative; z-index: 1; }
   .search-filter-form {
     display: none;
     position: fixed;
-    top: 0; left: 0; right: 0;
+    top: 15px; left: 0; right: 0;
     max-height: 90vh;
     overflow-y: auto;
     z-index: 200;
