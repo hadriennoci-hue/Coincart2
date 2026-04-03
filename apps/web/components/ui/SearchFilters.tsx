@@ -90,7 +90,6 @@ export function SearchFilters({
 
   return (
     <>
-      {/* Mobile toggle button */}
       <button
         className="search-filter-toggle"
         type="button"
@@ -104,7 +103,6 @@ export function SearchFilters({
         {hasActiveFilters && <span className="search-filter-dot" />}
       </button>
 
-      {/* Filter form â€” always visible on desktop, toggle on mobile */}
       <form
         method="get"
         action="/search"
@@ -120,14 +118,13 @@ export function SearchFilters({
             </svg>
             Filters
           </span>
-          {/* Close button on mobile */}
           <button
             type="button"
             className="search-filter-close"
             onClick={() => setOpen(false)}
             aria-label="Close filters"
           >
-            âœ•
+            x
           </button>
         </div>
 
