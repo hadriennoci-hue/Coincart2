@@ -2,12 +2,72 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { ChevronDown, Menu, Search, X } from "lucide-react";
 import { getCart } from "../lib/cart";
+
+type DesktopMenuKey = "laptops" | "monitors" | "accessories" | null;
+
+const laptopMenuSections = [
+  {
+    title: "Shop laptops",
+    links: [
+      { label: "Gaming Laptops", href: "/search?collection=gaming-laptops" },
+      { label: "Work Laptops", href: "/search?collection=work-laptops" },
+      { label: "View all laptops", href: "/search?q=laptop" },
+    ],
+  },
+  {
+    title: "Shop by specs",
+    links: [
+      { label: "RTX 4050", href: "/search?q=RTX%204050" },
+      { label: "RTX 4060", href: "/search?q=RTX%204060" },
+      { label: "RTX 4070", href: "/search?q=RTX%204070" },
+      { label: "RTX 4080", href: "/search?q=RTX%204080" },
+      { label: "16GB RAM", href: "/search?ram_memory=16" },
+      { label: "1TB SSD", href: "/search?ssd_size=1000" },
+    ],
+  },
+  {
+    title: "Shop by size",
+    links: [
+      { label: '14"', href: "/search?collection=work-laptops&screen_size=14.0%22" },
+      { label: '15.6"', href: "/search?collection=gaming-laptops&screen_size=15.6%22" },
+      { label: '17"', href: "/search?collection=gaming-laptops&screen_size=17.3%22" },
+    ],
+  },
+];
+
+const monitorMenuLinks = [
+  { label: "Gaming Monitors", href: "/search?collection=gaming-monitors" },
+  { label: "Monitors", href: "/search?collection=monitors" },
+  { label: "Ultrawide Monitors", href: "/search?collection=ultrawide-monitors" },
+  { label: "Foldable Monitors", href: "/search?collection=foldable-monitors" },
+  { label: "Projectors", href: "/search?collection=projectors" },
+  { label: "View all monitors", href: "/search?q=monitor" },
+];
+
+const accessoryMenuLinks = [
+  { label: "Graphics Cards", href: "/search?collection=graphics-cards" },
+  { label: "Mice", href: "/search?collection=mice" },
+  { label: "Keyboards", href: "/search?collection=keyboards" },
+  { label: "Headsets & Earbuds", href: "/search?collection=headsets-earbuds" },
+  { label: "Docking Stations", href: "/search?collection=docking-stations" },
+  { label: "Connectivity", href: "/search?collection=connectivity" },
+  { label: "Laptop Bags", href: "/search?collection=laptop-bags" },
+  { label: "View all accessories", href: "/search?collection=accessories" },
+];
+
+const primaryLinks = [
+  { label: "Desktops", href: "/search?collection=desktops" },
+  { label: "Deals", href: "/#promotions" },
+];
 
 export function SiteHeader() {
   const [cartCount, setCartCount] = useState(0);
   const [showBar, setShowBar] = useState(true);
+  const [desktopMenu, setDesktopMenu] = useState<DesktopMenuKey>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileLaptopsOpen, setMobileLaptopsOpen] = useState(true);
 
   useEffect(() => {
     const sync = () => {
@@ -25,23 +85,35 @@ export function SiteHeader() {
     };
   }, []);
 
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
+  const closeDesktopMenu = () => setDesktopMenu(null);
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
   return (
-    <div className="site-header-wrap" style={{ position: "relative", zIndex: 10 }}>
+    <div className="site-header-wrap" style={{ position: "relative", zIndex: 30 }}>
       {showBar && (
-        <div style={{
-          background: "var(--primary)",
-          color: "#fff",
-          fontSize: "0.8rem",
-          fontWeight: 600,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 8,
-          padding: "6px 16px",
-          position: "relative",
-          whiteSpace: "nowrap",
-        }}>
-          <span>Use <b>COINCART5</b> for 5% off — Valid through December 31, 2026</span>
+        <div
+          style={{
+            background: "var(--primary)",
+            color: "#fff",
+            fontSize: "0.8rem",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            padding: "6px 16px",
+            position: "relative",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <span>Use <b>COINCART5</b> for 5% off. Valid through December 31, 2026</span>
           <button
             onClick={() => setShowBar(false)}
             aria-label="Dismiss"
@@ -64,67 +136,242 @@ export function SiteHeader() {
           </button>
         </div>
       )}
-    <header style={{
-      zIndex: 100,
-      width: "100%",
-      height: "var(--navbar-h)",
-      background: "var(--surface)",
-      borderBottom: "1px solid var(--border)",
-      display: "flex",
-      alignItems: "center",
-    }}>
-      <div className="header-inner" style={{
-        maxWidth: 1200,
-        margin: "0 auto",
-        padding: "0 32px",
-        width: "100%",
-        display: "flex",
-        alignItems: "center",
-        gap: 16,
-      }}>
-        {/* Logo */}
-        <Link href="/" aria-label="Coincart home" className="header-logo-link" style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-          <img
-            src="/coincart-logo-mark.png"
-            alt="Coincart"
-            style={{ height: 68, width: "auto", display: "block" }}
-          />
-          <span className="header-logo-text" style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "0.01em" }}>Coincart</span>
-        </Link>
 
-        {/* Search */}
-        <form action="/search" method="get" className="header-search-form" style={{ flex: 1, maxWidth: 540 }}>
-          <input
-            name="q"
-            placeholder="Search products..."
-            className="input"
-            style={{ width: "100%" }}
-          />
-        </form>
-
-        {/* Actions */}
-        <nav style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
-          <Link href="/cart" className="btn btn-ghost" style={{ position: "relative", padding: "7px 14px", fontSize: "0.8rem" }}>
-            Cart
-            {cartCount > 0 && (
-              <span style={{
-                position: "absolute",
-                top: -6, right: -6,
-                background: "var(--accent)",
-                color: "#fff",
-                borderRadius: "50%",
-                width: 18, height: 18,
-                fontSize: "0.65rem",
-                fontWeight: 700,
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                {cartCount > 9 ? "9+" : cartCount}
+      <header
+        className="site-header"
+        style={{
+          zIndex: 100,
+          width: "100%",
+          minHeight: "var(--navbar-h)",
+          background: "rgba(30, 41, 59, 0.95)",
+          borderBottom: "1px solid var(--border)",
+          backdropFilter: "blur(12px)",
+        }}
+      >
+        <div
+          className="header-inner"
+          onMouseLeave={closeDesktopMenu}
+          style={{
+            maxWidth: 1320,
+            margin: "0 auto",
+            padding: "0 24px",
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            minHeight: "var(--navbar-h)",
+            position: "relative",
+          }}
+        >
+          <div className="header-brand">
+            <Link
+              href="/"
+              aria-label="Coincart home"
+              className="header-logo-link"
+              style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}
+              onClick={closeMobileMenu}
+            >
+              <img src="/coincart-logo-mark.png" alt="Coincart" style={{ height: 68, width: "auto", display: "block" }} />
+              <span className="header-logo-text" style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "0.01em" }}>
+                Coincart
               </span>
-            )}
-          </Link>
-        </nav>
-      </div>
-    </header>
+            </Link>
+
+            <button
+              type="button"
+              className="header-mobile-menu-btn btn btn-ghost"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileMenuOpen}
+              onClick={() => setMobileMenuOpen((value) => !value)}
+            >
+              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+              <span className="header-mobile-menu-label">Menu</span>
+            </button>
+          </div>
+
+          <form action="/search" method="get" className="header-search-form header-search-form--desktop" style={{ flex: "0 1 270px" }}>
+            <div className="header-search-shell">
+              <Search size={15} />
+              <input name="q" placeholder="Search products..." className="input header-search-input" />
+            </div>
+          </form>
+
+          <nav className="header-primary-nav" aria-label="Primary">
+            <div
+              className="header-nav-group"
+              onMouseEnter={() => setDesktopMenu("laptops")}
+              onFocus={() => setDesktopMenu("laptops")}
+            >
+              <button type="button" className={`header-nav-trigger${desktopMenu === "laptops" ? " is-active" : ""}`}>
+                Laptops
+                <ChevronDown size={15} />
+              </button>
+            </div>
+
+            <Link href="/search?collection=desktops" className="header-nav-link">
+              Desktops
+            </Link>
+
+            <div
+              className="header-nav-group"
+              onMouseEnter={() => setDesktopMenu("monitors")}
+              onFocus={() => setDesktopMenu("monitors")}
+            >
+              <button type="button" className={`header-nav-trigger${desktopMenu === "monitors" ? " is-active" : ""}`}>
+                Monitors
+                <ChevronDown size={15} />
+              </button>
+            </div>
+
+            <div
+              className="header-nav-group"
+              onMouseEnter={() => setDesktopMenu("accessories")}
+              onFocus={() => setDesktopMenu("accessories")}
+            >
+              <button type="button" className={`header-nav-trigger${desktopMenu === "accessories" ? " is-active" : ""}`}>
+                Accessories
+                <ChevronDown size={15} />
+              </button>
+            </div>
+
+            <Link href="/#promotions" className="header-nav-link header-nav-link--accent">
+              Deals
+            </Link>
+          </nav>
+
+          <div className="header-actions">
+            <form action="/search" method="get" className="header-search-form header-search-form--mobile">
+              <div className="header-search-shell">
+                <Search size={15} />
+                <input name="q" placeholder="Search..." className="input header-search-input" />
+              </div>
+            </form>
+
+            <Link href="/cart" className="btn btn-ghost header-cart-link" style={{ position: "relative" }}>
+              Cart
+              {cartCount > 0 && (
+                <span className="header-cart-badge">
+                  {cartCount > 9 ? "9+" : cartCount}
+                </span>
+              )}
+            </Link>
+          </div>
+
+          {desktopMenu === "laptops" && (
+            <div className="header-mega-panel header-mega-panel--wide">
+              <div className="header-mega-grid">
+                {laptopMenuSections.map((section) => (
+                  <div key={section.title} className="header-mega-column">
+                    <div className="header-mega-title">{section.title}</div>
+                    <div className="header-mega-links">
+                      {section.links.map((link) => (
+                        <Link key={link.label} href={link.href} className="header-mega-link" onClick={closeDesktopMenu}>
+                          {link.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                <Link href="/search?q=laptop" className="header-feature-card" onClick={closeDesktopMenu}>
+                  <span className="header-feature-kicker">Coincart picks</span>
+                  <strong>Shop the deepest inventory first</strong>
+                  <span>Browse gaming and work laptops with the strongest selection in the store.</span>
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {desktopMenu === "monitors" && (
+            <div className="header-mega-panel header-mega-panel--compact">
+              <div className="header-mega-title">Monitors</div>
+              <div className="header-mega-links">
+                {monitorMenuLinks.map((link) => (
+                  <Link key={link.label} href={link.href} className="header-mega-link" onClick={closeDesktopMenu}>
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {desktopMenu === "accessories" && (
+            <div className="header-mega-panel header-mega-panel--compact header-mega-panel--right">
+              <div className="header-mega-title">Accessories</div>
+              <div className="header-mega-links">
+                {accessoryMenuLinks.map((link) => (
+                  <Link key={link.label} href={link.href} className="header-mega-link" onClick={closeDesktopMenu}>
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {mobileMenuOpen && (
+        <>
+          <button type="button" className="header-mobile-backdrop" aria-label="Close menu" onClick={closeMobileMenu} />
+          <div className="header-mobile-drawer">
+            <div className="header-mobile-drawer-top">
+              <div className="header-mobile-title">Menu</div>
+              <button type="button" className="header-mobile-close" aria-label="Close menu" onClick={closeMobileMenu}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="header-mobile-nav">
+              <button
+                type="button"
+                className="header-mobile-parent"
+                onClick={() => setMobileLaptopsOpen((value) => !value)}
+              >
+                <span>Laptops</span>
+                <ChevronDown size={16} className={mobileLaptopsOpen ? "is-open" : ""} />
+              </button>
+
+              {mobileLaptopsOpen && (
+                <div className="header-mobile-subnav">
+                  <Link href="/search?collection=gaming-laptops" onClick={closeMobileMenu}>Gaming</Link>
+                  <Link href="/search?collection=work-laptops" onClick={closeMobileMenu}>Work</Link>
+                  <Link href="/search?q=laptop" onClick={closeMobileMenu}>View all</Link>
+                </div>
+              )}
+
+              {primaryLinks.map((link) => (
+                <Link key={link.label} href={link.href} className="header-mobile-link" onClick={closeMobileMenu}>
+                  {link.label}
+                </Link>
+              ))}
+
+              <button type="button" className="header-mobile-parent header-mobile-parent--static">
+                <span>Monitors</span>
+              </button>
+              <div className="header-mobile-subnav">
+                <Link href="/search?collection=gaming-monitors" onClick={closeMobileMenu}>Gaming</Link>
+                <Link href="/search?collection=monitors" onClick={closeMobileMenu}>Standard</Link>
+                <Link href="/search?collection=ultrawide-monitors" onClick={closeMobileMenu}>Ultrawide</Link>
+                <Link href="/search?q=monitor" onClick={closeMobileMenu}>View all</Link>
+              </div>
+
+              <button type="button" className="header-mobile-parent header-mobile-parent--static">
+                <span>Accessories</span>
+              </button>
+              <div className="header-mobile-subnav">
+                <Link href="/search?collection=graphics-cards" onClick={closeMobileMenu}>Graphics Cards</Link>
+                <Link href="/search?collection=mice" onClick={closeMobileMenu}>Mice</Link>
+                <Link href="/search?collection=keyboards" onClick={closeMobileMenu}>Keyboards</Link>
+                <Link href="/search?collection=headsets-earbuds" onClick={closeMobileMenu}>Audio</Link>
+              </div>
+
+              <Link href="/cart" className="header-mobile-link" onClick={closeMobileMenu}>
+                Cart
+              </Link>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
