@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { fetchCollections, fetchProducts, fetchProductsBySkus, type Currency } from "../lib/api";
-import { collectionByKey, collectionMeta } from "../lib/collections";
+import { collectionByKey, collectionMeta, isLaptopCollectionKey, isDisplayCollectionKey } from "../lib/collections";
 import { FlipCard } from "../components/ui/FlipCard";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
 import { PredatorHero } from "../components/ui/PredatorHero";
@@ -63,14 +63,31 @@ const TOP_SELLING_SKUS = [
 ] as const;
 
 const COLLECTION_ICONS = {
+  accessories: "\u{1F9F0}",
   audio: "\u{1F3A7}",
-  cases: "\u{1F392}",
+  cameras: "\u{1F4F7}",
+  connectivity: "\u{1F517}",
+  controllers: "\u{1F3AE}",
   desktops: "\u{1F5A5}\u{FE0F}",
-  displays: "\u{1F4FA}",
-  "input-devices": "\u{2328}\u{FE0F}",
-  laptops: "\u{1F4BB}",
-  lifestyle: "\u{1F6F5}",
-  tablets: "\u{1F4F1}",
+  "docking-stations": "\u{1F50C}",
+  "electric-scooters": "\u{1F6F4}",
+  "foldable-monitors": "\u{1F5BC}\u{FE0F}",
+  "gaming-chairs": "\u{1FA91}",
+  "gaming-consoles": "\u{1F579}\u{FE0F}",
+  "gaming-desks": "\u{1F5C4}\u{FE0F}",
+  "gaming-laptops": "\u{1F4BB}",
+  "gaming-monitors": "\u{1F5A5}\u{FE0F}",
+  "graphics-cards": "\u{1F3AE}",
+  "headsets-earbuds": "\u{1F3A7}",
+  keyboards: "\u{2328}\u{FE0F}",
+  "laptop-bags": "\u{1F392}",
+  mice: "\u{1F5B1}\u{FE0F}",
+  monitors: "\u{1F4FA}",
+  projectors: "\u{1F4FD}\u{FE0F}",
+  storage: "\u{1F4BE}",
+  "ultrawide-monitors": "\u{1F5A5}\u{FE0F}",
+  webcams: "\u{1F4F9}",
+  "work-laptops": "\u{1F4BC}",
 };
 
 export default async function Home({
@@ -86,24 +103,26 @@ export default async function Home({
     fetchProductsBySkus([HOME_HERO_SKU], currency),
     fetchProductsBySkus([...TOP_SELLING_SKUS], currency),
   ]);
-  const collections = rawCollections.length > 0
-    ? rawCollections
-    : collectionMeta.map((entry) => ({
-        id: entry.key,
-        key: entry.key,
-        label: entry.label,
-        productCount: items.filter((p) => (p.collection || "").trim() === entry.key).length,
-      }));
+  const collections = collectionMeta
+    .map((entry) => ({
+      id: entry.key,
+      key: entry.key,
+      label: entry.label,
+      productCount:
+        rawCollections.find((item) => item.key === entry.key)?.productCount ||
+        items.filter((p) => (p.collection || "").trim() === entry.key).length,
+    }))
+    .filter((entry) => entry.productCount > 0);
   const hero =
     heroItems[0] ??
     items.find((item) => item.sku === HOME_HERO_SKU) ??
-    items.find((item) => item.collection === "laptops") ??
+    items.find((item) => isLaptopCollectionKey(item.collection || item.category)) ??
     items[0];
   const heroCategory = (hero?.collection || hero?.category || "").toLowerCase();
   const heroCategoryLabel =
     collectionByKey[heroCategory as keyof typeof collectionByKey]?.label || hero?.collection || hero?.category;
-  const heroIsLaptop = heroCategory.includes("laptop");
-  const heroIsMonitor = heroCategory.includes("monitor") || heroCategory.includes("display");
+  const heroIsLaptop = isLaptopCollectionKey(heroCategory);
+  const heroIsMonitor = isDisplayCollectionKey(heroCategory);
   const heroSpecs = !hero
     ? []
     : heroIsLaptop
@@ -165,7 +184,7 @@ export default async function Home({
         promoPrice={hero?.promoPrice}
         currency={hero?.currency || currency}
         stockQty={hero?.stockQty || 0}
-        href={hero ? `/product/${hero.slug}?currency=${currency}` : `/search?currency=${currency}&collection=laptops`}
+        href={hero ? `/product/${hero.slug}?currency=${currency}` : `/search?currency=${currency}&collection=work-laptops`}
       />
 
       {/* Trust strip */}

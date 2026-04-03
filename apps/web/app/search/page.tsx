@@ -4,7 +4,7 @@ import { fetchProducts, type Currency } from "../../lib/api";
 import { FlipCard } from "../../components/ui/FlipCard";
 import { SortSelect } from "../../components/ui/SortSelect";
 import { SearchFilters } from "../../components/ui/SearchFilters";
-import { collectionMeta } from "../../lib/collections";
+import { collectionMeta, isDisplayCollectionKey, isLaptopCollectionKey } from "../../lib/collections";
 
 export const runtime = "edge";
 
@@ -86,16 +86,16 @@ export default async function SearchPage({
   const uniq = <T,>(vals: (T | null | undefined)[]): T[] =>
     [...new Set(vals.filter((v): v is T => v != null && String(v).trim() !== ""))];
 
-  const laptopItems = allItems.filter((item) => toCollectionKey(item.collection || item.category) === "laptops");
-  const displayItems = allItems.filter((item) => toCollectionKey(item.collection || item.category) === "displays");
+  const laptopItems = allItems.filter((item) => isLaptopCollectionKey(toCollectionKey(item.collection || item.category)));
+  const displayItems = allItems.filter((item) => isDisplayCollectionKey(toCollectionKey(item.collection || item.category)));
   const cpuOptions = uniq(laptopItems.map((i) => i.cpu)).sort();
   const gpuOptions = uniq(laptopItems.map((i) => i.gpu)).sort();
   const laptopResolutionOptions = uniq(laptopItems.map((i) => i.resolution || i.maxResolution)).sort();
   const displayResolutionOptions = uniq(displayItems.map((i) => i.resolution || i.maxResolution)).sort();
   const refreshRateOptions = uniq(displayItems.map((i) => i.refreshRate)).sort((a, b) => a - b);
   const storageOptions = uniq(laptopItems.map((i) => i.storage)).sort();
-  const keyboardLayouts = uniq(allItems.map((i) => i.keyboardLayout)).sort();
-  const usages = uniq(allItems.map((i) => i.usage)).sort();
+  const keyboardLayouts = uniq(laptopItems.map((i) => i.keyboardLayout)).sort();
+  const usages = uniq(laptopItems.map((i) => i.usage)).sort();
   const screenSizes = uniq(allItems.map((i) => i.screenSize)).sort((a, b) => parseFloat(a) - parseFloat(b));
   const ramOptions = uniq(allItems.map((i) => i.ramMemory)).sort((a, b) => a - b);
   const ssdOptions = uniq(allItems.map((i) => i.ssdSize)).sort((a, b) => a - b);

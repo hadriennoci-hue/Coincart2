@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { FormEventHandler } from "react";
+import { isDisplayCollectionKey, isLaptopCollectionKey } from "../../lib/collections";
 
 interface SearchFiltersProps {
   category: string;
@@ -63,8 +64,8 @@ export function SearchFilters({
 }: SearchFiltersProps) {
   const [open, setOpen] = useState(false);
   const normalizedCollection = (collection || category || "").trim().toLowerCase();
-  const isLaptopCollection = normalizedCollection === "laptops";
-  const isDisplayCollection = normalizedCollection === "displays";
+  const isLaptopCollection = isLaptopCollectionKey(normalizedCollection);
+  const isDisplayCollection = isDisplayCollectionKey(normalizedCollection);
 
   const hasActiveFilters =
     collection || category || cpu || gpu || resolution || refresh_rate || storage || keyboard_layout || usage || screen_size || ram_memory || ssd_size || max_resolution;
@@ -235,7 +236,7 @@ export function SearchFilters({
           </label>
         )}
 
-        {keyboardLayouts.length > 0 && (
+        {isLaptopCollection && keyboardLayouts.length > 0 && (
           <label className="form-label" style={{ gap: 6 }}>
             Keyboard Layout
             <select className="select" name="keyboard_layout" defaultValue={keyboard_layout}>
@@ -247,7 +248,7 @@ export function SearchFilters({
           </label>
         )}
 
-        {usages.length > 0 && (
+        {isLaptopCollection && usages.length > 0 && (
           <label className="form-label" style={{ gap: 6 }}>
             Usage
             <select className="select" name="usage" defaultValue={usage}>

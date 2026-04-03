@@ -1,12 +1,30 @@
 export type Currency = "USD" | "EUR";
 export type ProductCollectionKey =
-  | "cases"
+  | "accessories"
+  | "audio"
+  | "cameras"
+  | "connectivity"
+  | "controllers"
   | "desktops"
-  | "displays"
-  | "input-devices"
-  | "laptops"
-  | "lifestyle"
-  | "tablets";
+  | "docking-stations"
+  | "electric-scooters"
+  | "foldable-monitors"
+  | "gaming-chairs"
+  | "gaming-consoles"
+  | "gaming-desks"
+  | "gaming-laptops"
+  | "gaming-monitors"
+  | "graphics-cards"
+  | "headsets-earbuds"
+  | "keyboards"
+  | "laptop-bags"
+  | "mice"
+  | "monitors"
+  | "projectors"
+  | "storage"
+  | "ultrawide-monitors"
+  | "webcams"
+  | "work-laptops";
 
 export type DummyCatalogProduct = {
   id: string;
@@ -65,13 +83,31 @@ const buildGalleryImages = (slug: string, id: string) => {
 };
 
 const productCollections: ProductCollectionKey[] = [
-  "cases",
+  "accessories",
+  "audio",
+  "cameras",
+  "connectivity",
+  "controllers",
   "desktops",
-  "displays",
-  "input-devices",
-  "laptops",
-  "lifestyle",
-  "tablets",
+  "docking-stations",
+  "electric-scooters",
+  "foldable-monitors",
+  "gaming-chairs",
+  "gaming-consoles",
+  "gaming-desks",
+  "gaming-laptops",
+  "gaming-monitors",
+  "graphics-cards",
+  "headsets-earbuds",
+  "keyboards",
+  "laptop-bags",
+  "mice",
+  "monitors",
+  "projectors",
+  "storage",
+  "ultrawide-monitors",
+  "webcams",
+  "work-laptops",
 ];
 
 const collectionForProductId = (id: string): ProductCollectionKey => {
