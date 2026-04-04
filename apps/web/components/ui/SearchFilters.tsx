@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { FormEventHandler } from "react";
 import { isDisplayCollectionKey, isLaptopCollectionKey } from "../../lib/collections";
@@ -35,6 +35,53 @@ interface SearchFiltersProps {
   ssdOptions: number[];
 }
 
+type CollectionBucketKey = "accessories" | "desktops" | "laptops" | "monitors";
+
+const collectionBuckets: Array<{
+  key: CollectionBucketKey;
+  label: string;
+  matches: string[];
+}> = [
+  {
+    key: "laptops",
+    label: "Laptops",
+    matches: ["gaming-laptops", "work-laptops"],
+  },
+  {
+    key: "desktops",
+    label: "Desktops",
+    matches: ["desktops"],
+  },
+  {
+    key: "monitors",
+    label: "Monitors",
+    matches: ["gaming-monitors", "monitors", "ultrawide-monitors", "foldable-monitors", "projectors"],
+  },
+  {
+    key: "accessories",
+    label: "Accessories",
+    matches: [
+      "graphics-cards",
+      "mice",
+      "keyboards",
+      "headsets-earbuds",
+      "audio",
+      "accessories",
+      "connectivity",
+      "docking-stations",
+      "laptop-bags",
+      "storage",
+      "webcams",
+      "cameras",
+      "controllers",
+      "gaming-chairs",
+      "gaming-consoles",
+      "gaming-desks",
+      "electric-scooters",
+    ],
+  },
+];
+
 export function SearchFilters({
   category,
   collection,
@@ -66,8 +113,24 @@ export function SearchFilters({
 }: SearchFiltersProps) {
   const [open, setOpen] = useState(false);
   const normalizedCollection = (collection || category || "").trim().toLowerCase();
-  const isLaptopCollection = isLaptopCollectionKey(normalizedCollection);
-  const isDisplayCollection = isDisplayCollectionKey(normalizedCollection);
+  const normalizedGroup = group.trim().toLowerCase();
+  const defaultBucket =
+    collectionBuckets.find((bucket) => bucket.matches.includes(normalizedCollection))?.key ||
+    (collectionBuckets.some((bucket) => bucket.key === normalizedGroup) ? (normalizedGroup as CollectionBucketKey) : "");
+  const [selectedCollection, setSelectedCollection] = useState(collection || category || "");
+  const [selectedGroup, setSelectedGroup] = useState(group || defaultBucket);
+  const [activeBucket, setActiveBucket] = useState<CollectionBucketKey | "">(defaultBucket as CollectionBucketKey | "");
+
+  const visibleCollections = useMemo(() => {
+    if (!activeBucket) return collections;
+    const bucket = collectionBuckets.find((entry) => entry.key === activeBucket);
+    if (!bucket) return collections;
+    return collections.filter(({ key }) => bucket.matches.includes(key));
+  }, [activeBucket, collections]);
+
+  const taxonomyContext = (selectedCollection || selectedGroup || normalizedCollection || normalizedGroup).trim().toLowerCase();
+  const isLaptopCollection = isLaptopCollectionKey(taxonomyContext) || taxonomyContext === "laptops";
+  const isDisplayCollection = isDisplayCollectionKey(taxonomyContext) || taxonomyContext === "monitors";
 
   const hasActiveFilters =
     collection || category || cpu || gpu || resolution || refresh_rate || storage || keyboard_layout || usage || screen_size || ram_memory || ssd_size || max_resolution;
@@ -110,7 +173,8 @@ export function SearchFilters({
         className={`search-filter-form${open ? " search-filter-form--open" : ""}`}
       >
         {q && <input type="hidden" name="q" value={q} />}
-        {group && <input type="hidden" name="group" value={group} />}
+        {!!selectedGroup && <input type="hidden" name="group" value={selectedGroup} />}
+        {!!selectedCollection && <input type="hidden" name="collection" value={selectedCollection} />}
         <div className="search-filter-header">
           <span style={{ fontWeight: 700, fontSize: "0.875rem", display: "flex", alignItems: "center", gap: 8 }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.5 }}>
@@ -128,9 +192,70 @@ export function SearchFilters({
           </button>
         </div>
 
-        <label className="form-label" style={{ gap: 6 }}>
+        <div className="search-filter-collection-desktop">
+          <div className="search-filter-section-title">Collections</div>
+          <div className="search-filter-buckets">
+            {collectionBuckets.map((bucket) => (
+              <button
+                key={bucket.key}
+                type="button"
+                className={`search-filter-bucket${activeBucket === bucket.key ? " is-active" : ""}`}
+                onClick={() => {
+                  setActiveBucket(bucket.key);
+                  setSelectedGroup(bucket.key);
+                  setSelectedCollection("");
+                }}
+              >
+                {bucket.label}
+              </button>
+            ))}
+          </div>
+
+          {!!activeBucket && (
+            <div className="search-filter-subcollections">
+              <button
+                type="button"
+                className={`search-filter-subcollection${selectedCollection === "" ? " is-active" : ""}`}
+                onClick={() => {
+                  setSelectedCollection("");
+                  setSelectedGroup(activeBucket);
+                }}
+              >
+                <span>{`All ${collectionBuckets.find((bucket) => bucket.key === activeBucket)?.label.toLowerCase()}`}</span>
+              </button>
+
+              {visibleCollections.map(({ key, label, count }) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`search-filter-subcollection${selectedCollection === key ? " is-active" : ""}`}
+                  onClick={() => {
+                    setSelectedCollection(key);
+                    setSelectedGroup(activeBucket);
+                  }}
+                >
+                  <span>{label}</span>
+                  <span className="search-filter-subcollection-count">{count}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <label className="form-label search-filter-collection-mobile" style={{ gap: 6 }}>
           Collection
-          <select className="select" name="collection" defaultValue={collection || category}>
+          <select
+            className="select"
+            name="collection-mobile"
+            value={selectedCollection}
+            onChange={(event) => {
+              const nextCollection = event.target.value;
+              setSelectedCollection(nextCollection);
+              const nextBucket = collectionBuckets.find((bucket) => bucket.matches.includes(nextCollection))?.key || "";
+              setActiveBucket(nextBucket);
+              setSelectedGroup(nextBucket || selectedGroup);
+            }}
+          >
             <option value="">All collections</option>
             {collections.map(({ key, label, count }) => (
               <option key={key} value={key}>
