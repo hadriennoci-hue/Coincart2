@@ -102,7 +102,7 @@ export function FlipCard({
 
   const priceBlock = hasPromo ? (
     <>
-      <span style={{ textDecoration: "line-through", color: "var(--muted)", marginRight: 6 }}>
+      <span className="product-card-price-old">
         {fmtPrice(price, currency)}
       </span>
       <span>{fmtPrice(displayPrice, currency)}</span>
