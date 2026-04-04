@@ -112,14 +112,7 @@ export default function CartPage() {
 
   return (
     <div className="container" style={{ paddingTop: 40, paddingBottom: 64 }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "60% 40%",
-          gap: 32,
-          alignItems: "start",
-        }}
-      >
+      <div className="cart-layout">
         {/* Left: Cart Items */}
         <div>
           <h1 className="page-title" style={{ marginBottom: 24 }}>
@@ -141,32 +134,10 @@ export default function CartPage() {
               </Link>
             </div>
           ) : (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 0,
-                border: "1px solid var(--border)",
-                borderRadius: 12,
-                overflow: "hidden",
-              }}
-            >
+            <div className="cart-list">
               {displayRows.map((row, index) => {
                 return (
-                  <div
-                    key={row.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 16,
-                      padding: "16px 20px",
-                      background: "var(--surface)",
-                      borderBottom:
-                        index < displayRows.length - 1
-                          ? "1px solid var(--border)"
-                          : "none",
-                    }}
-                  >
+                  <div key={row.id} className="cart-line" style={{ borderBottom: index < displayRows.length - 1 ? "1px solid var(--border)" : "none" }}>
                     {row.imageUrl ? (
                       <img
                         src={row.imageUrl}
@@ -174,58 +145,22 @@ export default function CartPage() {
                         onError={(event) => {
                           event.currentTarget.src = buildImageFallback(row.sku || row.name);
                         }}
-                        style={{
-                          width: 80,
-                          height: 56,
-                          objectFit: "cover",
-                          borderRadius: 8,
-                          border: "1px solid var(--border)",
-                          flexShrink: 0,
-                        }}
+                        className="cart-line-image"
                       />
                     ) : (
-                      <div
-                        style={{
-                          width: 80,
-                          height: 56,
-                          background: "var(--surface-2)",
-                          borderRadius: 8,
-                          flexShrink: 0,
-                        }}
-                      />
+                      <div className="cart-line-image cart-line-image--placeholder" />
                     )}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontWeight: 600,
-                          color: "var(--text)",
-                          marginBottom: 4,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
+                    <div className="cart-line-main">
+                      <div className="cart-line-name">
                         {row.name}
                       </div>
                       <div className="caption">{row.sku}</div>
                     </div>
-                    <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <div
-                        style={{
-                          fontWeight: 600,
-                          color: "var(--accent)",
-                          marginBottom: 4,
-                        }}
-                      >
+                    <div className="cart-line-meta">
+                      <div className="cart-line-unit-price">
                         {row.quantity} &times; {fmtPrice(row.unitPrice, currency)}
                       </div>
-                      <div
-                        style={{
-                          fontWeight: 700,
-                          color: "var(--text)",
-                          marginBottom: 8,
-                        }}
-                      >
+                      <div className="cart-line-total">
                         {fmtPrice(row.lineTotal, currency)}
                       </div>
                       <button
@@ -252,7 +187,7 @@ export default function CartPage() {
         </div>
 
         {/* Right: Order Summary */}
-        <div className="surface" style={{ position: "sticky", top: 24 }}>
+        <div className="surface cart-summary">
           <h2 className="card-title" style={{ marginBottom: 20 }}>
             Order Summary
           </h2>
@@ -353,4 +288,3 @@ export default function CartPage() {
     </div>
   );
 }
-
