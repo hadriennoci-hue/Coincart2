@@ -166,14 +166,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="container" style={{ paddingTop: 40, paddingBottom: 64 }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "60% 40%",
-          gap: 32,
-          alignItems: "start",
-        }}
-      >
+      <div className="checkout-layout">
         {/* Left: Form */}
         <div>
           <h1 className="page-title" style={{ marginBottom: 8 }}>
@@ -241,13 +234,7 @@ export default function CheckoutPage() {
                   placeholder="Apartment, suite, floor, etc."
                 />
               </label>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 16,
-                }}
-              >
+              <div className="checkout-two-col">
                 <label className="form-label">
                   City *
                   {showMissing("city")}
@@ -376,7 +363,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Right: Order Summary */}
-        <div style={{ position: "sticky", top: 24, paddingTop: 104 }}>
+        <div className="checkout-summary-column">
           <div className="surface" style={{ marginBottom: 16 }}>
             <h2 className="card-title" style={{ marginBottom: 20 }}>
               Order Summary
@@ -526,4 +513,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-

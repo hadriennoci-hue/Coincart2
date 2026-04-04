@@ -1435,7 +1435,41 @@ footer { position: relative; z-index: 1; }
   top: 24px;
 }
 
+.checkout-layout {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 32px;
+  align-items: start;
+}
+
+.checkout-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.checkout-summary-column {
+  position: sticky;
+  top: 24px;
+  padding-top: 104px;
+}
+
 @media (max-width: 768px) {
+  .checkout-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .checkout-two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-summary-column {
+    position: static;
+    top: auto;
+    padding-top: 0;
+  }
+
   .cart-layout {
     grid-template-columns: 1fr;
     gap: 20px;
