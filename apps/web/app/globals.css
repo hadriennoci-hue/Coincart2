@@ -1141,7 +1141,7 @@ footer { position: relative; z-index: 1; }
 @media (max-width: 768px) {
   .site-header-wrap { position: relative !important; z-index: 10 !important; }
   .site-header-wrap header { height: 64px !important; }
-  .header-inner img { height: 44px !important; }
+  .header-inner img { height: 53px !important; }
   .header-logo-text { display: none !important; }
   .header-inner { padding: 0 16px !important; gap: 12px !important; }
   .header-mobile-menu-btn { padding: 8px 10px; }
