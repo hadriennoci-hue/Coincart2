@@ -19,20 +19,20 @@ const laptopMenuSections = [
   {
     title: "Shop by specs",
     links: [
-      { label: "RTX 4050", href: "/search?q=RTX%204050" },
-      { label: "RTX 4060", href: "/search?q=RTX%204060" },
-      { label: "RTX 4070", href: "/search?q=RTX%204070" },
-      { label: "RTX 4080", href: "/search?q=RTX%204080" },
-      { label: "16GB RAM", href: "/search?group=laptops&ram_memory=16" },
+      { label: "RTX 5070", href: "/search?q=RTX%205070" },
+      { label: "RTX 5080", href: "/search?q=RTX%205080" },
+      { label: "RTX 5090", href: "/search?q=RTX%205090" },
+      { label: "32GB RAM", href: "/search?group=laptops&ram_memory=32" },
       { label: "1TB SSD", href: "/search?group=laptops&ssd_size=1000" },
+      { label: "2TB SSD", href: "/search?group=laptops&ssd_size=2000" },
     ],
   },
   {
     title: "Shop by size",
     links: [
-      { label: '14"', href: "/search?group=laptops&screen_size=14.0%22" },
-      { label: '15.6"', href: "/search?group=laptops&screen_size=15.6%22" },
-      { label: '17"', href: "/search?group=laptops&screen_size=17.3%22" },
+      { label: '14"', href: "/search?group=laptops&screen_size=35.6" },
+      { label: '16"', href: "/search?group=laptops&screen_size=40.6" },
+      { label: '18"', href: "/search?group=laptops&screen_size=45.7" },
     ],
   },
 ];
