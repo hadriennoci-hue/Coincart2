@@ -41,25 +41,25 @@ const desktopMenuSections = [
   {
     title: "Shop desktops",
     links: [
-      { label: "Desktop PCs", href: "/search?collection=desktops" },
-      { label: "Mini Desktops", href: "/search?group=desktops&q=mini" },
+      { label: "All-in-One PCs", href: "/search?group=desktops&q=all-in-one" },
+      { label: "Gaming Desktops", href: "/search?group=desktops&q=gaming" },
       { label: "View all desktops", href: "/search?group=desktops" },
     ],
   },
   {
-    title: "Popular setups",
+    title: "Popular series",
     links: [
-      { label: "Gaming", href: "/search?group=desktops&q=gaming" },
-      { label: "Office", href: "/search?group=desktops&q=office" },
-      { label: "Compact", href: "/search?group=desktops&q=small" },
+      { label: "Aspire C24", href: "/search?group=desktops&q=Aspire%20C%2024" },
+      { label: "Aspire C27", href: "/search?group=desktops&q=Aspire%20C%2027" },
+      { label: "Predator Desktops", href: "/search?group=desktops&q=Predator" },
     ],
   },
   {
-    title: "Shop by use",
+    title: "Shop by need",
     links: [
-      { label: "Home office", href: "/search?group=desktops&q=office" },
-      { label: "Family PC", href: "/search?group=desktops&q=home" },
-      { label: "Performance", href: "/search?group=desktops&q=performance" },
+      { label: "Business PCs", href: "/search?group=desktops&q=Veriton" },
+      { label: "RTX 5070", href: "/search?group=desktops&q=RTX%205070" },
+      { label: "Nitro Desktops", href: "/search?group=desktops&q=Nitro" },
     ],
   },
 ];
@@ -84,9 +84,9 @@ const monitorMenuSections = [
   {
     title: "Shop by need",
     links: [
-      { label: "High refresh", href: "/search?group=monitors&refresh_rate=144" },
-      { label: "4K displays", href: "/search?group=monitors&resolution=3840x2160" },
-      { label: "Large screens", href: "/search?group=monitors&screen_size=34.0%22" },
+      { label: "OLED Displays", href: "/search?group=monitors&q=OLED" },
+      { label: "240Hz Gaming", href: "/search?group=monitors&refresh_rate=240" },
+      { label: "QHD Displays", href: "/search?group=monitors&q=QHD" },
     ],
   },
 ];
@@ -96,8 +96,8 @@ const accessoryMenuSections = [
     title: "Shop accessories",
     links: [
       { label: "Graphics Cards", href: "/search?collection=graphics-cards" },
+      { label: "Laptop Bags", href: "/search?collection=laptop-bags" },
       { label: "Mice", href: "/search?collection=mice" },
-      { label: "Keyboards", href: "/search?collection=keyboards" },
       { label: "View all accessories", href: "/search?group=accessories" },
     ],
   },
@@ -105,15 +105,15 @@ const accessoryMenuSections = [
     title: "Desk setup",
     links: [
       { label: "Headsets & Earbuds", href: "/search?collection=headsets-earbuds" },
-      { label: "Docking Stations", href: "/search?collection=docking-stations" },
       { label: "Connectivity", href: "/search?collection=connectivity" },
+      { label: "Controllers", href: "/search?collection=controllers" },
     ],
   },
   {
     title: "Carry and add-ons",
     links: [
-      { label: "Laptop Bags", href: "/search?collection=laptop-bags" },
       { label: "Storage", href: "/search?collection=storage" },
+      { label: "Docking Stations", href: "/search?collection=docking-stations" },
       { label: "Webcams", href: "/search?collection=webcams" },
     ],
   },
