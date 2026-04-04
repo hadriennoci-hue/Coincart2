@@ -1,9 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { AddToCartButton } from "../../../components/AddToCartButton";
+import { BundleOffers } from "../../../components/BundleOffers";
 import { ProductVariantSelect } from "../../../components/ProductVariantSelect";
 import { ProductImageGallery } from "../../../components/ProductImageGallery";
-import { fetchProductBySlug, type Currency } from "../../../lib/api";
+import { fetchProductBySlug, fetchProductsBySkus, type Currency } from "../../../lib/api";
+import { getBundleOffersForSku, getBundleRulesForSku } from "../../../lib/bundles";
 import { collectionByKey } from "../../../lib/collections";
 import { fmtPrice } from "../../../lib/format";
 
@@ -109,6 +111,12 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
       : product.imageUrl
         ? [product.imageUrl]
         : [];
+  const bundleRules = getBundleRulesForSku(product.sku);
+  const bundleProducts =
+    bundleRules.length > 0
+      ? await fetchProductsBySkus(bundleRules.map((offer: typeof bundleRules[number]) => offer.secondarySku), currency)
+      : [];
+  const bundleOffers = getBundleOffersForSku(product.sku, bundleProducts);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://coincart-web.pages.dev";
   const productUrl = `${siteUrl}/product/${product.slug}?currency=${currency}`;
@@ -320,6 +328,8 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             price={product.price}
             currency={product.currency}
           />
+
+          <BundleOffers primaryProduct={product} offers={bundleOffers} />
         </div>
       </div>
 

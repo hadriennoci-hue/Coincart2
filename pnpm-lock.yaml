@@ -58,6 +58,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@coincart/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       framer-motion:
         specifier: ^12.35.2
         version: 12.35.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)

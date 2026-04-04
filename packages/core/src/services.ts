@@ -17,6 +17,7 @@ import type {
   Currency,
   SyncItemsRequest,
 } from "@coincart/types";
+import { calculateBundleDiscount } from "@coincart/types";
 
 type Db = ReturnType<typeof createDb>;
 
@@ -413,9 +414,21 @@ export const createCheckoutSession = async (
   if (normalizedCoupon && normalizedCoupon !== SUPPORTED_COUPON) {
     throw new Error("Invalid coupon code");
   }
+  const bundleDiscount = calculateBundleDiscount(
+    pricedLines.map((line) => ({
+      sku: line.sku,
+      quantity: line.quantity,
+      unitPrice: line.unitPrice,
+    })),
+    input.currency,
+  ).totalSavings;
+  const subtotalAfterBundles = Math.max(0, Number((subtotal - bundleDiscount).toFixed(2)));
   const couponDiscount =
-    normalizedCoupon === SUPPORTED_COUPON ? Number((subtotal * COUPON_DISCOUNT_RATE).toFixed(2)) : 0;
-  const discountedSubtotal = Math.max(0, Number((subtotal - couponDiscount).toFixed(2)));
+    normalizedCoupon === SUPPORTED_COUPON
+      ? Number((subtotalAfterBundles * COUPON_DISCOUNT_RATE).toFixed(2))
+      : 0;
+  const totalDiscount = Number((bundleDiscount + couponDiscount).toFixed(2));
+  const discountedSubtotal = Math.max(0, Number((subtotal - totalDiscount).toFixed(2)));
   const totalAmount = Number((discountedSubtotal + shippingCost).toFixed(2));
 
   const [order] = await db
@@ -440,7 +453,7 @@ export const createCheckoutSession = async (
       shippingAmount: shippingCost.toFixed(2),
       currency: input.currency,
       subtotalAmount: discountedSubtotal.toFixed(2),
-      discountAmount: couponDiscount.toFixed(2),
+      discountAmount: totalDiscount.toFixed(2),
       taxAmount: "0.00",
       couponCode: normalizedCoupon || null,
       totalAmount: totalAmount.toFixed(2),
@@ -454,7 +467,13 @@ export const createCheckoutSession = async (
     orderId: order.id,
     type: "order.created",
     message: "Order created and awaiting payment",
-    payload: { currency: input.currency, subtotal, couponCode: normalizedCoupon || null },
+    payload: {
+      currency: input.currency,
+      subtotal,
+      bundleDiscount,
+      couponCode: normalizedCoupon || null,
+      couponDiscount,
+    },
   });
 
   for (const line of pricedLines) {
@@ -483,6 +502,7 @@ export const createCheckoutSession = async (
         quantity: line.quantity,
       })),
       ...(normalizedCoupon ? { couponCode: normalizedCoupon, couponDiscount } : {}),
+      ...(bundleDiscount > 0 ? { bundleDiscount } : {}),
     },
     redirectUrl: options?.orderRedirectBaseUrl
       ? `${options.orderRedirectBaseUrl.replace(/\/+$/, "")}/${order.id}`

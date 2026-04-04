@@ -124,10 +124,10 @@ export default async function OrderPage({
               {fmtPrice(itemsSubtotal, order.currency)}
             </span>
           </div>
-          {order.couponCode ? (
+          {discountAmount > 0 ? (
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span className="small" style={{ color: "var(--muted)" }}>
-                Coupon ({order.couponCode})
+                {order.couponCode ? `Discounts (${order.couponCode})` : "Discounts"}
               </span>
               <span style={{ color: "var(--accent)" }}>
                 -{fmtPrice(discountAmount, order.currency)}

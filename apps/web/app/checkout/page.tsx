@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createCheckoutSession, fetchProductsBySkus, type Currency, type Product } from "../../lib/api";
+import { getBundleDiscountForCart } from "../../lib/bundles";
 import { fmtPrice } from "../../lib/format";
 import { clearCart, getCart, type CartLine } from "../../lib/cart";
 import { computeCouponDiscount, getStoredCoupon, isSupportedCoupon, setStoredCoupon } from "../../lib/coupon";
@@ -113,8 +114,10 @@ export default function CheckoutPage() {
     };
   });
   const subtotal = summaryRows.reduce((acc, line) => acc + line.lineTotal, 0);
-  const couponDiscount = computeCouponDiscount(subtotal, appliedCoupon);
-  const grandTotal = Math.max(0, subtotal - couponDiscount) + shippingCost;
+  const bundleDiscount = getBundleDiscountForCart(cartLines, productBySku, currency).totalSavings;
+  const discountedSubtotal = Math.max(0, subtotal - bundleDiscount);
+  const couponDiscount = computeCouponDiscount(discountedSubtotal, appliedCoupon);
+  const grandTotal = Math.max(0, discountedSubtotal - couponDiscount) + shippingCost;
 
   const missingRequired = {
     shippingName: shippingName.trim().length === 0,
@@ -467,6 +470,14 @@ export default function CheckoutPage() {
             {summaryRows.length > 0 && (
               <>
                 <div className="divider" style={{ margin: "0 0 16px" }} />
+                {bundleDiscount > 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <span className="small" style={{ color: "var(--accent)" }}>Bundle savings</span>
+                    <span style={{ fontWeight: 600, color: "var(--accent)" }}>
+                      -{fmtPrice(bundleDiscount, currency)}
+                    </span>
+                  </div>
+                )}
                 {couponDiscount > 0 && (
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                     <span className="small" style={{ color: "var(--accent)" }}>Discount</span>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { fetchProductsBySkus, type Currency, type Product } from "../../lib/api";
+import { getBundleDiscountForCart } from "../../lib/bundles";
 import { fmtPrice } from "../../lib/format";
 import { decrementFromCart, getCart, type CartLine } from "../../lib/cart";
 import { computeCouponDiscount, getStoredCoupon, isSupportedCoupon, setStoredCoupon } from "../../lib/coupon";
@@ -97,17 +98,26 @@ export default function CartPage() {
     [displayRows],
   );
 
+  const bundleDiscount = useMemo(() => {
+    return getBundleDiscountForCart(lines, itemBySku, currency).totalSavings;
+  }, [currency, itemBySku, lines]);
+
+  const discountedSubtotal = useMemo(
+    () => Math.max(0, total - bundleDiscount),
+    [bundleDiscount, total],
+  );
+
   const couponDiscount = useMemo(() => {
-    return computeCouponDiscount(total, appliedCoupon);
-  }, [appliedCoupon, total]);
+    return computeCouponDiscount(discountedSubtotal, appliedCoupon);
+  }, [appliedCoupon, discountedSubtotal]);
 
   const shippingCost = useMemo(
     () => (currency === "EUR" ? 10 : 11),
     [currency],
   );
   const grandTotal = useMemo(
-    () => Math.max(0, total - couponDiscount) + shippingCost,
-    [couponDiscount, shippingCost, total],
+    () => Math.max(0, discountedSubtotal - couponDiscount) + shippingCost,
+    [couponDiscount, discountedSubtotal, shippingCost],
   );
 
   return (
@@ -241,6 +251,14 @@ export default function CartPage() {
                 {fmtPrice(shippingCost, currency)}
               </span>
             </div>
+            {bundleDiscount > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span className="small" style={{ color: "var(--accent)" }}>Bundle savings</span>
+                <span style={{ fontWeight: 500, color: "var(--accent)" }}>
+                  -{fmtPrice(bundleDiscount, currency)}
+                </span>
+              </div>
+            )}
             {couponDiscount > 0 && (
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span className="small" style={{ color: "var(--accent)" }}>Discount</span>
