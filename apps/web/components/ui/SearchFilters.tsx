@@ -120,13 +120,19 @@ export function SearchFilters({
   const [selectedCollection, setSelectedCollection] = useState(collection || category || "");
   const [selectedGroup, setSelectedGroup] = useState(group || defaultBucket);
   const [activeBucket, setActiveBucket] = useState<CollectionBucketKey | "">(defaultBucket as CollectionBucketKey | "");
+  const [expandedBucket, setExpandedBucket] = useState<CollectionBucketKey | "">(defaultBucket as CollectionBucketKey | "");
 
-  const visibleCollections = useMemo(() => {
-    if (!activeBucket) return collections;
-    const bucket = collectionBuckets.find((entry) => entry.key === activeBucket);
+  const getBucketCollections = (bucketKey: CollectionBucketKey | "") => {
+    if (!bucketKey) return collections;
+    const bucket = collectionBuckets.find((entry) => entry.key === bucketKey);
     if (!bucket) return collections;
     return collections.filter(({ key }) => bucket.matches.includes(key));
-  }, [activeBucket, collections]);
+  };
+
+  const visibleCollections = useMemo(
+    () => getBucketCollections(activeBucket),
+    [activeBucket, collections],
+  );
 
   const taxonomyContext = (selectedCollection || selectedGroup || normalizedCollection || normalizedGroup).trim().toLowerCase();
   const isLaptopCollection = isLaptopCollectionKey(taxonomyContext) || taxonomyContext === "laptops";
@@ -194,52 +200,62 @@ export function SearchFilters({
 
         <div className="search-filter-collection-desktop">
           <div className="search-filter-section-title">Collections</div>
-          <div className="search-filter-buckets">
+          <div className="search-filter-accordion">
             {collectionBuckets.map((bucket) => (
-              <button
-                key={bucket.key}
-                type="button"
-                className={`search-filter-bucket${activeBucket === bucket.key ? " is-active" : ""}`}
-                onClick={() => {
-                  setActiveBucket(bucket.key);
-                  setSelectedGroup(bucket.key);
-                  setSelectedCollection("");
-                }}
-              >
-                {bucket.label}
-              </button>
-            ))}
-          </div>
-
-          {!!activeBucket && (
-            <div className="search-filter-subcollections">
-              <button
-                type="button"
-                className={`search-filter-subcollection${selectedCollection === "" ? " is-active" : ""}`}
-                onClick={() => {
-                  setSelectedCollection("");
-                  setSelectedGroup(activeBucket);
-                }}
-              >
-                <span>{`All ${collectionBuckets.find((bucket) => bucket.key === activeBucket)?.label.toLowerCase()}`}</span>
-              </button>
-
-              {visibleCollections.map(({ key, label, count }) => (
+              <div key={bucket.key} className={`search-filter-accordion-item${activeBucket === bucket.key ? " is-active" : ""}`}>
                 <button
-                  key={key}
                   type="button"
-                  className={`search-filter-subcollection${selectedCollection === key ? " is-active" : ""}`}
+                  className={`search-filter-accordion-trigger${expandedBucket === bucket.key ? " is-open" : ""}`}
                   onClick={() => {
-                    setSelectedCollection(key);
-                    setSelectedGroup(activeBucket);
+                    setExpandedBucket((current) => (current === bucket.key ? "" : bucket.key));
+                    setActiveBucket(bucket.key);
+                    setSelectedGroup(bucket.key);
+                    setSelectedCollection("");
                   }}
                 >
-                  <span>{label}</span>
-                  <span className="search-filter-subcollection-count">{count}</span>
+                  <span>{bucket.label}</span>
+                  <span className="search-filter-accordion-meta">
+                    <span className="search-filter-accordion-count">
+                      {getBucketCollections(bucket.key).reduce((sum, item) => sum + item.count, 0)}
+                    </span>
+                    <span className="search-filter-accordion-chevron" aria-hidden="true">+</span>
+                  </span>
                 </button>
-              ))}
-            </div>
-          )}
+
+                {expandedBucket === bucket.key && (
+                  <div className="search-filter-subcollections">
+                    <button
+                      type="button"
+                      className={`search-filter-subcollection${activeBucket === bucket.key && selectedCollection === "" ? " is-active" : ""}`}
+                      onClick={() => {
+                        setActiveBucket(bucket.key);
+                        setSelectedCollection("");
+                        setSelectedGroup(bucket.key);
+                      }}
+                    >
+                      <span>{`All ${bucket.label.toLowerCase()}`}</span>
+                    </button>
+
+                    {getBucketCollections(bucket.key).map(({ key, label, count }) => (
+                      <button
+                        key={key}
+                        type="button"
+                        className={`search-filter-subcollection${selectedCollection === key ? " is-active" : ""}`}
+                        onClick={() => {
+                          setActiveBucket(bucket.key);
+                          setSelectedCollection(key);
+                          setSelectedGroup(bucket.key);
+                        }}
+                      >
+                        <span>{label}</span>
+                        <span className="search-filter-subcollection-count">{count}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         <label className="form-label search-filter-collection-mobile" style={{ gap: 6 }}>
@@ -253,6 +269,7 @@ export function SearchFilters({
               setSelectedCollection(nextCollection);
               const nextBucket = collectionBuckets.find((bucket) => bucket.matches.includes(nextCollection))?.key || "";
               setActiveBucket(nextBucket);
+              setExpandedBucket(nextBucket);
               setSelectedGroup(nextBucket || selectedGroup);
             }}
           >

@@ -1237,43 +1237,70 @@ footer { position: relative; z-index: 1; }
 .search-filter-close { display: none; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; padding: 2px 6px; }
 .search-filter-section-title { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
 .search-filter-collection-mobile { display: none; }
-.search-filter-buckets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
-.search-filter-bucket {
-  min-height: 38px;
-  padding: 0 12px;
+.search-filter-accordion { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.search-filter-accordion-item {
   border: 1px solid var(--border);
   border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.search-filter-accordion-item.is-active {
+  border-color: rgba(15, 118, 110, 0.35);
+}
+.search-filter-accordion-trigger {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: none;
   background: transparent;
   color: var(--text);
   font: inherit;
-  font-size: 0.85rem;
+  font-size: 0.86rem;
   font-weight: 600;
   cursor: pointer;
   text-align: left;
 }
-.search-filter-bucket.is-active {
-  border-color: rgba(34, 197, 94, 0.45);
-  background: rgba(34, 197, 94, 0.12);
+.search-filter-accordion-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.search-filter-accordion-count {
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+.search-filter-accordion-chevron {
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+.search-filter-accordion-trigger.is-open .search-filter-accordion-chevron {
+  transform: rotate(45deg);
 }
 .search-filter-subcollections {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 10px;
+  gap: 4px;
+  padding: 0 8px 8px;
 }
 .search-filter-subcollection {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
   background: transparent;
   color: var(--text);
   font: inherit;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   cursor: pointer;
   text-align: left;
 }
