@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { addToCart } from "../lib/cart";
@@ -21,10 +22,7 @@ export function BundleOffers({
   return (
     <div className="surface bundle-section">
       <div className="bundle-section-head">
-        <div>
-          <div className="small" style={{ color: "var(--muted)", marginBottom: 6 }}>Bundle & save</div>
-          <h2 className="card-title" style={{ margin: 0 }}>Add accessories together</h2>
-        </div>
+        <div className="small" style={{ color: "var(--muted)" }}>Bundle & save</div>
       </div>
 
       <div className="bundle-offers">
@@ -40,7 +38,7 @@ export function BundleOffers({
           return (
             <div key={offer.id} className="bundle-card">
               <div className="bundle-card-items">
-                <div className="bundle-card-item">
+                <Link className="bundle-card-item bundle-card-link" href={`/product/${primaryProduct.slug}?currency=${primaryProduct.currency}`}>
                   <div className="bundle-card-thumb">
                     {primaryProduct.imageUrl ? <img src={primaryProduct.imageUrl} alt={primaryProduct.name} /> : null}
                   </div>
@@ -48,11 +46,11 @@ export function BundleOffers({
                     <div className="bundle-card-name">{primaryProduct.name}</div>
                     <div className="caption">{primaryProduct.sku}</div>
                   </div>
-                </div>
+                </Link>
 
                 <div className="bundle-card-plus">+</div>
 
-                <div className="bundle-card-item">
+                <Link className="bundle-card-item bundle-card-link" href={`/product/${secondary.slug}?currency=${primaryProduct.currency}`}>
                   <div className="bundle-card-thumb">
                     {secondary.imageUrl ? <img src={secondary.imageUrl} alt={secondary.name} /> : null}
                   </div>
@@ -60,7 +58,7 @@ export function BundleOffers({
                     <div className="bundle-card-name">{secondary.name}</div>
                     <div className="caption">{secondary.sku}</div>
                   </div>
-                </div>
+                </Link>
               </div>
 
               <div className="bundle-card-footer">

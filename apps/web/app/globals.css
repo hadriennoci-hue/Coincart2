@@ -1356,6 +1356,16 @@ footer { position: relative; z-index: 1; }
   min-width: 0;
 }
 
+.bundle-card-link {
+  text-decoration: none;
+  border-radius: 12px;
+  transition: background 0.15s ease;
+}
+
+.bundle-card-link:hover {
+  background: rgba(255,255,255,0.03);
+}
+
 .bundle-card-thumb {
   width: 68px;
   height: 68px;
