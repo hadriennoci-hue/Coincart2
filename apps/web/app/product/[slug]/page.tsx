@@ -354,7 +354,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             <div
               style={{
                 marginTop: 10,
-                color: "var(--muted)",
+                color: "#fff",
                 fontSize: "0.82rem",
                 fontWeight: 600,
                 lineHeight: 1.5,
