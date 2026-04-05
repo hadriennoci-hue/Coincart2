@@ -330,19 +330,6 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             ))}
           </div>
 
-          {product.description && (
-            <p
-              style={{
-                color: "var(--muted)",
-                lineHeight: 1.6,
-                margin: 0,
-                fontSize: "0.9rem",
-              }}
-            >
-              {product.description}
-            </p>
-          )}
-
           <div className="divider" style={{ margin: "4px 0" }} />
 
           {hasVariants && (
@@ -381,8 +368,21 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
         </div>
       </div>
 
+      {product.description && (
+        <p
+          style={{
+            color: "var(--muted)",
+            lineHeight: 1.6,
+            margin: "24px 0",
+            fontSize: "0.9rem",
+          }}
+        >
+          {product.description}
+        </p>
+      )}
+
       {/* Specs Table */}
-      <div className="surface">
+      <div className="surface" style={{ marginTop: 24 }}>
         <h2 className="card-title" style={{ marginBottom: 20 }}>
           Product Specifications
         </h2>
