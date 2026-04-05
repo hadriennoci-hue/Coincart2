@@ -19,9 +19,9 @@ const laptopMenuSections = [
   {
     title: "Shop by specs",
     links: [
-      { label: "RTX 5070", href: "/search?q=RTX%205070" },
-      { label: "RTX 5080", href: "/search?q=RTX%205080" },
-      { label: "RTX 5090", href: "/search?q=RTX%205090" },
+      { label: "RTX 5070", href: "/search?group=laptops&gpu=RTX+5070" },
+      { label: "RTX 5080", href: "/search?group=laptops&gpu=RTX+5080" },
+      { label: "RTX 5090", href: "/search?group=laptops&gpu=RTX+5090" },
       { label: "32GB RAM", href: "/search?group=laptops&ram_memory=32" },
       { label: "1TB SSD", href: "/search?group=laptops&ssd_size=1000" },
       { label: "2TB SSD", href: "/search?group=laptops&ssd_size=2000" },
@@ -58,7 +58,7 @@ const desktopMenuSections = [
     title: "Shop by need",
     links: [
       { label: "Business PCs", href: "/search?group=desktops&q=Veriton" },
-      { label: "RTX 5070", href: "/search?group=desktops&q=RTX%205070" },
+      { label: "RTX 5070", href: "/search?group=desktops&gpu=RTX+5070" },
       { label: "Nitro Desktops", href: "/search?group=desktops&q=Nitro" },
     ],
   },
