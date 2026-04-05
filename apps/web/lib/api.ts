@@ -670,7 +670,7 @@ export const createCheckoutSession = async (payload: {
       orderId: `demo-${Date.now().toString(36)}-paid`,
       shippingMethod: "DHL Standard",
       estimatedDeliveryDays: 5,
-      shippingCost: payload.currency === "EUR" ? 10 : 11,
+      shippingCost: payload.currency === "EUR" ? 7.9 : 8.69,
       checkoutUrl: "https://btcpay.example.test/invoice/demo",
     };
   }

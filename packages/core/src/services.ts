@@ -218,13 +218,20 @@ const normalizeCountryToCode = (input: string) => {
 
 const SHIPPING_METHOD = "DHL Standard";
 const ESTIMATED_DELIVERY_DAYS = 5;
-const SHIPPING_FEE_EUR = 10;
+const SHIPPING_FEE_EUR = 7.9;
+const SHIPPING_FREE_THRESHOLD_EUR = 100;
 const EUR_TO_USD = 1.1;
 const SUPPORTED_COUPON = "COINCART10";
 const COUPON_DISCOUNT_RATE = 0.1;
 
 const shippingFeeForCurrency = (currency: Currency) =>
   currency === "EUR" ? SHIPPING_FEE_EUR : Number((SHIPPING_FEE_EUR * EUR_TO_USD).toFixed(2));
+
+const shippingFreeThresholdForCurrency = (currency: Currency) =>
+  currency === "EUR" ? SHIPPING_FREE_THRESHOLD_EUR : Number((SHIPPING_FREE_THRESHOLD_EUR * EUR_TO_USD).toFixed(2));
+
+const shippingCostForSubtotal = (currency: Currency, subtotalAfterDiscounts: number) =>
+  subtotalAfterDiscounts >= shippingFreeThresholdForCurrency(currency) ? 0 : shippingFeeForCurrency(currency);
 
 const buildBtcPayItemDescription = (
   lines: Array<{ name: string; quantity: number }>,
@@ -409,7 +416,6 @@ export const createCheckoutSession = async (
     });
   }
 
-  const shippingCost = shippingFeeForCurrency(input.currency);
   const normalizedCoupon = String(input.couponCode || "").trim().toUpperCase();
   if (normalizedCoupon && normalizedCoupon !== SUPPORTED_COUPON) {
     throw new Error("Invalid coupon code");
@@ -429,6 +435,7 @@ export const createCheckoutSession = async (
       : 0;
   const totalDiscount = Number((bundleDiscount + couponDiscount).toFixed(2));
   const discountedSubtotal = Math.max(0, Number((subtotal - totalDiscount).toFixed(2)));
+  const shippingCost = shippingCostForSubtotal(input.currency, discountedSubtotal);
   const totalAmount = Number((discountedSubtotal + shippingCost).toFixed(2));
 
   const [order] = await db

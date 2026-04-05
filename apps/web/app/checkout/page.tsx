@@ -7,6 +7,7 @@ import { getBundleDiscountForCart } from "../../lib/bundles";
 import { fmtPrice } from "../../lib/format";
 import { clearCart, getCart, type CartLine } from "../../lib/cart";
 import { computeCouponDiscount, getStoredCoupon, isSupportedCoupon, setStoredCoupon } from "../../lib/coupon";
+import { calculateShippingCost, ESTIMATED_DELIVERY_DAYS, SHIPPING_FREE_THRESHOLD_EUR, SHIPPING_METHOD } from "../../lib/shipping";
 
 const euCountries = [
   { code: "AT", name: "Austria" },
@@ -58,7 +59,6 @@ export default function CheckoutPage() {
   const [cartLines, setCartLines] = useState<CartLine[]>([]);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
-  const shippingCost = currency === "EUR" ? 10 : 11;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -117,7 +117,9 @@ export default function CheckoutPage() {
   const bundleDiscount = getBundleDiscountForCart(cartLines, productBySku, currency).totalSavings;
   const discountedSubtotal = Math.max(0, subtotal - bundleDiscount);
   const couponDiscount = computeCouponDiscount(discountedSubtotal, appliedCoupon);
-  const grandTotal = Math.max(0, discountedSubtotal - couponDiscount) + shippingCost;
+  const payableSubtotal = Math.max(0, discountedSubtotal - couponDiscount);
+  const shippingCost = calculateShippingCost(currency, payableSubtotal);
+  const grandTotal = payableSubtotal + shippingCost;
 
   const missingRequired = {
     shippingName: shippingName.trim().length === 0,
@@ -458,12 +460,15 @@ export default function CheckoutPage() {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>DHL Standard</div>
-                  <div className="caption">Estimated 5 business days</div>
+                  <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>{SHIPPING_METHOD}</div>
+                  <div className="caption">Estimated {ESTIMATED_DELIVERY_DAYS} business days</div>
                 </div>
                 <div style={{ fontWeight: 600, color: "var(--text)" }}>
-                  {fmtPrice(shippingCost, currency)}
+                  {shippingCost === 0 ? "Free" : fmtPrice(shippingCost, currency)}
                 </div>
+              </div>
+              <div className="caption">
+                Free shipping over {SHIPPING_FREE_THRESHOLD_EUR}€
               </div>
             </div>
 

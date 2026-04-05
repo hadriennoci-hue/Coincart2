@@ -8,6 +8,7 @@ import { fmtPrice } from "../../lib/format";
 import { decrementFromCart, getCart, type CartLine } from "../../lib/cart";
 import { computeCouponDiscount, getStoredCoupon, isSupportedCoupon, setStoredCoupon } from "../../lib/coupon";
 import { buildImageFallback } from "../../lib/imageFallback";
+import { calculateShippingCost, ESTIMATED_DELIVERY_DAYS, SHIPPING_FREE_THRESHOLD_EUR, SHIPPING_METHOD } from "../../lib/shipping";
 
 const normalizeSku = (value: string) => value.trim().toUpperCase();
 
@@ -111,13 +112,18 @@ export default function CartPage() {
     return computeCouponDiscount(discountedSubtotal, appliedCoupon);
   }, [appliedCoupon, discountedSubtotal]);
 
+  const payableSubtotal = useMemo(
+    () => Math.max(0, discountedSubtotal - couponDiscount),
+    [couponDiscount, discountedSubtotal],
+  );
+
   const shippingCost = useMemo(
-    () => (currency === "EUR" ? 10 : 11),
-    [currency],
+    () => calculateShippingCost(currency, payableSubtotal),
+    [currency, payableSubtotal],
   );
   const grandTotal = useMemo(
-    () => Math.max(0, discountedSubtotal - couponDiscount) + shippingCost,
-    [couponDiscount, discountedSubtotal, shippingCost],
+    () => payableSubtotal + shippingCost,
+    [payableSubtotal, shippingCost],
   );
 
   return (
@@ -248,7 +254,7 @@ export default function CartPage() {
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span className="small" style={{ color: "var(--muted)" }}>Shipping</span>
               <span style={{ fontWeight: 500 }}>
-                {fmtPrice(shippingCost, currency)}
+                {shippingCost === 0 ? "Free" : fmtPrice(shippingCost, currency)}
               </span>
             </div>
             {bundleDiscount > 0 && (
@@ -299,7 +305,7 @@ export default function CartPage() {
           </Link>
 
           <div className="caption" style={{ marginTop: 12, textAlign: "center" }}>
-            DHL Standard | 5 business days | 10 EUR flat rate
+            {SHIPPING_METHOD} | {ESTIMATED_DELIVERY_DAYS} business days | Free shipping over {SHIPPING_FREE_THRESHOLD_EUR}€
           </div>
         </div>
       </div>
