@@ -1445,6 +1445,13 @@ footer { position: relative; z-index: 1; }
   color: var(--primary);
 }
 
+.bundle-card-shipping-note {
+  margin-bottom: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
 @media (max-width: 768px) {
   .search-layout { flex-direction: column !important; gap: 12px !important; }
   .search-aside {

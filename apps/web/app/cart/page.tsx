@@ -118,8 +118,8 @@ export default function CartPage() {
   );
 
   const shippingCost = useMemo(
-    () => calculateShippingCost(currency, payableSubtotal),
-    [currency, payableSubtotal],
+    () => calculateShippingCost(currency, discountedSubtotal),
+    [currency, discountedSubtotal],
   );
   const grandTotal = useMemo(
     () => payableSubtotal + shippingCost,

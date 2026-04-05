@@ -14,8 +14,8 @@ export const shippingFeeForCurrency = (currency: Currency) =>
 export const shippingFreeThresholdForCurrency = (currency: Currency) =>
   currency === "EUR" ? SHIPPING_FREE_THRESHOLD_EUR : roundCurrency(SHIPPING_FREE_THRESHOLD_EUR * EUR_TO_USD);
 
-export const calculateShippingCost = (currency: Currency, subtotalAfterDiscounts: number) => {
+export const calculateShippingCost = (currency: Currency, subtotalBeforeCouponDiscounts: number) => {
   const threshold = shippingFreeThresholdForCurrency(currency);
-  if (subtotalAfterDiscounts >= threshold) return 0;
+  if (subtotalBeforeCouponDiscounts >= threshold) return 0;
   return shippingFeeForCurrency(currency);
 };

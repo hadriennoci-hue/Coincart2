@@ -435,7 +435,7 @@ export const createCheckoutSession = async (
       : 0;
   const totalDiscount = Number((bundleDiscount + couponDiscount).toFixed(2));
   const discountedSubtotal = Math.max(0, Number((subtotal - totalDiscount).toFixed(2)));
-  const shippingCost = shippingCostForSubtotal(input.currency, discountedSubtotal);
+  const shippingCost = shippingCostForSubtotal(input.currency, subtotalAfterBundles);
   const totalAmount = Number((discountedSubtotal + shippingCost).toFixed(2));
 
   const [order] = await db

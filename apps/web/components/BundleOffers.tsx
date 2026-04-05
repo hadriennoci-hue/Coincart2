@@ -1,13 +1,58 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { addToCart } from "../lib/cart";
+import { addToCart, getCart, type CartLine } from "../lib/cart";
 import type { Product } from "../lib/api";
 import { fmtPrice } from "../lib/format";
 import type { BundleProductOffer } from "../lib/bundles";
-import { SHIPPING_FREE_THRESHOLD_EUR } from "../lib/shipping";
+import { SHIPPING_FEE_EUR, SHIPPING_FREE_THRESHOLD_EUR, calculateShippingCost } from "../lib/shipping";
+import { calculateBundleDiscount } from "@coincart/types";
+
+const normalizeSku = (value: string) => value.trim().toUpperCase();
+
+const mergeCartLines = (lines: CartLine[], additions: Array<{ sku: string; snapshotPrice: number }>) => {
+  const next = new Map(
+    lines.map((line) => [
+      normalizeSku(line.sku),
+      { ...line },
+    ]),
+  );
+
+  for (const addition of additions) {
+    const key = normalizeSku(addition.sku);
+    const existing = next.get(key);
+    if (existing) {
+      existing.quantity += 1;
+      if (typeof existing.snapshot?.price !== "number") {
+        existing.snapshot = { ...existing.snapshot, price: addition.snapshotPrice };
+      }
+      continue;
+    }
+    next.set(key, {
+      sku: addition.sku,
+      quantity: 1,
+      snapshot: { price: addition.snapshotPrice },
+    });
+  }
+
+  return Array.from(next.values());
+};
+
+const getCartSubtotalAfterBundles = (lines: CartLine[], currency: Product["currency"]) => {
+  const pricedLines = lines.map((line) => ({
+    sku: line.sku,
+    quantity: line.quantity,
+    unitPrice:
+      typeof line.snapshot?.price === "number" && Number.isFinite(line.snapshot.price)
+        ? line.snapshot.price
+        : 0,
+  }));
+  const subtotal = pricedLines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0);
+  const bundleDiscount = calculateBundleDiscount(pricedLines, currency).totalSavings;
+  return Math.max(0, Number((subtotal - bundleDiscount).toFixed(2)));
+};
 
 export function BundleOffers({
   primaryProduct,
@@ -17,6 +62,14 @@ export function BundleOffers({
   offers: BundleProductOffer[];
 }) {
   const [addingBundleId, setAddingBundleId] = useState<string | null>(null);
+  const [cartLines, setCartLines] = useState<CartLine[]>([]);
+
+  useEffect(() => {
+    const sync = () => setCartLines(getCart());
+    sync();
+    window.addEventListener("cartupdate", sync);
+    return () => window.removeEventListener("cartupdate", sync);
+  }, []);
 
   if (offers.length === 0) return null;
 
@@ -30,12 +83,23 @@ export function BundleOffers({
         {offers.map((offer) => {
           const secondary = offer.bundleProduct;
           if (!secondary) return null;
-          const savingsLabel = fmtPrice(offer.savings[primaryProduct.currency], primaryProduct.currency);
+          const currentSubtotalAfterBundles = getCartSubtotalAfterBundles(cartLines, primaryProduct.currency);
+          const nextCartLines = mergeCartLines(cartLines, [
+            { sku: primaryProduct.sku, snapshotPrice: primaryProduct.price },
+            { sku: secondary.sku, snapshotPrice: secondary.price },
+          ]);
+          const nextSubtotalAfterBundles = getCartSubtotalAfterBundles(nextCartLines, primaryProduct.currency);
+          const currentShippingCost = calculateShippingCost(primaryProduct.currency, currentSubtotalAfterBundles);
+          const nextShippingCost = calculateShippingCost(primaryProduct.currency, nextSubtotalAfterBundles);
+          const shippingGain = Math.max(0, Number((currentShippingCost - nextShippingCost).toFixed(2)));
+          const totalDisplayedSavings = Number((offer.savings[primaryProduct.currency] + shippingGain).toFixed(2));
+          const savingsLabel = fmtPrice(totalDisplayedSavings, primaryProduct.currency);
           const bundlePrice = Math.max(
             0,
-            Number((primaryProduct.price + secondary.price - offer.savings[primaryProduct.currency]).toFixed(2)),
+            Number((primaryProduct.price + secondary.price - totalDisplayedSavings).toFixed(2)),
           );
           const adding = addingBundleId === offer.id;
+          const includesFreeShipping = shippingGain >= SHIPPING_FEE_EUR - 0.01;
 
           return (
             <div key={offer.id} className="bundle-card">
@@ -65,14 +129,19 @@ export function BundleOffers({
 
               <div className="bundle-card-footer">
                 <div>
-                  <div className="bundle-card-save">🔥 Save {savingsLabel} when you bundle</div>
+                  <div className="bundle-card-save">Save {savingsLabel}</div>
+                  {includesFreeShipping ? (
+                    <div className="bundle-card-shipping-note">(includes free shipping)</div>
+                  ) : null}
                   <div className="bundle-card-price">
-                    <span className="bundle-card-price-old">
-                      {fmtPrice(primaryProduct.price + secondary.price, primaryProduct.currency)}
-                    </span>
                     <span>{fmtPrice(bundlePrice, primaryProduct.currency)}</span>
+                    <span className="bundle-card-price-old">
+                      (instead of {fmtPrice(primaryProduct.price + secondary.price, primaryProduct.currency)})
+                    </span>
                   </div>
-                  <div className="bundle-card-shipping">Add this bundle · unlock free shipping over {SHIPPING_FREE_THRESHOLD_EUR}€</div>
+                  {!includesFreeShipping ? (
+                    <div className="bundle-card-shipping">Add this bundle and unlock free shipping over {SHIPPING_FREE_THRESHOLD_EUR} EUR</div>
+                  ) : null}
                 </div>
                 <button
                   className="btn btn-primary"
@@ -98,7 +167,7 @@ export function BundleOffers({
                     window.setTimeout(() => setAddingBundleId(null), 1500);
                   }}
                 >
-                  {adding ? "Added" : `Add bundle · Save ${savingsLabel}`}
+                  {adding ? "Added" : `Add bundle - Save ${savingsLabel}`}
                 </button>
               </div>
             </div>

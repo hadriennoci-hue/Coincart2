@@ -118,7 +118,7 @@ export default function CheckoutPage() {
   const discountedSubtotal = Math.max(0, subtotal - bundleDiscount);
   const couponDiscount = computeCouponDiscount(discountedSubtotal, appliedCoupon);
   const payableSubtotal = Math.max(0, discountedSubtotal - couponDiscount);
-  const shippingCost = calculateShippingCost(currency, payableSubtotal);
+  const shippingCost = calculateShippingCost(currency, discountedSubtotal);
   const grandTotal = payableSubtotal + shippingCost;
 
   const missingRequired = {
