@@ -371,10 +371,14 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
       {product.description && (
         <p
           style={{
-            color: "var(--muted)",
+            color: "#F8FAFC",
             lineHeight: 1.6,
             margin: "24px 0",
             fontSize: "0.9rem",
+            background: "var(--dark-surface)",
+            border: "1px solid var(--dark-border)",
+            borderRadius: 12,
+            padding: "18px 20px",
           }}
         >
           {product.description}
