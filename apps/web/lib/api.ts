@@ -71,6 +71,7 @@ export type Product = {
   brand?: string | null;
   name: string;
   description?: string | null;
+  shortPitch?: string | null;
   imageUrl?: string | null;
   imageUrls?: string[];
   cpu?: string | null;
@@ -204,6 +205,23 @@ const toCollectionKey = (value?: string | null) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+
+const extractShortPitch = (
+  rawValue: unknown,
+  extraAttributes: Array<{ name?: unknown; options?: unknown }> | undefined,
+) => {
+  if (typeof rawValue === "string" && rawValue.trim().length > 0) return rawValue.trim();
+  if (!Array.isArray(extraAttributes)) return null;
+
+  const match = extraAttributes.find((entry) => {
+    const name = String(entry?.name ?? "").trim().toLowerCase();
+    return name === "short pitch" || name === "short_pitch";
+  });
+  const firstOption = Array.isArray(match?.options)
+    ? (match!.options as unknown[]).map((value) => String(value ?? "").trim()).find(Boolean)
+    : "";
+  return firstOption || null;
+};
 
 const accessoryCollectionKeys = [
   "accessories",
@@ -364,6 +382,7 @@ const normalizeProduct = (raw: Partial<Product>): Product => {
   brand: (raw as Product).brand ?? null,
   name: String(raw.name || ""),
   description,
+  shortPitch: extractShortPitch((raw as Product).shortPitch, (raw as Product).extraAttributes as Array<{ name?: unknown; options?: unknown }> | undefined),
   imageUrl: normalizedPrimary ?? normalizedGallery[0] ?? null,
   imageUrls: normalizedGallery,
   cpu: raw.cpu ?? derived.cpu ?? null,

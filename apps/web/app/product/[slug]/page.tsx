@@ -363,6 +363,20 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             currency={product.currency}
           />
 
+          {product.shortPitch && (
+            <div
+              style={{
+                marginTop: 10,
+                color: "var(--muted)",
+                fontSize: "0.82rem",
+                fontWeight: 600,
+                lineHeight: 1.5,
+              }}
+            >
+              {product.shortPitch}
+            </div>
+          )}
+
           <BundleOffers primaryProduct={product} offers={bundleOffers} />
         </div>
       </div>
