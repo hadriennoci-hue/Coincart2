@@ -7,6 +7,7 @@ import { addToCart } from "../lib/cart";
 import type { Product } from "../lib/api";
 import { fmtPrice } from "../lib/format";
 import type { BundleProductOffer } from "../lib/bundles";
+import { SHIPPING_FREE_THRESHOLD_EUR } from "../lib/shipping";
 
 export function BundleOffers({
   primaryProduct,
@@ -29,6 +30,7 @@ export function BundleOffers({
         {offers.map((offer) => {
           const secondary = offer.bundleProduct;
           if (!secondary) return null;
+          const savingsLabel = fmtPrice(offer.savings[primaryProduct.currency], primaryProduct.currency);
           const bundlePrice = Math.max(
             0,
             Number((primaryProduct.price + secondary.price - offer.savings[primaryProduct.currency]).toFixed(2)),
@@ -63,13 +65,14 @@ export function BundleOffers({
 
               <div className="bundle-card-footer">
                 <div>
-                  <div className="bundle-card-save">Save {fmtPrice(offer.savings[primaryProduct.currency], primaryProduct.currency)}</div>
+                  <div className="bundle-card-save">🔥 Save {savingsLabel} when you bundle</div>
                   <div className="bundle-card-price">
                     <span className="bundle-card-price-old">
                       {fmtPrice(primaryProduct.price + secondary.price, primaryProduct.currency)}
                     </span>
                     <span>{fmtPrice(bundlePrice, primaryProduct.currency)}</span>
                   </div>
+                  <div className="bundle-card-shipping">Add this bundle · unlock free shipping over {SHIPPING_FREE_THRESHOLD_EUR}€</div>
                 </div>
                 <button
                   className="btn btn-primary"
@@ -95,7 +98,7 @@ export function BundleOffers({
                     window.setTimeout(() => setAddingBundleId(null), 1500);
                   }}
                 >
-                  {adding ? "Added" : "Add bundle"}
+                  {adding ? "Added" : `Add bundle · Save ${savingsLabel}`}
                 </button>
               </div>
             </div>

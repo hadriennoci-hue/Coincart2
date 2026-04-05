@@ -8,6 +8,7 @@ import { fetchProductBySlug, fetchProductsBySkus, type Currency } from "../../..
 import { getBundleOffersForSku, getBundleRulesForSku } from "../../../lib/bundles";
 import { collectionByKey } from "../../../lib/collections";
 import { fmtPrice } from "../../../lib/format";
+import { SHIPPING_FREE_THRESHOLD_EUR } from "../../../lib/shipping";
 
 export const runtime = 'edge';
 
@@ -295,6 +296,39 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
           >
             {fmtPrice(product.price, product.currency)}
           </span>
+
+          <div
+            style={{
+              fontSize: "0.82rem",
+              color: "var(--primary)",
+              fontWeight: 600,
+              marginTop: -4,
+            }}
+          >
+            Free EU shipping over {SHIPPING_FREE_THRESHOLD_EUR}€
+          </div>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {["Official Acer", "2-Year Warranty", "Ships in 3-5 days (EU)"].map((label) => (
+              <span
+                key={label}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  minHeight: 30,
+                  padding: "0 10px",
+                  borderRadius: 999,
+                  background: "rgba(37,99,235,0.06)",
+                  border: "1px solid rgba(37,99,235,0.12)",
+                  color: "var(--text)",
+                  fontSize: "0.76rem",
+                  fontWeight: 600,
+                }}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
 
           {product.description && (
             <p
