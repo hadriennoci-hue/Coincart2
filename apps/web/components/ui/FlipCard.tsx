@@ -28,6 +28,8 @@ interface FlipCardProps {
   ssdSize?: number | null;
   storage?: string | null;
   displayType?: string | null;
+  averageRating?: number;
+  reviewCount?: number;
 }
 
 const stripHtml = (value: string) =>
@@ -81,6 +83,8 @@ export function FlipCard({
   ssdSize,
   storage,
   displayType,
+  averageRating,
+  reviewCount,
 }: FlipCardProps) {
   const derivedSpecs = deriveSpecsFromDescription(description);
   const hasPromo = typeof promoPrice === "number" && promoPrice > 0 && promoPrice < price;
@@ -144,6 +148,16 @@ export function FlipCard({
             )}
             <div className="product-card-body">
               <div className="card-title" style={{ marginBottom: 0, fontSize: "0.875rem" }}>{name}</div>
+              {typeof reviewCount === "number" && reviewCount > 0 && typeof averageRating === "number" && (
+                <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 4 }}>
+                  <span style={{ color: "#f59e0b", fontSize: "0.75rem", letterSpacing: 1 }}>
+                    {"★".repeat(Math.round(averageRating))}{"☆".repeat(5 - Math.round(averageRating))}
+                  </span>
+                  <span style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 600 }}>
+                    {averageRating.toFixed(1)} · {reviewCount}
+                  </span>
+                </div>
+              )}
             </div>
             <div className="product-card-footer">
               <span className="product-card-price">{priceBlock}</span>

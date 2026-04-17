@@ -6,10 +6,13 @@ import { ProductVariantSelect } from "../../../components/ProductVariantSelect";
 import { ProductImageGallery } from "../../../components/ProductImageGallery";
 import { StickyPurchaseBar } from "../../../components/StickyPurchaseBar";
 import { FlipCard } from "../../../components/ui/FlipCard";
+import { ProductReviewsSection } from "../../../components/ProductReviewsSection";
+import { ProductReviewsSummary } from "../../../components/ProductReviewsSummary";
 import { fetchProductBySlug, fetchProductsBySkus, type Currency } from "../../../lib/api";
 import { getBundleOffersForSku, getBundleRulesForSku } from "../../../lib/bundles";
 import { collectionByKey } from "../../../lib/collections";
 import { getCrossSellSkus } from "../../../lib/crossSell";
+import { getProductReviewsPayload } from "../../../lib/reviews";
 import { fmtPrice } from "../../../lib/format";
 import { SHIPPING_FREE_THRESHOLD_EUR } from "../../../lib/shipping";
 
@@ -135,6 +138,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
 
   const bundleOffers = getBundleOffersForSku(product.sku, bundleProducts);
   const crossSellItems = crossSellProducts.slice(0, 3);
+  const reviewsPayload = getProductReviewsPayload(product.slug, 50);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://coincart-web.pages.dev";
   const productUrl = `${siteUrl}/product/${product.slug}?currency=${currency}`;
@@ -330,6 +334,8 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             )}
           </div>
 
+          <ProductReviewsSummary summary={reviewsPayload.summary} dark />
+
           {/* Price — with promo if available */}
           {product.promoPrice && product.promoPrice < product.price ? (
             <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
@@ -501,6 +507,8 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
           </div>
         )}
       </div>
+
+      <ProductReviewsSection summary={reviewsPayload.summary} reviews={reviewsPayload.reviews} />
 
       {/* You might also like */}
       {crossSellItems.length > 0 && (

@@ -5,6 +5,7 @@ import { FlipCard } from "../components/ui/FlipCard";
 import { TestimonialsColumn, type Testimonial } from "../components/ui/TestimonialsColumn";
 import { PredatorHero } from "../components/ui/PredatorHero";
 import { BrandsGrid } from "../components/ui/BrandsGrid";
+import { getAllReviewSummaries } from "../lib/reviews";
 
 const allTestimonials: Testimonial[] = [
   {
@@ -50,7 +51,7 @@ const allTestimonials: Testimonial[] = [
 
 export const runtime = "edge";
 
-const HOME_HERO_SKU = process.env.NEXT_PUBLIC_HERO_SKU || "NH.QW0EH.003";
+const HOME_HERO_SKU = process.env.NEXT_PUBLIC_HERO_SKU || "NH.QVWED.00F";
 const TOP_SELLING_SKUS = [
   "GP.HDS11.01P",
   "GP.HDS11.01L",
@@ -68,6 +69,7 @@ export default async function Home({
   searchParams: Promise<{ currency?: Currency }>;
 }) {
   const { currency = "EUR" } = await searchParams;
+  const reviewSummaries = getAllReviewSummaries();
   const [items, latestItems, heroItems, topSellingItems] = await Promise.all([
     fetchProducts(currency, false),
     fetchProducts(currency, false, { sort: "newest" }),
@@ -223,6 +225,8 @@ export default async function Home({
                 ssdSize={item.ssdSize}
                 storage={item.storage}
                 displayType={item.displayType}
+                averageRating={reviewSummaries[item.slug]?.averageRating}
+                reviewCount={reviewSummaries[item.slug]?.reviewCount}
               />
             ))}
           </div>
@@ -260,6 +264,8 @@ export default async function Home({
                 description={item.description}
                 sku={item.sku}
                 href={`/product/${item.slug}?currency=${currency}`}
+                averageRating={reviewSummaries[item.slug]?.averageRating}
+                reviewCount={reviewSummaries[item.slug]?.reviewCount}
               />
             ))}
           </div>

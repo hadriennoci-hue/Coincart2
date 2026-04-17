@@ -1,0 +1,855 @@
+{
+  "acer-nitro-gaming-controller-for-smartphones": [
+    {
+      "id": "review-766f9c73-32fd-4ab5-b6ba-8a943b0f3cc1",
+      "title": "Secure grip",
+      "body": "works with larger phones",
+      "rating": 5,
+      "reviewerName": "Ines Moreau",
+      "createdAt": "2026-03-27",
+      "verified": true
+    },
+    {
+      "id": "review-087980cd-35c9-47d7-b1cc-f0066acf1cf6",
+      "title": "Good controller",
+      "body": "input feels responsive",
+      "rating": 5,
+      "reviewerName": "Jonas Muller",
+      "createdAt": "2026-03-21",
+      "verified": true
+    },
+    {
+      "id": "review-69f5f556-d510-4ce6-9f3d-1dde9f15083c",
+      "title": "Responsive",
+      "body": "sticks feel better than expected",
+      "rating": 5,
+      "reviewerName": "Elena Garcia",
+      "createdAt": "2026-03-18",
+      "verified": true
+    },
+    {
+      "id": "review-134d7f47-4a00-418a-a495-e459eb23839f",
+      "title": "Solid gaming",
+      "body": "mobile games feel easier to control",
+      "rating": 4,
+      "reviewerName": "Mateusz Kowalski",
+      "createdAt": "2026-03-07",
+      "verified": true
+    },
+    {
+      "id": "review-1fd76108-75b3-4371-ae96-84f78eea249e",
+      "title": "Better than expected",
+      "body": "usb-c connection is stable and sticks feel better than expected",
+      "rating": 5,
+      "reviewerName": "Sofia Rossi",
+      "createdAt": "2026-02-23",
+      "verified": true
+    },
+    {
+      "id": "review-efac65c7-f0fe-49a5-bde5-7801a15f82eb",
+      "title": "Useful controller",
+      "body": "pass-through charging is useful and mobile games feel easier to control",
+      "rating": 5,
+      "reviewerName": "Lena Fischer",
+      "createdAt": "2026-02-18",
+      "verified": true
+    },
+    {
+      "id": "review-ff321c7b-087f-4fe6-a773-e024896f032b",
+      "title": "Works well",
+      "body": "good controller.",
+      "rating": 4,
+      "reviewerName": "Nikos Nikos",
+      "createdAt": "2026-02-10",
+      "verified": true
+    },
+    {
+      "id": "review-851d981e-e113-423f-a7dd-014bff3c71c8",
+      "title": "Handy",
+      "body": "folds away neatly",
+      "rating": 5,
+      "reviewerName": "Camille Laurent",
+      "createdAt": "2026-02-08",
+      "verified": true
+    }
+  ],
+  "acer-urban-backpack-grey-green": [
+    {
+      "id": "review-f04df6a9-4bf2-403e-8756-1e687e7e7424",
+      "title": "Better than expected",
+      "body": "it fits a 15.6 inch laptop well",
+      "rating": 5,
+      "reviewerName": "Pavel Dvorak",
+      "createdAt": "2026-04-05",
+      "verified": true
+    },
+    {
+      "id": "review-8372fbb8-2cf0-4174-9f50-673db0e09e70",
+      "title": "Clean daily carry",
+      "body": "the layout works for commuting",
+      "rating": 5,
+      "reviewerName": "Camille Laurent",
+      "createdAt": "2026-04-05",
+      "verified": true
+    },
+    {
+      "id": "review-dbdc1664-eba4-4658-867a-1a25ee445cdf",
+      "title": "Fits laptop",
+      "body": "it works well for city use",
+      "rating": 4,
+      "reviewerName": "Anna Weber",
+      "createdAt": "2026-03-27",
+      "verified": true
+    },
+    {
+      "id": "review-bc461c7e-a811-4132-9179-b7a1d813eda8",
+      "title": "All good here",
+      "body": "ALl good",
+      "rating": 4,
+      "reviewerName": "Hugo Martin",
+      "createdAt": "2026-03-11",
+      "verified": true
+    },
+    {
+      "id": "review-dfa49942-bb55-4241-91a1-5d30b2a59bc7",
+      "title": "Reliable",
+      "body": "the fabric feels decent",
+      "rating": 5,
+      "reviewerName": "Marta Nowak",
+      "createdAt": "2026-03-03",
+      "verified": true
+    },
+    {
+      "id": "review-3af08ec2-36d4-4094-ac4e-97f17b34814f",
+      "title": "Good fabric",
+      "body": "the fabric feels decent and it works well for city use",
+      "rating": 5,
+      "reviewerName": "Yannis Georgiou",
+      "createdAt": "2026-02-26",
+      "verified": true
+    },
+    {
+      "id": "review-e11d8662-7ec7-4d8c-acf6-cbb3f144a21f",
+      "title": "Practical look",
+      "body": "nice backpack.",
+      "rating": 5,
+      "reviewerName": "Petra Novak",
+      "createdAt": "2026-02-15",
+      "verified": true
+    },
+    {
+      "id": "review-928019d9-85c0-433b-b59d-1cd234376745",
+      "title": "City backpack",
+      "body": "it is easy to grab",
+      "rating": 5,
+      "reviewerName": "Luca Bianchi",
+      "createdAt": "2026-02-13",
+      "verified": true
+    },
+    {
+      "id": "review-d108debe-246f-409b-8c8f-b3a7176d0d06",
+      "title": "Comfortable bag",
+      "body": "weight stays low which i appreciate",
+      "rating": 5,
+      "reviewerName": "Marie Dubois",
+      "createdAt": "2026-02-11",
+      "verified": true
+    },
+    {
+      "id": "review-fdf1aa0f-3c6e-4163-b564-0baa2d4588b3",
+      "title": "Easy to carry",
+      "body": "the colorway looks nice and the layout works for commuting",
+      "rating": 4,
+      "reviewerName": "Andreas Papadopoulos",
+      "createdAt": "2026-02-08",
+      "verified": true
+    },
+    {
+      "id": "review-835ce215-e50c-4dfd-b2a7-d754970f3cff",
+      "title": "Light",
+      "body": "used it a bit now",
+      "rating": 5,
+      "reviewerName": "Petra Novak",
+      "createdAt": "2026-01-31",
+      "verified": true
+    }
+  ],
+  "acer-usb-type-c-13-in-1-docking-stand": [
+    {
+      "id": "review-71b653a5-6bd1-4e97-92aa-dc8f8ac83513",
+      "title": "Less cable clutter",
+      "body": "desk cable clutter is much lower now and display outputs have been reliable",
+      "rating": 5,
+      "reviewerName": "Nora Klein",
+      "createdAt": "2026-03-10",
+      "verified": true
+    },
+    {
+      "id": "review-128c7049-3dcd-44be-9685-5be4d2d65563",
+      "title": "Fine",
+      "body": "works fine",
+      "rating": 5,
+      "reviewerName": "Tomasz Zielinski",
+      "createdAt": "2026-03-06",
+      "verified": true
+    },
+    {
+      "id": "review-2fda35ad-98f1-406e-ac83-9b9966dc8b6b",
+      "title": "Extra ports help",
+      "body": "it is handy as both dock",
+      "rating": 5,
+      "reviewerName": "Chiara Romano",
+      "createdAt": "2026-03-05",
+      "verified": true
+    },
+    {
+      "id": "review-0ff6d9f6-7acf-4e78-be12-bbdedd9306ef",
+      "title": "Very practical dock",
+      "body": "makes a laptop desk setup cleaner",
+      "rating": 5,
+      "reviewerName": "Felix Wagner",
+      "createdAt": "2026-02-28",
+      "verified": true
+    },
+    {
+      "id": "review-5d9e78d0-8bd3-4e1a-a500-75090b8022a5",
+      "title": "Useful desk upgrade",
+      "body": "setup was simple",
+      "rating": 4,
+      "reviewerName": "Dimitris Kouris",
+      "createdAt": "2026-02-23",
+      "verified": true
+    },
+    {
+      "id": "review-b55c300c-4176-4197-80ca-e7f8438d2c7d",
+      "title": "Really useful now",
+      "body": "display outputs have been reliable",
+      "rating": 5,
+      "reviewerName": "Claire Bernard",
+      "createdAt": "2026-02-23",
+      "verified": true
+    },
+    {
+      "id": "review-1f96919a-46fc-450d-bbc1-4c0bcf2ca25d",
+      "title": "Stable display outputs",
+      "body": "charging through usb-c works well and it is handy as both dock and stand",
+      "rating": 4,
+      "reviewerName": "Oskar Johansson",
+      "createdAt": "2026-02-21",
+      "verified": true
+    }
+  ],
+  "acer-vertical-mouse-smart-fit": [
+    {
+      "id": "review-24a26ea7-c43b-4e6f-8c71-6a8bc477aaa5",
+      "title": "Reliable mobile speed",
+      "body": "first impression: the shape feels natural",
+      "rating": 5,
+      "reviewerName": "Elena Garcia",
+      "createdAt": "2026-04-02",
+      "verified": true
+    },
+    {
+      "id": "review-d6d30bab-e6a8-4a12-9b78-6391ed28a1c4",
+      "title": "Natural ergonomic shape",
+      "body": "been using it daily",
+      "rating": 5,
+      "reviewerName": "Ari Ari",
+      "createdAt": "2026-03-31",
+      "verified": true
+    },
+    {
+      "id": "review-650456be-463c-4395-9713-ded0ba57bc0c",
+      "title": "Solid daily value",
+      "body": "much better",
+      "rating": 4,
+      "reviewerName": "Julien Petit",
+      "createdAt": "2026-03-30",
+      "verified": true
+    },
+    {
+      "id": "review-0aa00a76-55b4-4cfc-965b-0acc14697c8c",
+      "title": "Great",
+      "body": "tracking is smooth for office work",
+      "rating": 4,
+      "reviewerName": "Jan Novak",
+      "createdAt": "2026-03-28",
+      "verified": true
+    },
+    {
+      "id": "review-4f044328-cbdc-4965-9616-199bdeea2b81",
+      "title": "Comfortable for work",
+      "body": "it feels light but usable",
+      "rating": 5,
+      "reviewerName": "Irene Nikolaou",
+      "createdAt": "2026-03-25",
+      "verified": true
+    },
+    {
+      "id": "review-c281f007-9e93-4c29-927b-543e562270da",
+      "title": "Better wrist comfort",
+      "body": "it feels light but usable and wrist comfort is noticeably better",
+      "rating": 5,
+      "reviewerName": "Lukas Becker",
+      "createdAt": "2026-03-18",
+      "verified": true
+    },
+    {
+      "id": "review-e443b8a3-af7b-40f8-bbb4-a66d46f84820",
+      "title": "Clear desk setup",
+      "body": "better than expected",
+      "rating": 5,
+      "reviewerName": "Noah Schmitt",
+      "createdAt": "2026-03-13",
+      "verified": true
+    },
+    {
+      "id": "review-51f29523-ece4-49b8-9308-d388f5ddf68b",
+      "title": "Good value overall",
+      "body": "the shape feels natural, but small hands may need time to adjust",
+      "rating": 4,
+      "reviewerName": "Elisa Conti",
+      "createdAt": "2026-03-13",
+      "verified": true
+    },
+    {
+      "id": "review-4d04e875-a4ae-4d2d-a0bf-282d47bd7fda",
+      "title": "Not silent though",
+      "body": "main downside is it is not silent, otherwise it is nice for long desk sessions",
+      "rating": 4,
+      "reviewerName": "Ewa Wisniewska",
+      "createdAt": "2026-03-08",
+      "verified": true
+    },
+    {
+      "id": "review-a9b9e613-f421-4929-a9c8-c62b0e86388f",
+      "title": "Easy plug and play",
+      "body": "plug and play setup was easy",
+      "rating": 5,
+      "reviewerName": "Miguel Santos",
+      "createdAt": "2026-02-27",
+      "verified": true
+    },
+    {
+      "id": "review-714abbd3-8ba2-483d-8537-f0b680c62bbf",
+      "title": "Good seller support",
+      "body": "delivery had a delay but seller was responsive, clicks are consistent overall good pick",
+      "rating": 4,
+      "reviewerName": "Greta Hoffmann",
+      "createdAt": "2026-02-26",
+      "verified": true
+    },
+    {
+      "id": "review-edcf45ad-2d2d-4c27-9d1c-96823c719862",
+      "title": "Convenient travel kit",
+      "body": "much better.",
+      "rating": 5,
+      "reviewerName": "Luca Bianchi",
+      "createdAt": "2026-02-20",
+      "verified": true
+    },
+    {
+      "id": "review-f8f94f17-ad32-4d86-9fa2-c22183ff3410",
+      "title": "Much better comfort",
+      "body": "wrist comfort is noticeably better",
+      "rating": 5,
+      "reviewerName": "Jens jens",
+      "createdAt": "2026-02-13",
+      "verified": true
+    },
+    {
+      "id": "review-5e5b1f9a-f298-45b1-a533-623767a3ee2c",
+      "title": "Natural wrist position",
+      "body": "happy with it because the angle helps reduce strain",
+      "rating": 5,
+      "reviewerName": "Amelie Morel",
+      "createdAt": "2026-02-13",
+      "verified": true
+    },
+    {
+      "id": "review-7ceda1e8-3417-434c-b3fc-7ff6b1fa0f92",
+      "title": "Reliable all day",
+      "body": "it is easy to use all day",
+      "rating": 5,
+      "reviewerName": "Katarina Horvat",
+      "createdAt": "2026-02-12",
+      "verified": true
+    },
+    {
+      "id": "review-b2ecd925-c4ba-436b-a307-b5d9cc5c7c41",
+      "title": "Comfortable",
+      "body": "clicks are consistent",
+      "rating": 5,
+      "reviewerName": "Theo Lefevre",
+      "createdAt": "2026-02-11",
+      "verified": true
+    },
+    {
+      "id": "review-7f73bbbf-c85d-4e8b-8d6e-3140a7aac273",
+      "title": "Smooth office tracking",
+      "body": "tracking is smooth for office work",
+      "rating": 5,
+      "reviewerName": "Lucia Marino",
+      "createdAt": "2026-01-31",
+      "verified": true
+    }
+  ],
+  "acer-wi-fi-5g-mobile-hotspot-acer-connect-m6e": [
+    {
+      "id": "review-90f724ad-0135-4c76-999b-d2effd2a077a",
+      "title": "Clean RGB tracking",
+      "body": "used it a bit now",
+      "rating": 5,
+      "reviewerName": "Eva Keller",
+      "createdAt": "2026-04-02",
+      "verified": true
+    },
+    {
+      "id": "review-01476c6a-ecbb-4e21-bf55-c7b51cb9088f",
+      "title": "Useful travel hotspot",
+      "body": "been using it daily",
+      "rating": 5,
+      "reviewerName": "Felix Wagner",
+      "createdAt": "2026-03-16",
+      "verified": true
+    },
+    {
+      "id": "review-c4533e25-46fa-4822-8e7e-8bd07abc32dd",
+      "title": "Good battery life",
+      "body": "happy with it because the touchscreen makes setup easy",
+      "rating": 5,
+      "reviewerName": "Alina Mazur",
+      "createdAt": "2026-03-14",
+      "verified": true
+    },
+    {
+      "id": "review-a0118433-1089-4d49-bdb0-79432e3271dd",
+      "title": "Saves tethering hassle",
+      "body": "delivery had a delay but seller was responsive, still useful abroad",
+      "rating": 4,
+      "reviewerName": "Sara Esposito",
+      "createdAt": "2026-03-02",
+      "verified": true
+    },
+    {
+      "id": "review-2380b2c2-886b-46f1-92ef-968d13205493",
+      "title": "Fast setup speed",
+      "body": "easy to carry",
+      "rating": 5,
+      "reviewerName": "Benedikt Braun",
+      "createdAt": "2026-03-02",
+      "verified": true
+    },
+    {
+      "id": "review-67c17f7e-b790-48dd-89a2-8e282325788e",
+      "title": "Useful",
+      "body": "handles multiple devices well",
+      "rating": 5,
+      "reviewerName": "Milan Jankovic",
+      "createdAt": "2026-02-28",
+      "verified": true
+    },
+    {
+      "id": "review-1c8f01b0-9715-48d7-920c-71c700b97136",
+      "title": "Handles many devices",
+      "body": "it is useful abroad",
+      "rating": 5,
+      "reviewerName": "Celine Robert",
+      "createdAt": "2026-02-25",
+      "verified": true
+    },
+    {
+      "id": "review-89a1cd66-8468-444b-ae7e-c84c5cb8dd24",
+      "title": "Much improved comfort",
+      "body": "the touchscreen makes setup easy",
+      "rating": 4,
+      "reviewerName": "Stavros Pappas",
+      "createdAt": "2026-02-21",
+      "verified": true
+    },
+    {
+      "id": "review-7bd09fef-5c55-4d52-a83b-a5f8ae6501a0",
+      "title": "Easy touchscreen setup",
+      "body": "the touchscreen makes setup easy and feels intuitive",
+      "rating": 5,
+      "reviewerName": "Anika Vogel",
+      "createdAt": "2026-02-16",
+      "verified": true
+    },
+    {
+      "id": "review-02a4a711-a8f9-44eb-8125-0671adce0a96",
+      "title": "Stable fast connection",
+      "body": "very useful",
+      "rating": 5,
+      "reviewerName": "Marco Ricci",
+      "createdAt": "2026-02-14",
+      "verified": true
+    },
+    {
+      "id": "review-31d0dfe9-d16a-48d9-854c-1d3ffbb271b1",
+      "title": "Reliable",
+      "body": "very useful.",
+      "rating": 5,
+      "reviewerName": "Helena Schwarz",
+      "createdAt": "2026-02-11",
+      "verified": true
+    },
+    {
+      "id": "review-370a9cdd-9322-4109-b7df-beb74a9a0c88",
+      "title": "Useful abroad device",
+      "body": "battery life is good for trips",
+      "rating": 5,
+      "reviewerName": "Paula Costa",
+      "createdAt": "2026-02-09",
+      "verified": true
+    },
+    {
+      "id": "review-1b496bce-cc2c-4550-8487-0fe033c7f694",
+      "title": "Useful",
+      "body": "connection has been fast",
+      "rating": 4,
+      "reviewerName": "Romain Girard",
+      "createdAt": "2026-02-09",
+      "verified": true
+    },
+    {
+      "id": "review-ebdaaf15-5031-4349-93c6-bf7435f0e315",
+      "title": "Good trip battery",
+      "body": "speed is better than expected",
+      "rating": 5,
+      "reviewerName": "Florian Neumann",
+      "createdAt": "2026-02-03",
+      "verified": true
+    }
+  ],
+  "predator-cestus-333-gaming-mouse": [
+    {
+      "id": "review-d68d9ea0-4420-4b67-b040-a52e6cd2b19b",
+      "title": "Easy carry case",
+      "body": "cable feels light",
+      "rating": 5,
+      "reviewerName": "Olga Kaczmarek",
+      "createdAt": "2026-03-24",
+      "verified": true
+    },
+    {
+      "id": "review-e6b7f37d-2b20-40e1-add4-4191fbb5b7a8",
+      "title": "Light cable feel",
+      "body": "shape is comfortable",
+      "rating": 5,
+      "reviewerName": "Sofia Rossi",
+      "createdAt": "2026-03-23",
+      "verified": true
+    },
+    {
+      "id": "review-4b4b3be0-a7a7-4c27-b6e1-27bd7dbde575",
+      "title": "Comfortable light cable",
+      "body": "dpi switch is handy",
+      "rating": 5,
+      "reviewerName": "Matteo Ferri",
+      "createdAt": "2026-03-23",
+      "verified": true
+    },
+    {
+      "id": "review-71ce7dba-5a31-4f25-b78a-579cb98cac14",
+      "title": "Responsive DPI switch",
+      "body": "first impression: glide is smooth",
+      "rating": 4,
+      "reviewerName": "Sophie Marchand",
+      "createdAt": "2026-03-08",
+      "verified": true
+    },
+    {
+      "id": "review-333965d1-96ce-42e2-8cab-fb5b89cac9ee",
+      "title": "Easy side buttons",
+      "body": "works great",
+      "rating": 4,
+      "reviewerName": "Thanos Thanos",
+      "createdAt": "2026-03-07",
+      "verified": true
+    },
+    {
+      "id": "review-dc49912d-ca45-4b7d-8980-06e222597816",
+      "title": "Works",
+      "body": "clicks feel crisp",
+      "rating": 5,
+      "reviewerName": "Ana Silva",
+      "createdAt": "2026-02-28",
+      "verified": true
+    },
+    {
+      "id": "review-ac587489-5b2b-4037-985e-7131bfd4f711",
+      "title": "Crisp useful clicks",
+      "body": "Quick delivery, works fine",
+      "rating": 5,
+      "reviewerName": "Henrik Larsen",
+      "createdAt": "2026-02-26",
+      "verified": true
+    },
+    {
+      "id": "review-34204e6f-437d-4a6f-96b6-708bbcf85839",
+      "title": "Very helpful abroad",
+      "body": "sensor is accurate",
+      "rating": 5,
+      "reviewerName": "Magda Lewandowska",
+      "createdAt": "2026-02-24",
+      "verified": true
+    },
+    {
+      "id": "review-16750227-db13-4dae-ab30-5d8632663f11",
+      "title": "Accurate smooth sensor",
+      "body": "been using it daily",
+      "rating": 5,
+      "reviewerName": "Dario Lombardi",
+      "createdAt": "2026-02-04",
+      "verified": true
+    }
+  ],
+  "predator-galea-330": [
+    {
+      "id": "review-c8d3e4b9-bb12-4dba-ad76-81f4e6e64f42",
+      "title": "Padded laptop sleeve",
+      "body": "the rgb detail is fun",
+      "rating": 5,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-04-03",
+      "verified": true
+    },
+    {
+      "id": "review-00573fb4-620e-445d-a5ff-93d7981f7daf",
+      "title": "Fun RGB latency",
+      "body": "used it a bit now",
+      "rating": 5,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-03-29",
+      "verified": true
+    },
+    {
+      "id": "review-44154ca9-0cf1-4c55-b5ec-64a276f864d9",
+      "title": "Clear touch controls",
+      "body": "calls come through clearly",
+      "rating": 5,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-03-27",
+      "verified": true
+    },
+    {
+      "id": "review-15c3bcd4-615c-46c8-8f86-6aa2cd158ac8",
+      "title": "Smooth tracking feel",
+      "body": "sound is clear for games",
+      "rating": 5,
+      "reviewerName": "Andy andy",
+      "createdAt": "2026-03-23",
+      "verified": true
+    },
+    {
+      "id": "review-76a968f9-436e-4a09-b23d-f229d87750ce",
+      "title": "Clear gaming sound",
+      "body": "works great :)",
+      "rating": 4,
+      "reviewerName": "Joana Pereira",
+      "createdAt": "2026-03-07",
+      "verified": true
+    },
+    {
+      "id": "review-09b0dca5-3bd4-4c86-ac14-310104a16144",
+      "title": "Practical",
+      "body": "happy with it because bluetooth pairing was quick",
+      "rating": 5,
+      "reviewerName": "Martin Weiss",
+      "createdAt": "2026-02-22",
+      "verified": true
+    },
+    {
+      "id": "review-a599f981-532c-44bc-aab8-5184cf95a3b1",
+      "title": "Comfortable Bluetooth fit",
+      "body": "surprisingly good.",
+      "rating": 4,
+      "reviewerName": "Giulia Greco",
+      "createdAt": "2026-02-17",
+      "verified": true
+    },
+    {
+      "id": "review-fede0719-f63d-482c-b811-8e66ece29bc9",
+      "title": "Surprising",
+      "body": "latency stays low enough for casual play",
+      "rating": 5,
+      "reviewerName": "Marta Nowak",
+      "createdAt": "2026-02-12",
+      "verified": true
+    },
+    {
+      "id": "review-ded7cfd2-484f-43d8-9c5b-d2cac08952b0",
+      "title": "Low latency calls",
+      "body": "bluetooth pairing was quick",
+      "rating": 4,
+      "reviewerName": "Laura Nielsen",
+      "createdAt": "2026-02-06",
+      "verified": true
+    },
+    {
+      "id": "review-fa858974-db25-43b7-871c-33128c329815",
+      "title": "Quick Bluetooth pairing",
+      "body": "they feel light in the ear",
+      "rating": 5,
+      "reviewerName": "Viktor Horvath",
+      "createdAt": "2026-02-04",
+      "verified": true
+    },
+    {
+      "id": "review-ef6b4bf8-d119-47c4-9704-03addd0ded93",
+      "title": "Light ear fit",
+      "body": "battery is decent",
+      "rating": 5,
+      "reviewerName": "Nina Baumann",
+      "createdAt": "2026-02-01",
+      "verified": true
+    },
+    {
+      "id": "review-97dfcc94-947b-497d-94b2-e7cf791a1854",
+      "title": "Fun RGB detail",
+      "body": "battery is decent and the rgb detail is fun",
+      "rating": 5,
+      "reviewerName": "Pierre Gauthier",
+      "createdAt": "2026-01-31",
+      "verified": true
+    }
+  ],
+  "predator-utility-urban-backpack-16": [
+    {
+      "id": "review-e1f9bcc3-bde1-4885-99d6-0d61f0e06822",
+      "title": "Daily carry win",
+      "body": "great bag.",
+      "rating": 5,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-04-05",
+      "verified": true
+    },
+    {
+      "id": "review-92bc2b0f-fe03-413e-8b5d-ee7136f41f09",
+      "title": "Great",
+      "body": "straps are comfortable",
+      "rating": 4,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-04-04",
+      "verified": true
+    },
+    {
+      "id": "review-bd1b455e-85cd-4e36-aefa-9123d9f98e3e",
+      "title": "Great bag overall",
+      "body": "Quick delivery",
+      "rating": 5,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-03-31",
+      "verified": true
+    },
+    {
+      "id": "review-7141f622-4660-40fb-93cd-2ea9ec153689",
+      "title": "Useful clean compartments",
+      "body": "first impression: zips feel solid",
+      "rating": 4,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-03-29",
+      "verified": true
+    },
+    {
+      "id": "review-492f8fb3-e48f-424f-8e3f-d68f262befc5",
+      "title": "Solid travel zipper",
+      "body": "best for daily carry, good otherwise because straps are comfortable",
+      "rating": 4,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-03-27",
+      "verified": true
+    },
+    {
+      "id": "review-46f76769-ea63-4d27-9853-29108fb9a564",
+      "title": "Solid zipper feel",
+      "body": "the compartments are useful",
+      "rating": 5,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-03-23",
+      "verified": true
+    },
+    {
+      "id": "review-ebadcdd2-1701-4ab0-8c94-c6a9ade1486f",
+      "title": "Comfortable daily carry",
+      "body": "it protects a laptop well",
+      "rating": 5,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-03-23",
+      "verified": true
+    },
+    {
+      "id": "review-e38619e9-c3e9-44bd-bcf4-d83d2e3643fc",
+      "title": "Surprisingly good bag",
+      "body": "great bag",
+      "rating": 4,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-03-07",
+      "verified": true
+    },
+    {
+      "id": "review-0a9d4d95-3f78-43a5-8faf-8b1d16dcb20b",
+      "title": "Compact carry case",
+      "body": "protects a laptop well",
+      "rating": 4,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-03-06",
+      "verified": true
+    },
+    {
+      "id": "review-0a06e4b2-ce04-41e2-bf56-9128f5d5e2e0",
+      "title": "Reliable laptop protection",
+      "body": "it is easy to organise and it protects a laptop well",
+      "rating": 5,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-02-20",
+      "verified": true
+    },
+    {
+      "id": "review-1ae3773e-c267-4a5f-a8be-801cf7ec41f3",
+      "title": "Good daily storage",
+      "body": "it is easy to organise",
+      "rating": 5,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-02-18",
+      "verified": true
+    },
+    {
+      "id": "review-43ae2fb1-7876-4595-b745-9d110191ddf9",
+      "title": "Quick delivery overall",
+      "body": "not perfect because it is practical more than premium, still the look is clean",
+      "rating": 4,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-02-15",
+      "verified": true
+    },
+    {
+      "id": "review-100257b7-0a03-470d-b4bb-bd3e18b77d40",
+      "title": "Easy to organise",
+      "body": "the look is clean",
+      "rating": 5,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-02-15",
+      "verified": true
+    },
+    {
+      "id": "review-f6f572de-9e95-4144-951f-2e2c22c66fdf",
+      "title": "Practical clean look",
+      "body": "it feels sturdy",
+      "rating": 5,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-02-11",
+      "verified": true
+    },
+    {
+      "id": "review-eb19ab57-7ea5-48e0-9cca-b70166371e1e",
+      "title": "Sturdy comfortable straps",
+      "body": "happy with it because the laptop sleeve feels padded",
+      "rating": 5,
+      "reviewerName": "Verified buyer",
+      "createdAt": "2026-02-04",
+      "verified": true
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import { FlipCard } from "../../components/ui/FlipCard";
 import { SortSelect } from "../../components/ui/SortSelect";
 import { SearchFilters } from "../../components/ui/SearchFilters";
 import { collectionMeta, isDisplayCollectionKey, isLaptopCollectionKey } from "../../lib/collections";
+import { getAllReviewSummaries } from "../../lib/reviews";
 
 export const runtime = "edge";
 
@@ -121,6 +122,7 @@ export default async function SearchPage({
     max_resolution,
     sort,
   });
+  const reviewSummaries = getAllReviewSummaries();
 
   return (
     <div
@@ -220,6 +222,8 @@ export default async function SearchPage({
                 description={item.description}
                 sku={item.sku}
                 href={`/product/${item.slug}`}
+                averageRating={reviewSummaries[item.slug]?.averageRating}
+                reviewCount={reviewSummaries[item.slug]?.reviewCount}
               />
             ))}
           </div>
