@@ -15,6 +15,7 @@ import { getCrossSellSkus } from "../../../lib/crossSell";
 import { getProductReviewsPayload } from "../../../lib/reviews";
 import { fmtPrice } from "../../../lib/format";
 import { SHIPPING_FREE_THRESHOLD_EUR } from "../../../lib/shipping";
+import { buildExtraSpecRows, normalizeLabel } from "../../../lib/productSpecs";
 
 export const runtime = 'edge';
 
@@ -218,20 +219,21 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
     specRows.push({ label: labelByKey[key] || key, value });
   }
 
-  const extraRows: Array<{ label: string; value: string }> = [];
+  // Build the set of labels already shown via the typed specRows (for dedup).
+  const seenSpecLabels = new Set(specRows.map((r) => normalizeLabel(r.label)));
+
+  // Pull derivedTags out of extraAttributes before handing off to buildExtraSpecRows.
   const derivedTags: string[] = [];
   for (const attribute of product.extraAttributes || []) {
-    const name = attribute.name.trim();
-    const options = attribute.options.map((item) => item.trim()).filter(Boolean);
-    if (!name || options.length === 0) continue;
-    if (name.toLowerCase() === "color") continue;
-    if (name.toLowerCase() === "tag" || name.toLowerCase() === "tags") {
-      derivedTags.push(...options);
-      continue;
+    const key = attribute.name.trim().toLowerCase().replace(/[\s-]+/g, "_");
+    if (key === "tag" || key === "tags") {
+      derivedTags.push(...attribute.options.map((o) => o.trim()).filter(Boolean));
     }
-    extraRows.push({ label: name, value: options.join(", ") });
   }
   const tags = Array.from(new Set([...(product.tags || []), ...derivedTags]));
+
+  // Build labelled spec rows from all remaining extraAttributes.
+  const extraRows = buildExtraSpecRows(product.extraAttributes, seenSpecLabels);
   const allSpecRows = [...specRows, ...extraRows];
   const jsonLd = {
     "@context": "https://schema.org",
