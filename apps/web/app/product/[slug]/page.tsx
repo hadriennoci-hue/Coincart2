@@ -4,9 +4,12 @@ import { AddToCartButton } from "../../../components/AddToCartButton";
 import { BundleOffers } from "../../../components/BundleOffers";
 import { ProductVariantSelect } from "../../../components/ProductVariantSelect";
 import { ProductImageGallery } from "../../../components/ProductImageGallery";
+import { StickyPurchaseBar } from "../../../components/StickyPurchaseBar";
+import { FlipCard } from "../../../components/ui/FlipCard";
 import { fetchProductBySlug, fetchProductsBySkus, type Currency } from "../../../lib/api";
 import { getBundleOffersForSku, getBundleRulesForSku } from "../../../lib/bundles";
 import { collectionByKey } from "../../../lib/collections";
+import { getCrossSellSkus } from "../../../lib/crossSell";
 import { fmtPrice } from "../../../lib/format";
 import { SHIPPING_FREE_THRESHOLD_EUR } from "../../../lib/shipping";
 
@@ -112,22 +115,35 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
       : product.imageUrl
         ? [product.imageUrl]
         : [];
-  const bundleRules = getBundleRulesForSku(product.sku);
-  const bundleProducts =
-    bundleRules.length > 0
-      ? await fetchProductsBySkus(bundleRules.map((offer: typeof bundleRules[number]) => offer.secondarySku), currency)
-      : [];
-  const bundleOffers = getBundleOffersForSku(product.sku, bundleProducts);
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://coincart-web.pages.dev";
-  const productUrl = `${siteUrl}/product/${product.slug}?currency=${currency}`;
   const collectionKey = (product.collection || product.category || "")
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+  const bundleRules = getBundleRulesForSku(product.sku);
+  const crossSellSkus = getCrossSellSkus(collectionKey, product.sku, 4);
+
+  const [bundleProducts, crossSellProducts] = await Promise.all([
+    bundleRules.length > 0
+      ? fetchProductsBySkus(bundleRules.map((offer: typeof bundleRules[number]) => offer.secondarySku), currency)
+      : Promise.resolve([]),
+    crossSellSkus.length > 0
+      ? fetchProductsBySkus(crossSellSkus, currency)
+      : Promise.resolve([]),
+  ]);
+
+  const bundleOffers = getBundleOffersForSku(product.sku, bundleProducts);
+  const crossSellItems = crossSellProducts.slice(0, 3);
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://coincart-web.pages.dev";
+  const productUrl = `${siteUrl}/product/${product.slug}?currency=${currency}`;
   const collectionLabel =
     collectionByKey[collectionKey as keyof typeof collectionByKey]?.label || product.collection || product.category;
+
+  // Brand logo logic
+  const isPredator = product.name.toLowerCase().includes("predator");
+
   const derivedSpecs = deriveSpecsFromDescription(product.description);
   const attributeValueMap = new Map<string, string>();
   if (product.brand) attributeValueMap.set("brand", product.brand);
@@ -251,13 +267,32 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
           alignItems: "start",
         }}
       >
-        {/* Left: Product Image Gallery */}
-        <div>
+        {/* Left: gallery + description */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <ProductImageGallery images={imageGallery} alt={product.name} />
+
+          {product.description && (
+            <div className="surface" style={{ padding: "18px 20px" }}>
+              <p
+                style={{
+                  margin: 0,
+                  color: "var(--text)",
+                  lineHeight: 1.6,
+                  fontSize: "0.9rem",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 5,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                {stripHtml(product.description)}
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Right: All product info */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {/* Right: purchase panel */}
+        <div id="pdp-purchase-anchor" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {collectionLabel && (
             <span className="badge badge-teal" style={{ alignSelf: "flex-start" }}>
               {collectionLabel}
@@ -287,15 +322,35 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
 
           <div className="divider" style={{ margin: "4px 0" }} />
 
-          <span
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 500,
-              color: "var(--text)",
-            }}
-          >
-            {fmtPrice(product.price, product.currency)}
-          </span>
+          {/* Brand trust logos */}
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <img src="/acer_white.png" alt="Acer" style={{ height: 28, width: "auto", opacity: 0.85 }} />
+            {isPredator && (
+              <img src="/predator_white.png" alt="Predator" style={{ height: 20, width: "auto", opacity: 0.85 }} />
+            )}
+          </div>
+
+          {/* Price — with promo if available */}
+          {product.promoPrice && product.promoPrice < product.price ? (
+            <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+              <span style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--text)" }}>
+                {fmtPrice(product.promoPrice, product.currency)}
+              </span>
+              <span style={{ fontSize: "1.1rem", color: "var(--muted)", textDecoration: "line-through" }}>
+                {fmtPrice(product.price, product.currency)}
+              </span>
+            </div>
+          ) : (
+            <span
+              style={{
+                fontSize: "1.5rem",
+                fontWeight: 500,
+                color: "var(--text)",
+              }}
+            >
+              {fmtPrice(product.price, product.currency)}
+            </span>
+          )}
 
           <div
             style={{
@@ -346,9 +401,21 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             sku={product.sku}
             name={product.name}
             imageUrl={product.imageUrl}
-            price={product.price}
+            price={product.promoPrice && product.promoPrice < product.price ? product.promoPrice : product.price}
             currency={product.currency}
           />
+
+          {/* Crypto checkout strip */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: "0.75rem", color: "var(--muted)", marginTop: 2 }}>
+            <span>🔒</span>
+            <span>Secure checkout</span>
+            <span style={{ color: "var(--border)" }}>·</span>
+            <span>₿ BTC</span>
+            <span style={{ color: "var(--border)" }}>·</span>
+            <span>Ξ ETH</span>
+            <span style={{ color: "var(--border)" }}>·</span>
+            <span>ɱ XMR &amp; more</span>
+          </div>
 
           {product.shortPitch && (
             <div
@@ -367,23 +434,6 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
           <BundleOffers primaryProduct={product} offers={bundleOffers} />
         </div>
       </div>
-
-      {product.description && (
-        <p
-          style={{
-            color: "#F8FAFC",
-            lineHeight: 1.6,
-            margin: "24px 0",
-            fontSize: "0.9rem",
-            background: "var(--dark-surface)",
-            border: "1px solid var(--dark-border)",
-            borderRadius: 12,
-            padding: "18px 20px",
-          }}
-        >
-          {product.description}
-        </p>
-      )}
 
       {/* Specs Table */}
       <div className="surface" style={{ marginTop: 24 }}>
@@ -451,6 +501,53 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
           </div>
         )}
       </div>
+
+      {/* You might also like */}
+      {crossSellItems.length > 0 && (
+        <section style={{ marginTop: 48 }}>
+          <div style={{ textAlign: "center", marginBottom: 24 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", fontSize: "0.96rem", fontWeight: 600, padding: "5px 18px", borderRadius: 8, border: "1px solid #60a5fa", color: "#60a5fa", letterSpacing: "0.04em" }}>
+              You might also like
+            </span>
+          </div>
+          <div className="product-grid">
+            {crossSellItems.map((item) => (
+              <FlipCard
+                key={item.id}
+                name={item.name}
+                imageUrl={item.imageUrl}
+                price={item.price}
+                promoPrice={item.promoPrice}
+                currency={item.currency}
+                stockQty={item.stockQty}
+                description={item.description}
+                sku={item.sku}
+                href={`/product/${item.slug}?currency=${currency}`}
+                collection={item.collection}
+                brand={item.brand}
+                cpu={item.cpu}
+                gpu={item.gpu}
+                screenSize={item.screenSize}
+                resolution={item.resolution}
+                maxResolution={item.maxResolution}
+                refreshRate={item.refreshRate}
+                ramMemory={item.ramMemory}
+                ssdSize={item.ssdSize}
+                storage={item.storage}
+                displayType={item.displayType}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <StickyPurchaseBar
+        productName={product.name}
+        price={product.promoPrice && product.promoPrice < product.price ? product.promoPrice : product.price}
+        currency={product.currency}
+        sku={product.sku}
+        imageUrl={product.imageUrl}
+      />
     </div>
   );
 }
