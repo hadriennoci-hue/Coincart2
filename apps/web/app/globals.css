@@ -1216,6 +1216,13 @@ footer { position: relative; z-index: 1; }
     grid-template-columns: 1fr !important;
     gap: 24px !important;
   }
+
+  /* PDP: show full description on mobile, no clamp */
+  .pdp-description {
+    display: block !important;
+    -webkit-line-clamp: unset !important;
+    overflow: visible !important;
+  }
 }
 
 /* ── Search filter sidebar ───────────────────────────── */

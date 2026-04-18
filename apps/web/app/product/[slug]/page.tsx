@@ -280,6 +280,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
           {product.description && (
             <div className="surface" style={{ padding: "18px 20px" }}>
               <p
+                className="pdp-description"
                 style={{
                   margin: 0,
                   color: "var(--text)",
