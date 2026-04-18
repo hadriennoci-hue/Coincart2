@@ -84,22 +84,47 @@ const parseUsdPrice = (payload: Record<string, unknown>) =>
   parsePrice(payload.price_usd) ??
   parsePrice((payload.prices as Record<string, unknown> | undefined)?.USD);
 
+type ParsedSalePrice = number | null | undefined;
+
+const hasOwn = (payload: Record<string, unknown>, key: string) =>
+  Object.prototype.hasOwnProperty.call(payload, key);
+
+const hasNestedOwn = (payload: Record<string, unknown>, key: string) => {
+  const prices = payload.prices;
+  return typeof prices === "object" && prices !== null && hasOwn(prices as Record<string, unknown>, key);
+};
+
+const parseSalePriceValue = (value: unknown): ParsedSalePrice => {
+  const parsed = parsePrice(value);
+  if (parsed !== null) return parsed;
+  if (value === null || value === undefined || value === "" || value === false) return null;
+  return undefined;
+};
+
+const formatSalePricePatch = (value: ParsedSalePrice) =>
+  value === undefined ? undefined : value === null ? null : value.toFixed(2);
+
 const parseSalePriceEur = (payload: Record<string, unknown>) => {
-  const explicit =
-    parsePrice(payload.sale_price) ??
-    parsePrice(payload.sale_price_eur) ??
-    parsePrice((payload.prices as Record<string, unknown> | undefined)?.SALE_EUR);
-  if (explicit !== null) return explicit;
+  if (hasOwn(payload, "sale_price")) return parseSalePriceValue(payload.sale_price);
+  if (hasOwn(payload, "sale_price_eur")) return parseSalePriceValue(payload.sale_price_eur);
+  if (hasNestedOwn(payload, "SALE_EUR")) {
+    return parseSalePriceValue((payload.prices as Record<string, unknown>).SALE_EUR);
+  }
 
   const compareAt = parsePrice(payload.compareAt);
   const activePrice = parsePrice(payload.price);
   if (compareAt !== null && activePrice !== null && activePrice < compareAt) return activePrice;
-  return null;
+  if (hasOwn(payload, "compareAt") && hasOwn(payload, "price")) return null;
+  return undefined;
 };
 
-const parseSalePriceUsd = (payload: Record<string, unknown>) =>
-  parsePrice(payload.sale_price_usd) ??
-  parsePrice((payload.prices as Record<string, unknown> | undefined)?.SALE_USD);
+const parseSalePriceUsd = (payload: Record<string, unknown>) => {
+  if (hasOwn(payload, "sale_price_usd")) return parseSalePriceValue(payload.sale_price_usd);
+  if (hasNestedOwn(payload, "SALE_USD")) {
+    return parseSalePriceValue((payload.prices as Record<string, unknown>).SALE_USD);
+  }
+  return undefined;
+};
 
 const parseVariantOptionFromAttributes = (attributes: unknown) => {
   const result = { optionName: undefined as string | undefined, optionValue: undefined as string | undefined, optionName2: undefined as string | undefined, optionValue2: undefined as string | undefined };
@@ -1340,8 +1365,10 @@ connectorRoutes.post("/products/:id", async (c) => {
     const salePriceEur = parseSalePriceEur(body);
     const salePriceUsd = parseSalePriceUsd(body);
 
-    if (salePriceEur !== null) updatePayload.salePriceEur = salePriceEur.toFixed(2);
-    if (salePriceUsd !== null) updatePayload.salePriceUsd = salePriceUsd.toFixed(2);
+    const formattedSalePriceEur = formatSalePricePatch(salePriceEur);
+    const formattedSalePriceUsd = formatSalePricePatch(salePriceUsd);
+    if (formattedSalePriceEur !== undefined) updatePayload.salePriceEur = formattedSalePriceEur;
+    if (formattedSalePriceUsd !== undefined) updatePayload.salePriceUsd = formattedSalePriceUsd;
 
     if (Object.keys(updatePayload).length > 0) {
       await c.var.db
@@ -1439,8 +1466,8 @@ connectorRoutes.post("/products/:id", async (c) => {
             typeof variant.brand === "string" && variant.brand.trim()
               ? variant.brand.trim()
               : resolvedProduct.brand ?? null,
-          ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
-          ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
+          ...(variantSaleEur !== undefined ? { salePriceEur: formatSalePricePatch(variantSaleEur) } : {}),
+          ...(variantSaleUsd !== undefined ? { salePriceUsd: formatSalePricePatch(variantSaleUsd) } : {}),
           ...variantMappedAttrs,
           ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
           stockQty: variantStockQty,
@@ -1479,8 +1506,8 @@ connectorRoutes.post("/products/:id", async (c) => {
             typeof variant.brand === "string" && variant.brand.trim()
               ? variant.brand.trim()
               : resolvedProduct.brand ?? null,
-          ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
-          ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
+          ...(variantSaleEur !== undefined ? { salePriceEur: formatSalePricePatch(variantSaleEur) } : {}),
+          ...(variantSaleUsd !== undefined ? { salePriceUsd: formatSalePricePatch(variantSaleUsd) } : {}),
           ...variantMappedAttrs,
           ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
           stockQty: variantStockQty,
@@ -1623,8 +1650,8 @@ connectorRoutes.post("/products", async (c) => {
       category: category ?? null,
       brand: brand ?? null,
       ean: ean ?? null,
-      ...(salePriceEur !== null ? { salePriceEur: salePriceEur.toFixed(2) } : {}),
-      ...(salePriceUsd !== null ? { salePriceUsd: salePriceUsd.toFixed(2) } : {}),
+      ...(salePriceEur !== undefined ? { salePriceEur: formatSalePricePatch(salePriceEur) } : {}),
+      ...(salePriceUsd !== undefined ? { salePriceUsd: formatSalePricePatch(salePriceUsd) } : {}),
       ...mappedFromAttributes,
       ...(extraFromAttributes.length > 0 ? { extraAttributes: extraFromAttributes } : {}),
       stockQty: parseStockQuantity(body),
@@ -1651,8 +1678,8 @@ connectorRoutes.post("/products", async (c) => {
       category: category ?? null,
       brand: brand ?? null,
       ean: ean ?? null,
-      ...(salePriceEur !== null ? { salePriceEur: salePriceEur.toFixed(2) } : {}),
-      ...(salePriceUsd !== null ? { salePriceUsd: salePriceUsd.toFixed(2) } : {}),
+      ...(salePriceEur !== undefined ? { salePriceEur: formatSalePricePatch(salePriceEur) } : {}),
+      ...(salePriceUsd !== undefined ? { salePriceUsd: formatSalePricePatch(salePriceUsd) } : {}),
       ...mappedFromAttributes,
       ...(extraFromAttributes.length > 0 ? { extraAttributes: extraFromAttributes } : {}),
       ...(resolvedImageUrls.length > 0
@@ -1731,8 +1758,8 @@ connectorRoutes.post("/products", async (c) => {
           typeof variant.brand === "string" && variant.brand.trim()
             ? variant.brand.trim()
             : brand ?? null,
-        ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
-        ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
+        ...(variantSaleEur !== undefined ? { salePriceEur: formatSalePricePatch(variantSaleEur) } : {}),
+        ...(variantSaleUsd !== undefined ? { salePriceUsd: formatSalePricePatch(variantSaleUsd) } : {}),
         ...variantMappedAttrs,
         ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
         stockQty: variantStockQty,
@@ -1762,8 +1789,8 @@ connectorRoutes.post("/products", async (c) => {
           typeof variant.brand === "string" && variant.brand.trim()
             ? variant.brand.trim()
             : brand ?? null,
-        ...(variantSaleEur !== null ? { salePriceEur: variantSaleEur.toFixed(2) } : {}),
-        ...(variantSaleUsd !== null ? { salePriceUsd: variantSaleUsd.toFixed(2) } : {}),
+        ...(variantSaleEur !== undefined ? { salePriceEur: formatSalePricePatch(variantSaleEur) } : {}),
+        ...(variantSaleUsd !== undefined ? { salePriceUsd: formatSalePricePatch(variantSaleUsd) } : {}),
         ...variantMappedAttrs,
         ...(variantExtraAttrs.length > 0 ? { extraAttributes: variantExtraAttrs } : {}),
         stockQty: variantStockQty,
