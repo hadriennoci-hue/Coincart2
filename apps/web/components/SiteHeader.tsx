@@ -121,7 +121,6 @@ const accessoryMenuSections = [
 
 export function SiteHeader() {
   const [cartCount, setCartCount] = useState(0);
-  const [showBar, setShowBar] = useState(true);
   const [desktopMenu, setDesktopMenu] = useState<DesktopMenuKey>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -153,46 +152,6 @@ export function SiteHeader() {
 
   return (
     <div className="site-header-wrap" style={{ position: "relative", zIndex: 30 }}>
-      {showBar && (
-        <div
-          style={{
-            background: "var(--primary)",
-            color: "#fff",
-            fontSize: "0.8rem",
-            fontWeight: 600,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            padding: "6px 16px",
-            position: "relative",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <span>Use <b>COINCART5</b> for 5% off. Valid through December 31, 2026</span>
-          <button
-            onClick={() => setShowBar(false)}
-            aria-label="Dismiss"
-            style={{
-              position: "absolute",
-              right: 12,
-              top: "50%",
-              transform: "translateY(-50%)",
-              background: "none",
-              border: "none",
-              color: "rgba(255,255,255,0.7)",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              padding: 4,
-              borderRadius: 4,
-            }}
-          >
-            <X size={13} />
-          </button>
-        </div>
-      )}
-
       <header
         className="site-header"
         style={{
